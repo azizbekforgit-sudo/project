@@ -278,24 +278,74 @@ function injectStyles() {
     .delay-5 { transition-delay: 0.40s !important; }
     .delay-6 { transition-delay: 0.48s !important; }
 
-    /* ── How-card hover lift ── */
+    /* ── How-card scroll reveal — scale + fade bounce ── */
     .how-card {
       cursor: default;
-      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+      opacity: 0;
+      transform: translateY(40px) scale(0.93);
+      transition: transform 0.55s cubic-bezier(0.34,1.56,0.64,1),
+                  opacity 0.5s ease,
                   box-shadow 0.35s ease;
+    }
+    .how-card.revealed {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
     .how-card:hover {
-      transform: translateY(-6px) scale(1.03);
+      transform: translateY(-6px) scale(1.03) !important;
       box-shadow: 0 16px 40px rgba(16,185,129,0.18);
     }
-    /* tip/benefit card hover lift */
+
+    /* ── tip/benefit card scroll reveal — slide-up ── */
     .tip-card, .benefit-card {
-      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+      opacity: 0;
+      transform: translateY(32px);
+      transition: transform 0.55s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.5s ease,
                   box-shadow 0.35s ease;
     }
+    .tip-card.revealed, .benefit-card.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
     .tip-card:hover, .benefit-card:hover {
-      transform: translateY(-5px) scale(1.02);
+      transform: translateY(-5px) scale(1.02) !important;
       box-shadow: 0 14px 36px rgba(16,185,129,0.15);
+    }
+
+    /* ── Promo section scroll reveal — slide from left ── */
+    .promo {
+      opacity: 0;
+      transform: translateX(-28px);
+      transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .promo.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ── Section heading scroll reveal ── */
+    .section-head {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .section-head.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Promo Open chat button — ambient pulse glow ── */
+    .promo .btn-primary {
+      animation: promoBtnPulse 3s ease-in-out infinite;
+    }
+    @keyframes promoBtnPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.0), 0 4px 14px rgba(16,185,129,0.3); }
+      50%       { box-shadow: 0 0 0 8px rgba(16,185,129,0.12), 0 4px 24px rgba(16,185,129,0.45); }
+    }
+    .promo .btn-primary:hover {
+      animation: none;
     }
   `;
   document.head.appendChild(style);
@@ -426,11 +476,34 @@ function animateDashboard() {
 
 /* ── Scroll Reveal via IntersectionObserver ── */
 function initScrollReveal() {
-  const selectors = [
-    '.how-card', '.benefit-card', '.tip-card',
-    '.cat-card', '.product-card', '.promo', '.section-head',
+  // how-card, tip-card, benefit-card, promo, section-head get staggered delays
+  const staggerGroups = [
+    { sel: '.how-card',      baseDelay: 0 },
+    { sel: '.tip-card',      baseDelay: 0 },
+    { sel: '.benefit-card',  baseDelay: 0 },
   ];
-  selectors.forEach(sel => {
+
+  staggerGroups.forEach(({ sel, baseDelay }) => {
+    // Group cards by their parent so siblings stagger together
+    const cards = [...document.querySelectorAll(sel)];
+    const parents = new Map();
+    cards.forEach(card => {
+      const p = card.parentElement;
+      if (!parents.has(p)) parents.set(p, []);
+      parents.get(p).push(card);
+    });
+    parents.forEach(siblings => {
+      siblings.forEach((card, i) => {
+        card.style.transitionDelay = `${baseDelay + i * 0.09}s`;
+      });
+    });
+  });
+
+  // Other scroll-reveal elements (not how/tip/benefit — they already have their own classes)
+  const otherSelectors = [
+    '.cat-card', '.product-card', '.section-head',
+  ];
+  otherSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach((el, i) => {
       if (!el.classList.contains('scroll-reveal')) {
         el.classList.add('scroll-reveal');
@@ -439,6 +512,7 @@ function initScrollReveal() {
     });
   });
 
+  // Observe everything that needs reveal
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -448,7 +522,10 @@ function initScrollReveal() {
     });
   }, { threshold: 0.10, rootMargin: '0px 0px -30px 0px' });
 
-  document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale').forEach(el => obs.observe(el));
+  document.querySelectorAll(
+    '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale, ' +
+    '.how-card, .tip-card, .benefit-card, .promo, .section-head'
+  ).forEach(el => obs.observe(el));
 }
 
 async function renderHome() {
