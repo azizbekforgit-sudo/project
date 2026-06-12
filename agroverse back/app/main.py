@@ -10,7 +10,7 @@ import uvicorn
 from app.database import engine, Base, AsyncSessionLocal
 from app.config import settings
 
-from app.routers import auth, products, orders, payment, bonus, admin, ai
+from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery
 
 ADMIN_PHONE = "админ123"
 ADMIN_PASSWORD = "127845"
@@ -108,6 +108,7 @@ app.include_router(payment.router)
 app.include_router(bonus.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
+app.include_router(delivery.router)
 
 
 @app.options("/{rest_of_path:path}")

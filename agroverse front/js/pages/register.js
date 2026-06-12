@@ -49,6 +49,9 @@ function renderRegister() {
             <label class="radio-label">
               <input type="radio" name="role" value="xaridor" checked /> 🛒 ${t('role_buyer')}
             </label>
+            <label class="radio-label">
+              <input type="radio" name="role" value="courier" /> 🚴 ${t('role_courier')}
+            </label>
           </div>
         </div>
 
@@ -84,7 +87,7 @@ function renderRegister() {
   btn.addEventListener('click', async function(e) {
     e.preventDefault();
     const name = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim().replace(/\s+/g, '');
+    const phone = document.getElementById('reg-phone').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
     const roleElement = document.querySelector('input[name="role"]:checked');
@@ -115,7 +118,8 @@ function renderRegister() {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('av_user', JSON.stringify(data.user || { name, phone, role }));
         showToast('✅ ' + t('reg_success'), 'success');
-        setTimeout(() => window.location.hash = '#/home', 800);
+        const dest = role === 'courier' ? '#/courier' : '#/home';
+        setTimeout(() => window.location.hash = dest, 800);
       } else {
         showToast('✅ ' + t('reg_success'), 'success');
         setTimeout(() => router.go('/login'), 1000);

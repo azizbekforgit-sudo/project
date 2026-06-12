@@ -13,6 +13,10 @@ const ROUTES = {
   '/orders':      { render: renderOrders,     role: 'xaridor' },
   '/cart':        { render: renderCart,       role: 'xaridor' },
   '/admin':       { render: renderAdmin,      role: 'admin' },
+
+  // Доставка
+  '/delivery':    { render: renderDelivery,         auth: true },
+  '/courier':     { render: renderCourierDashboard, auth: true },
 };
 
 function getPath() {
@@ -43,9 +47,15 @@ function dispatch() {
     return;
   }
 
-  // публичные страницы — если уже залогинен, кидаем на главную
+  // публичные страницы — если уже залогинен, кидаем на главную (или курьер → /courier)
   if (route.public && Auth.isLoggedIn()) {
-    navigate('/home');
+    navigate(Auth.getRole() === 'courier' ? '/courier' : '/home');
+    return;
+  }
+
+  // курьер всегда попадает на /courier при попытке зайти на /home или /
+  if (Auth.getRole() === 'courier' && (path === '/home' || path === '/')) {
+    navigate('/courier');
     return;
   }
 

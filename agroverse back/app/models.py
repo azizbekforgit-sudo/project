@@ -11,6 +11,7 @@ class UserRole(str, enum.Enum):
     FERMER = "fermer"
     XARIDOR = "xaridor"
     ADMIN = "admin"
+    COURIER = "courier"
 
 class UserTariff(str, enum.Enum):
     STANDART = "standart"

@@ -68,17 +68,24 @@ const NAV_FARMER = [
   { path: '/home',        icon: 'fi fi-rr-home',         key: 'nav_home' },
   { path: '/market',      icon: 'fi fi-rr-shop',         key: 'nav_market' },
   { path: '/product/new', icon: 'fi fi-rr-add',          key: 'nav_add_product' },
+  { path: '/delivery',    icon: 'fi fi-rr-truck-side',   key: 'nav_delivery' },
   { path: '/wallet',      icon: 'fi fi-rr-wallet',       key: 'nav_wallet' },
   { path: '/profile',     icon: 'fi fi-rr-user',         key: 'nav_profile' },
 ];
 
 const NAV_BUYER = [
-  { path: '/home',    icon: 'fi fi-rr-home',             key: 'nav_home' },
-  { path: '/market',  icon: 'fi fi-rr-shop',             key: 'nav_market' },
-  { path: '/orders',  icon: 'fi fi-rr-box-open',         key: 'nav_orders' },
-  { path: '/cart',    icon: 'fi fi-rr-shopping-cart',    key: 'nav_cart' },
-  { path: '/wallet',  icon: 'fi fi-rr-wallet',           key: 'nav_wallet' },
-  { path: '/profile', icon: 'fi fi-rr-user',             key: 'nav_profile' },
+  { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
+  { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
+  { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
+  { path: '/delivery', icon: 'fi fi-rr-truck-side',      key: 'nav_delivery' },
+  { path: '/cart',     icon: 'fi fi-rr-shopping-cart',   key: 'nav_cart' },
+  { path: '/wallet',   icon: 'fi fi-rr-wallet',          key: 'nav_wallet' },
+  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
+];
+
+const NAV_COURIER = [
+  { path: '/courier',  icon: 'fi fi-rr-bike',            key: 'nav_courier_dashboard' },
+  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
 ];
 
 const NAV_ADMIN = [
@@ -89,6 +96,8 @@ const NAV_ADMIN = [
 
 function getNavItems() {
   if (Auth.isAdmin && Auth.isAdmin()) return NAV_ADMIN;
+  const role = Auth.getRole();
+  if (role === 'courier') return NAV_COURIER;
   return Auth.isFarmer() ? NAV_FARMER : NAV_BUYER;
 }
 
