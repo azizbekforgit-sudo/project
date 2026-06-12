@@ -367,17 +367,19 @@ input, select, textarea { font-family: inherit; }
 /* ============================================================
    HERO
    ============================================================ */
-   .hero {
-    position: relative;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    padding: clamp(48px, 7vw, 96px) clamp(28px, 5vw, 72px);
-    margin-bottom: 72px;
-    border: 1px solid rgba(16,185,129,0.2);
-    background: #020f05;
-    box-shadow: var(--shadow);
-    animation: fadeUp 0.4s ease both;
-  }
+.hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding: clamp(48px, 7vw, 96px) clamp(28px, 5vw, 72px);
+  margin-bottom: 72px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(105deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 55%, rgba(0,0,0,0.05) 100%),
+    url('../assets/hero-field.png') center/cover no-repeat;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+}
 .hero-glow {
   position: absolute; top: -30%; right: -10%;
   width: 540px; height: 540px; border-radius: 50%;

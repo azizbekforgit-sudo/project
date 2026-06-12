@@ -1,4 +1,4 @@
-/* pages/home.js — stiljli bosh sahifa (fermер va xaridor) */
+/* pages/home.js — stiljli bosh sahifa (fermer va xaridor) */
 
 const HOME_CATEGORIES = [
   { value: 'Овощи',     icon: '🥦', key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
@@ -10,15 +10,145 @@ const HOME_CATEGORIES = [
 ];
 
 const HOW_IT_WORKS = [
-  { icon: 'fi fi-sr-user-add',    key: 'how_reg' },
-  { icon: 'fi fi-sr-store-alt',   key: 'how_find' },
+  { icon: 'fi fi-sr-user-add',      key: 'how_reg' },
+  { icon: 'fi fi-sr-store-alt',     key: 'how_find' },
   { icon: 'fi fi-sr-shopping-cart', key: 'how_order' },
-  { icon: 'fi fi-sr-leaf',        key: 'how_deliver' },
+  { icon: 'fi fi-sr-leaf',          key: 'how_deliver' },
 ];
 
+/* ── Canvas hero animation ── */
+let _heroAnimId = null;
+
+function initHeroCanvas() {
+  const hero = document.querySelector('.hero.hero-fullscreen');
+  if (!hero) return;
+
+  // Remove old canvas if re-navigating
+  const old = document.getElementById('hero-canvas');
+  if (old) old.remove();
+  if (_heroAnimId) { cancelAnimationFrame(_heroAnimId); _heroAnimId = null; }
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'hero-canvas';
+  canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  hero.prepend(canvas);
+
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], rings = [];
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = r.width;
+    H = canvas.height = r.height;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  // Floating particles
+  class Particle {
+    constructor(fromBottom = false) { this.init(fromBottom); }
+    init(fromBottom = false) {
+      this.x     = rand(0, W);
+      this.y     = fromBottom ? H + rand(0, 20) : rand(0, H);
+      this.r     = rand(1, 3.5);
+      this.vx    = rand(-0.25, 0.25);
+      this.vy    = rand(-0.6, -0.15);
+      this.alpha = rand(0.15, 0.65);
+      this.da    = rand(0.0008, 0.002);
+      this.green = Math.random() > 0.4;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= this.da;
+      if (this.y < -10 || this.alpha <= 0) this.init(true);
+    }
+    draw() {
+      const color = this.green ? '74,222,128' : '16,185,129';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${color},${this.alpha})`;
+      ctx.shadowColor = `rgba(${color},0.7)`;
+      ctx.shadowBlur  = this.r * 3;
+      ctx.fill();
+    }
+  }
+
+  // Expanding rings
+  class Ring {
+    constructor() { this.reset(); }
+    reset() {
+      this.x     = rand(W * 0.1, W * 0.9);
+      this.y     = rand(H * 0.3, H * 0.85);
+      this.r     = 0;
+      this.maxR  = rand(60, 140);
+      this.alpha = 0.25;
+      this.speed = rand(0.5, 1.2);
+    }
+    update() {
+      this.r     += this.speed;
+      this.alpha  = 0.25 * (1 - this.r / this.maxR);
+      if (this.r >= this.maxR) this.reset();
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(74,222,128,${this.alpha})`;
+      ctx.lineWidth   = 1;
+      ctx.shadowColor = 'rgba(74,222,128,0.3)';
+      ctx.shadowBlur  = 8;
+      ctx.stroke();
+    }
+  }
+
+  particles = Array.from({ length: 90 }, () => new Particle());
+  rings     = Array.from({ length: 5  }, () => { const rg = new Ring(); rg.r = rand(0, rg.maxR); return rg; });
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Deep dark green background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   '#010d03');
+    bg.addColorStop(0.5, '#021a07');
+    bg.addColorStop(1,   '#010d03');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Bottom glow
+    const glow = ctx.createRadialGradient(W * 0.5, H * 0.9, 0, W * 0.5, H * 0.9, W * 0.55);
+    glow.addColorStop(0,   'rgba(16,185,129,0.14)');
+    glow.addColorStop(0.5, 'rgba(16,185,129,0.05)');
+    glow.addColorStop(1,   'transparent');
+    ctx.fillStyle = glow;
+    ctx.shadowBlur = 0;
+    ctx.fillRect(0, 0, W, H);
+
+    // Top-left accent glow
+    const glow2 = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.4);
+    glow2.addColorStop(0,   'rgba(5,150,105,0.08)');
+    glow2.addColorStop(1,   'transparent');
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 0, W, H);
+
+    // Rings first (behind particles)
+    ctx.shadowBlur = 0;
+    rings.forEach(r => { r.update(); r.draw(); });
+
+    // Particles on top
+    particles.forEach(p => { p.update(); p.draw(); });
+
+    _heroAnimId = requestAnimationFrame(loop);
+  }
+
+  loop();
+}
+
 async function renderHome() {
-  const app  = document.getElementById('app');
-  const user = Auth.getUser();
+  const app      = document.getElementById('app');
+  const user     = Auth.getUser();
   const isFarmer = Auth.isFarmer();
   const firstName = (user?.name || '').split(' ')[0] || (isFarmer ? t('farmer_word') : t('friend_word'));
 
@@ -30,11 +160,13 @@ async function renderHome() {
 
   app.innerHTML = pageShell(`
     <section class="hero v2 hero-fullscreen">
-      <div class="hero-bg-overlay"></div>
-      <div class="hero-particles" id="hero-particles"></div>
-      <div class="hero-content">
+      <!-- canvas injected by JS -->
+      <div class="hero-content" style="position:relative;z-index:2;">
         <div class="hero-badge"><i class="fi fi-sr-leaf"></i> ${t('fresh_with_field')}</div>
-        <h1 class="hero-title">${t('hi')}, <span class="hero-name-white">${firstName}</span>!<br><span class="hero-grad-green">${isFarmer ? t('sell_farm') : t('buy_farm')}</span><br>${t('no_middlemen')}</h1>
+        <h1 class="hero-title">${t('hi')}, <span class="hero-name-white">${firstName}</span>!<br>
+          <span class="hero-grad-green">${isFarmer ? t('sell_farm') : t('buy_farm')}</span><br>
+          ${t('no_middlemen')}
+        </h1>
         <p class="hero-sub">${isFarmer ? t('hero_farmer_sub') : t('hero_buyer_sub')}</p>
         <div class="hero-actions">${heroCta}</div>
         <div class="hero-stats">
@@ -43,7 +175,7 @@ async function renderHome() {
           <div class="stat"><b>0%</b><span>${t('middlemen0')}</span></div>
         </div>
       </div>
-      <div class="hero-scroll-hint">
+      <div class="hero-scroll-hint" style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:3;">
         <div class="scroll-arrow"></div>
       </div>
     </section>
@@ -77,13 +209,12 @@ async function renderHome() {
     <section class="section how-section">
       <div class="section-head"><h2>${t('how_it_works')}</h2></div>
       <div class="how-grid">
-        ${HOW_IT_WORKS.map((h,i) => `
+        ${HOW_IT_WORKS.map((h, i) => `
           <div class="how-card">
-            <div class="how-num">${i+1}</div>
+            <div class="how-num">${i + 1}</div>
             <div class="how-ic"><i class="${h.icon}"></i></div>
             <div class="how-label">${t(h.key)}</div>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
     </section>
 
@@ -109,8 +240,7 @@ async function renderHome() {
         <div class="benefit-card"><i class="fi fi-sr-bolt"></i><h4>${t('benefit_fast')}</h4><p>${t('benefit_fast_desc')}</p></div>
         <div class="benefit-card"><i class="fi fi-sr-piggy-bank"></i><h4>${t('benefit_cheap')}</h4><p>${t('benefit_cheap_desc')}</p></div>
       </div>
-    </section>
-    ` : `
+    </section>` : `
     <section class="section">
       <div class="section-head"><h2>${t('farmer_tips_title')}</h2></div>
       <div class="tips-grid">
@@ -118,16 +248,22 @@ async function renderHome() {
         <div class="tip-card"><i class="fi fi-sr-camera"></i><h4>${t('tip_photo')}</h4><p>${t('tip_photo_desc')}</p></div>
         <div class="tip-card"><i class="fi fi-sr-star"></i><h4>${t('tip_rating')}</h4><p>${t('tip_rating_desc')}</p></div>
       </div>
-    </section>
-    `}
+    </section>`}
   `);
 
+  // Start canvas animation
+  requestAnimationFrame(initHeroCanvas);
+
+  // Load products
   try {
     const products = await API.getProducts({ limit: 8 });
     document.getElementById('stat-products').textContent = products.length;
     const grid = document.getElementById('home-products');
     if (!products.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fi fi-rr-leaf" style="font-size:48px;color:var(--clr-primary)"></i><p>${t('no_products_yet')} ${isFarmer ? t('add_first') : t('come_later')}</p></div>`;
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <i class="fi fi-rr-leaf" style="font-size:48px;color:var(--clr-primary)"></i>
+        <p>${t('no_products_yet')} ${isFarmer ? t('add_first') : t('come_later')}</p>
+      </div>`;
       return;
     }
     grid.innerHTML = products.slice(0, 8).map(productCardHtml).join('');
@@ -137,18 +273,7 @@ async function renderHome() {
     if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>⚠️ ${e.message}</p></div>`;
   }
 
-  // Hero particles
-  const particlesEl = document.getElementById('hero-particles');
-  if (particlesEl) {
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('div');
-      p.className = 'hero-particle';
-      p.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*6}s;animation-duration:${4+Math.random()*5}s;width:${2+Math.random()*4}px;height:${2+Math.random()*4}px;opacity:${0.2+Math.random()*0.5}`;
-      particlesEl.appendChild(p);
-    }
-  }
-
-  // init floating AI bubble
+  // Init floating AI bubble
   setTimeout(() => { if (typeof initAIBubble === 'function') initAIBubble(); }, 200);
 }
 
