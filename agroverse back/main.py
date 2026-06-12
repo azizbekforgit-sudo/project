@@ -64,12 +64,16 @@ app = FastAPI(title="AgroVerse API", version="3.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "https://agroverse-production-4c57.up.railway.app",  # новый фронтенд
+        "https://agroversenew-production.up.railway.app",     # старый фронтенд
+        "http://localhost:3000",                               # локально
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
-    max_age=600,
 )
 
 # ─── Pydantic schemas ─────────────────────────────────────────
