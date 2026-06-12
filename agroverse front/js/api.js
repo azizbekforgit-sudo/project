@@ -1,7 +1,7 @@
 // Auto-detect: локально = localhost:8000, в проде = Railway бэк
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 // ВАЖНО: укажи актуальный URL своего Railway бэкенда здесь:
-const BACKEND_URL = 'https://fearless-learning-production-00ca.up.railway.app';
+const BACKEND_URL = 'https://graceful-harmony-production-6336.up.railway.app/';
 const BASE_URL = IS_LOCAL ? `http://localhost:8000` : BACKEND_URL;
 
 
