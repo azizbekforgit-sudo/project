@@ -288,6 +288,35 @@ function animateDashboard() {
   });
 }
 
+
+/* ── Scroll Reveal via IntersectionObserver ── */
+function initScrollReveal() {
+  // Add scroll-reveal class to key sections
+  const selectors = [
+    '.how-card', '.benefit-card', '.tip-card',
+    '.cat-card', '.product-card', '.promo', '.section-head',
+  ];
+  selectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach((el, i) => {
+      if (!el.classList.contains('scroll-reveal')) {
+        el.classList.add('scroll-reveal');
+        if (i > 0) el.classList.add(`delay-${Math.min(i, 6)}`);
+      }
+    });
+  });
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('revealed');
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale').forEach(el => obs.observe(el));
+}
+
 async function renderHome() {
   injectStyles();
 
@@ -472,6 +501,7 @@ async function renderHome() {
   `);
 
   initButtonEffects();
+  setTimeout(initScrollReveal, 50);
 
   // Trigger dashboard animations
   requestAnimationFrame(() => animateDashboard());

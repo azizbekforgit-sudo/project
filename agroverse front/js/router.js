@@ -16,7 +16,7 @@ const ROUTES = {
 
   // Доставка
   '/delivery':    { render: renderDelivery,         auth: true },
-  '/courier':     { render: renderCourierDashboard, auth: true },
+  '/yulchi':      { render: renderCourierDashboard, auth: true },
 };
 
 function getPath() {
@@ -31,7 +31,16 @@ function navigate(path) {
 function dispatch() {
   const path = getPath();
 
-  // Динамический роут товара /product/:id (кроме /product/new)
+  // Динамический роут Йўлчи /yulchi/:id
+  const yulchiMatch = path.match(/^\/yulchi\/([^/]+)$/);
+  if (yulchiMatch) {
+    if (!Auth.isLoggedIn()) { navigate('/login'); return; }
+    if (typeof renderYulchiProfile === 'function') renderYulchiProfile(yulchiMatch[1]);
+    afterRender();
+    return;
+  }
+
+    // Динамический роут товара /product/:id (кроме /product/new)
   const productMatch = path.match(/^\/product\/([^/]+)$/);
   if (productMatch && productMatch[1] !== 'new') {
     if (!Auth.isLoggedIn()) { navigate('/login'); return; }
@@ -49,13 +58,13 @@ function dispatch() {
 
   // публичные страницы — если уже залогинен, кидаем на главную (или курьер → /courier)
   if (route.public && Auth.isLoggedIn()) {
-    navigate(Auth.getRole() === 'courier' ? '/courier' : '/home');
+    navigate(Auth.getRole() === 'courier' ? '/yulchi' : '/home');
     return;
   }
 
   // курьер всегда попадает на /courier при попытке зайти на /home или /
   if (Auth.getRole() === 'courier' && (path === '/home' || path === '/')) {
-    navigate('/courier');
+    navigate('/yulchi');
     return;
   }
 

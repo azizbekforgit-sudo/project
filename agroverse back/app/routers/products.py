@@ -10,7 +10,11 @@ from app.models import User, Product, UserRole, ProductStatus, BonusTransaction
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from app.dependencies import get_current_user, get_current_fermer
 from app.config import settings
-from PIL import Image
+try:
+    from PIL import Image
+    _PIL_AVAILABLE = True
+except ImportError:
+    _PIL_AVAILABLE = False
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 

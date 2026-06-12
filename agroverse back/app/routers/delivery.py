@@ -24,7 +24,7 @@ async def get_db():
 
 class CourierProfileSetup(BaseModel):
     # Шаг 1 — транспорт
-    transport_type: str           # foot / bike / moto / car / truck
+    transport_type: str           # moto / car / truck
     max_weight: float             # кг
     has_thermo_bag: bool = False
     # Шаг 2 — зона
@@ -74,8 +74,6 @@ class AIChatMessage(BaseModel):
 # ─── Утилиты ──────────────────────────────────────────────────────────────────
 
 TARIFFS = {
-    "foot":  {"base": 3000,  "per_km": 500,  "extra_weight": 0},
-    "bike":  {"base": 5000,  "per_km": 700,  "extra_weight": 0},
     "moto":  {"base": 8000,  "per_km": 900,  "extra_weight": 1000},
     "car":   {"base": 12000, "per_km": 1200, "extra_weight": 2000},
     "truck": {"base": 25000, "per_km": 2000, "extra_weight": 0},
@@ -112,7 +110,9 @@ async def setup_courier_profile(
     data: CourierProfileSetup,
     current_user: User = Depends(get_current_user),
 ):
-    _courier_profiles[current_user.id] = data.model_dump()
+    profile_data = data.model_dump()
+    profile_data["admin_approved"] = False  # Requires admin approval before appearing in search
+    _courier_profiles[current_user.id] = profile_data
     _courier_status[current_user.id] = {"status": "offline", "lat": None, "lng": None}
     if current_user.id not in _courier_wallets:
         _courier_wallets[current_user.id] = 0.0
@@ -129,6 +129,7 @@ async def get_courier_profile(current_user: User = Depends(get_current_user)):
         "status": _courier_status.get(current_user.id, {}).get("status", "offline"),
         "rating": _get_avg_rating(current_user.id),
         "wallet": _courier_wallets.get(current_user.id, 0),
+        "admin_approved": profile.get("admin_approved", False),
     }
 
 # ─── 2. Статус курьера ────────────────────────────────────────────────────────
@@ -159,6 +160,10 @@ async def couriers_nearby(
     for uid, st in _courier_status.items():
         if st["status"] == "offline":
             continue
+        # Only show admin-approved couriers in search
+        profile_check = _courier_profiles.get(uid, {})
+        if not profile_check.get("admin_approved", False):
+            continue
         if st["lat"] is None or st["lng"] is None:
             # курьер онлайн но без координат — добавляем с 0 dist
             dist = 0
@@ -174,7 +179,7 @@ async def couriers_nearby(
 
         result.append({
             "id": uid,
-            "full_name": profile.get("full_name", f"Курьер #{uid}"),
+            "full_name": profile.get("full_name", f"Йўлчи #{uid}"),
             "transport_type": profile.get("transport_type", "car"),
             "status": st["status"],
             "lat": st["lat"],
@@ -186,7 +191,9 @@ async def couriers_nearby(
             "city": profile.get("city", ""),
             "has_thermo_bag": profile.get("has_thermo_bag", False),
             "max_weight": profile.get("max_weight", 20),
+            "experience_years": profile.get("experience_years", 0),
             "photo_url": profile.get("photo_url"),
+            "admin_approved": profile.get("admin_approved", False),
         })
 
     result.sort(key=lambda x: x["distance_km"])
@@ -386,3 +393,44 @@ async def get_courier_orders(current_user: User = Depends(get_current_user)):
 async def get_available_orders(current_user: User = Depends(get_current_user)):
     orders = [o for o in _delivery_orders.values() if o["status"] == "pending"]
     return orders
+
+# ─── Admin: одобрить/отклонить курьера ────────────────────────────────────────
+
+@router.post("/admin/couriers/{courier_id}/approve")
+async def approve_courier(
+    courier_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(403, "Только для администраторов")
+    profile = _courier_profiles.get(courier_id)
+    if not profile:
+        raise HTTPException(404, "Курьер не найден")
+    _courier_profiles[courier_id]["admin_approved"] = True
+    return {"ok": True, "message": f"Курьер #{courier_id} одобрен"}
+
+@router.post("/admin/couriers/{courier_id}/reject")
+async def reject_courier(
+    courier_id: int,
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(403, "Только для администраторов")
+    profile = _courier_profiles.get(courier_id)
+    if not profile:
+        raise HTTPException(404, "Курьер не найден")
+    _courier_profiles[courier_id]["admin_approved"] = False
+    return {"ok": True, "message": f"Курьер #{courier_id} отклонён"}
+
+@router.get("/admin/couriers/pending")
+async def get_pending_couriers(
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "admin":
+        raise HTTPException(403, "Только для администраторов")
+    result = []
+    for uid, profile in _courier_profiles.items():
+        if not profile.get("admin_approved", False):
+            result.append({"id": uid, **profile})
+    return result
+

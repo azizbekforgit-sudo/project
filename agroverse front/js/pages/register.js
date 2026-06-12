@@ -50,7 +50,7 @@ function renderRegister() {
               <input type="radio" name="role" value="xaridor" checked /> 🛒 ${t('role_buyer')}
             </label>
             <label class="radio-label">
-              <input type="radio" name="role" value="courier" /> 🚴 ${t('role_courier')}
+              <input type="radio" name="role" value="courier" id="role-courier-radio" onchange="window._onRoleCourierSelected()" /> 🚛 Йўлчи (перевозчик)
             </label>
           </div>
         </div>
@@ -118,7 +118,7 @@ function renderRegister() {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('av_user', JSON.stringify(data.user || { name, phone, role }));
         showToast('✅ ' + t('reg_success'), 'success');
-        const dest = role === 'courier' ? '#/courier' : '#/home';
+        const dest = role === 'courier' ? '#/yulchi' : '#/home';
         setTimeout(() => window.location.hash = dest, 800);
       } else {
         showToast('✅ ' + t('reg_success'), 'success');
@@ -134,5 +134,22 @@ function renderRegister() {
     }
   });
 }
+
+
+// Geolocation handler for courier/Йўлчи role
+window._onRoleCourierSelected = function() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        window._courierRegLat = pos.coords.latitude;
+        window._courierRegLng = pos.coords.longitude;
+        showToast('📍 Геолокация сохранена для профиля Йўлчи', 'success');
+      },
+      err => {
+        showToast('Геолокация не получена — можно добавить позже', 'info');
+      }
+    );
+  }
+};
 
 window.renderRegister = renderRegister;
