@@ -84,7 +84,7 @@ function renderRegister() {
   btn.addEventListener('click', async function(e) {
     e.preventDefault();
     const name = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim().replace(/\s+/g, '');
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
     const roleElement = document.querySelector('input[name="role"]:checked');
