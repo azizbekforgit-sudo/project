@@ -1,4 +1,4 @@
-/* pages/home.js — full hero + animated stats + button effects */
+/* pages/home.js — hero + scroll animations + button effects */
 
 const HOME_CATEGORIES = [
   { value: 'Овощи',    icon: '🥦', key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
@@ -86,6 +86,38 @@ function injectStyles() {
       0%,100% { transform: translateY(0) scale(1); }
       50%      { transform: translateY(-28px) scale(1.07); }
     }
+
+    /* ── Hero text word-by-word animation ── */
+    .hero-word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(28px) skewY(4deg);
+      transition: opacity 0.55s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.55s cubic-bezier(0.22,1,0.36,1);
+      will-change: opacity, transform;
+    }
+    .hero-word.in {
+      opacity: 1;
+      transform: translateY(0) skewY(0deg);
+    }
+    .hero-badge-anim {
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .hero-badge-anim.in { opacity: 1; transform: translateY(0); }
+    .hero-sub-anim {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease 0.1s, transform 0.55s ease 0.1s;
+    }
+    .hero-sub-anim.in { opacity: 1; transform: translateY(0); }
+    .hero-actions-anim {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .hero-actions-anim.in { opacity: 1; transform: translateY(0); }
 
     /* Stats entrance animation */
     .hero-stat-item {
@@ -181,6 +213,7 @@ function injectStyles() {
     .btn {
       position: relative; overflow: hidden;
       transform-style: preserve-3d;
+      transition: transform 0.35s ease, box-shadow 0.3s ease, filter 0.3s ease;
     }
     .btn::before {
       content: ''; position: absolute; inset: -2px;
@@ -192,7 +225,7 @@ function injectStyles() {
     .btn::after {
       content: ''; position: absolute;
       top: 0; left: -100%; width: 60%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
       transform: skewX(-20deg); z-index: 2;
     }
     .btn:hover::after { animation: shimmerSweep 0.55s ease forwards; }
@@ -214,13 +247,125 @@ function injectStyles() {
     }
     .btn-primary:hover {
       box-shadow: 0 0 0 3px rgba(74,222,128,0.25), 0 8px 30px rgba(16,185,129,0.5), 0 0 60px rgba(74,222,128,0.2) !important;
-      filter: brightness(1.1);
+      filter: brightness(1.08);
     }
     .btn-ghost:hover, .btn-outline:hover {
       box-shadow: 0 0 0 2px rgba(74,222,128,0.3), 0 6px 20px rgba(16,185,129,0.2) !important;
     }
+
+    /* ── Scroll reveal base ── */
+    .scroll-reveal,
+    .scroll-reveal-left,
+    .scroll-reveal-scale {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.6s cubic-bezier(0.22,1,0.36,1);
+      will-change: opacity, transform;
+    }
+    .scroll-reveal-left  { transform: translateX(-36px); }
+    .scroll-reveal-scale { transform: scale(0.9) translateY(20px); }
+    .scroll-reveal.revealed,
+    .scroll-reveal-left.revealed,
+    .scroll-reveal-scale.revealed {
+      opacity: 1;
+      transform: translateY(0) translateX(0) scale(1);
+    }
+    .delay-1 { transition-delay: 0.08s !important; }
+    .delay-2 { transition-delay: 0.16s !important; }
+    .delay-3 { transition-delay: 0.24s !important; }
+    .delay-4 { transition-delay: 0.32s !important; }
+    .delay-5 { transition-delay: 0.40s !important; }
+    .delay-6 { transition-delay: 0.48s !important; }
+
+    /* ── How-card hover lift ── */
+    .how-card {
+      cursor: default;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.35s ease;
+    }
+    .how-card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 16px 40px rgba(16,185,129,0.18);
+    }
+    /* tip/benefit card hover lift */
+    .tip-card, .benefit-card {
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.35s ease;
+    }
+    .tip-card:hover, .benefit-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 14px 36px rgba(16,185,129,0.15);
+    }
   `;
   document.head.appendChild(style);
+}
+
+/* ── Hero text word-by-word entrance ── */
+function animateHeroText() {
+  // Badge
+  const badge = document.querySelector('.hero-badge-anim');
+  if (badge) setTimeout(() => badge.classList.add('in'), 100);
+
+  // H1 words — each span.hero-word appears sequentially
+  const words = document.querySelectorAll('.hero-word');
+  words.forEach((w, i) => {
+    setTimeout(() => w.classList.add('in'), 250 + i * 80);
+  });
+
+  // Sub paragraph
+  const sub = document.querySelector('.hero-sub-anim');
+  if (sub) {
+    const delay = 250 + words.length * 80 + 80;
+    setTimeout(() => sub.classList.add('in'), delay);
+  }
+
+  // Actions (buttons)
+  const actions = document.querySelector('.hero-actions-anim');
+  if (actions) {
+    const delay = 250 + words.length * 80 + 200;
+    setTimeout(() => actions.classList.add('in'), delay);
+  }
+
+  // Stats
+  document.querySelectorAll('.hero-stat-item').forEach((el, i) => {
+    const delay = 400 + words.length * 80 + i * 150;
+    setTimeout(() => el.classList.add('visible'), delay);
+  });
+}
+
+/* ── Split h1 text into .hero-word spans ── */
+function splitHeroH1() {
+  const h1 = document.querySelector('.hero-content h1');
+  if (!h1) return;
+
+  // We need to split text nodes only, preserving <span> children
+  const processNode = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const words = node.textContent.split(/(\s+)/);
+      const frag = document.createDocumentFragment();
+      words.forEach(word => {
+        if (/^\s+$/.test(word)) {
+          frag.appendChild(document.createTextNode(word));
+        } else if (word) {
+          const span = document.createElement('span');
+          span.className = 'hero-word';
+          span.textContent = word;
+          frag.appendChild(span);
+        }
+      });
+      node.parentNode.replaceChild(frag, node);
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
+      // wrap the whole span as one word unit
+      const wrapper = document.createElement('span');
+      wrapper.className = 'hero-word';
+      node.parentNode.insertBefore(wrapper, node);
+      wrapper.appendChild(node);
+    }
+  };
+
+  // Clone children list (live list changes during iteration)
+  [...h1.childNodes].forEach(processNode);
 }
 
 /* ── Button magnetic + ripple + 3D tilt ── */
@@ -264,34 +409,23 @@ function initButtonEffects() {
 
 /* ── Animate dashboard after render ── */
 function animateDashboard() {
-  // Dashboard card entrance
   const dash = document.querySelector('.hero-dashboard');
   if (dash) setTimeout(() => dash.classList.add('visible'), 100);
 
-  // Tiles staggered
   document.querySelectorAll('.dash-tile').forEach((tile, i) => {
     setTimeout(() => tile.classList.add('visible'), 300 + i * 100);
   });
 
-  // Bars staggered
   document.querySelectorAll('.dash-bar').forEach((bar, i) => {
     setTimeout(() => bar.classList.add('visible'), 500 + i * 40);
   });
 
-  // Footer
   const footer = document.querySelector('.dash-footer');
   if (footer) setTimeout(() => footer.classList.add('visible'), 900);
-
-  // Stats counters staggered
-  document.querySelectorAll('.hero-stat-item').forEach((el, i) => {
-    setTimeout(() => el.classList.add('visible'), 400 + i * 150);
-  });
 }
-
 
 /* ── Scroll Reveal via IntersectionObserver ── */
 function initScrollReveal() {
-  // Add scroll-reveal class to key sections
   const selectors = [
     '.how-card', '.benefit-card', '.tip-card',
     '.cat-card', '.product-card', '.promo', '.section-head',
@@ -312,7 +446,7 @@ function initScrollReveal() {
         obs.unobserve(e.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.10, rootMargin: '0px 0px -30px 0px' });
 
   document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale').forEach(el => obs.observe(el));
 }
@@ -344,7 +478,7 @@ async function renderHome() {
 
       <div class="hero-light-inner">
         <div class="hero-content">
-          <div class="hero-badge" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#059669;">
+          <div class="hero-badge hero-badge-anim" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#059669;">
             <i class="fi fi-sr-leaf"></i> ${t('fresh_with_field')}
           </div>
           <h1 style="font-family:var(--font-display);font-size:clamp(36px,5vw,62px);font-weight:800;line-height:1.05;letter-spacing:-1.5px;color:#0f1f12;margin:16px 0 18px;">
@@ -354,10 +488,10 @@ async function renderHome() {
             </span><br>
             <span style="color:#0f1f12;">${t('no_middlemen')}</span>
           </h1>
-          <p style="color:#4b7a5a;font-size:17px;margin-bottom:28px;max-width:500px;line-height:1.6;">
+          <p class="hero-sub-anim" style="color:#4b7a5a;font-size:17px;margin-bottom:28px;max-width:500px;line-height:1.6;">
             ${isFarmer ? t('hero_farmer_sub') : t('hero_buyer_sub')}
           </p>
-          <div class="hero-actions">${heroCta}</div>
+          <div class="hero-actions hero-actions-anim">${heroCta}</div>
 
           <div style="display:flex;gap:40px;margin-top:44px;flex-wrap:wrap;">
             <div class="hero-stat-item">
@@ -500,10 +634,16 @@ async function renderHome() {
     </section>`}
   `);
 
-  initButtonEffects();
-  setTimeout(initScrollReveal, 50);
+  // Split h1 words and trigger hero animations
+  splitHeroH1();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => animateHeroText());
+  });
 
-  // Trigger dashboard animations
+  initButtonEffects();
+  setTimeout(initScrollReveal, 80);
+
+  // Dashboard animations
   requestAnimationFrame(() => animateDashboard());
 
   // Animate dashboard tile counters
@@ -522,14 +662,11 @@ async function renderHome() {
   try {
     const products = await API.getProducts({ limit: 8 });
 
-    // Animate real stat counters
     animateCounter(document.getElementById('stat-products'), products.length, 1200);
     animateCounter(document.getElementById('stat-100'), 100, 1400, '%');
-    // stat-0 stays 0% — animate to 0
     const s0 = document.getElementById('stat-0');
     if (s0) s0.textContent = '0%';
 
-    // Dashboard tile 1 — real product count
     if (isFarmer) {
       const dv1 = document.getElementById('dash-val-1');
       if (dv1) { let n = 0; const iv = setInterval(() => { n++; dv1.textContent = `${n} ta`; if(n >= products.length) clearInterval(iv); }, Math.max(10, 800/products.length)); }
@@ -544,6 +681,8 @@ async function renderHome() {
       return;
     }
     grid.innerHTML = products.slice(0, 8).map(productCardHtml).join('');
+    // Reveal product cards after they render
+    setTimeout(initScrollReveal, 50);
   } catch (e) {
     if (e.message === 'BLOCKED') return;
     const grid = document.getElementById('home-products');
