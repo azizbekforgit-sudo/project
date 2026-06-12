@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import os
@@ -9,7 +9,6 @@ import uvicorn
 
 from app.database import engine, Base, AsyncSessionLocal
 from app.config import settings
-
 from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery
 
 ADMIN_PHONE = "админ123"
@@ -44,10 +43,12 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
+        except Exception:
+            pass
     await seed_admin()
     print("🌾 AgroVerse API запущен")
-    print("✅ CORS настроен для Railway")
     yield
     await engine.dispose()
 
@@ -55,7 +56,40 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
 
-# Кастомный обработчик ошибок валидации — без бинарных данных
+# ── 1. CORS Middleware (добавляется первым = выполняется последним в стеке) ───
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
+)
+
+
+# ── 2. Force-CORS middleware (добавляется вторым = выполняется первым) ────────
+# Перехватывает OPTIONS preflight ДО любой авторизации
+@app.middleware("http")
+async def force_cors(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return Response(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Origin, X-Requested-With",
+                "Access-Control-Max-Age": "600",
+            },
+        )
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept, Origin, X-Requested-With"
+    return response
+
+
+# ── 3. Обработчик ошибок валидации — добавляем CORS и в 422 ──────────────────
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -68,39 +102,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         headers={"Access-Control-Allow-Origin": "*"},
-        content={"detail": errors}
+        content={"detail": errors},
     )
 
 
-# CORS — разрешаем всё для Railway деплоя
-CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-}
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,
-)
-
-
-@app.middleware("http")
-async def add_cors_to_errors(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
-
+# ── Статика ───────────────────────────────────────────────────────────────────
 os.makedirs(settings.upload_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
+
+# ── Роуторы ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(orders.router)
@@ -111,10 +122,9 @@ app.include_router(ai.router)
 app.include_router(delivery.router)
 
 
+# ── OPTIONS catch-all (на случай если CORSMiddleware пропустит) ───────────────
 @app.options("/{rest_of_path:path}")
 async def preflight_handler(rest_of_path: str):
-    """Handle CORS preflight for all routes (browser sends OPTIONS before POST with auth headers)"""
-    from fastapi.responses import Response
     return Response(
         status_code=200,
         headers={
@@ -122,7 +132,7 @@ async def preflight_handler(rest_of_path: str):
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
             "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Origin, X-Requested-With",
             "Access-Control-Max-Age": "600",
-        }
+        },
     )
 
 
