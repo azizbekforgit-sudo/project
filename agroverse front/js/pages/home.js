@@ -538,20 +538,24 @@ function initScrollReveal() {
     });
   });
 
+  const allRevealEls = document.querySelectorAll(
+    '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale, ' +
+    '.how-card, .tip-card, .benefit-card, .promo, .section-head'
+  );
+
   // Observe everything — с поддержкой fade-out при уходе вверх
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        // Элемент входит в зону — показываем
         e.target.classList.add('revealed');
         e.target.classList.remove('fade-out');
       } else {
         const rect = e.target.getBoundingClientRect();
         if (rect.bottom < 0) {
-          // Элемент ушёл вверх — затухаем (но не сбрасываем revealed)
+          // Ушёл вверх — затухаем
           e.target.classList.add('fade-out');
         } else {
-          // Элемент ещё не дошёл снизу — сброс для повторной анимации
+          // Ещё ниже экрана — сброс для повторной анимации при скролле
           e.target.classList.remove('revealed');
           e.target.classList.remove('fade-out');
         }
@@ -559,10 +563,18 @@ function initScrollReveal() {
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-  document.querySelectorAll(
-    '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale, ' +
-    '.how-card, .tip-card, .benefit-card, .promo, .section-head'
-  ).forEach(el => obs.observe(el));
+  allRevealEls.forEach(el => {
+    // Если элемент уже виден при загрузке — сразу показываем без анимации
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      el.style.transitionDuration = '0s';
+      el.classList.add('revealed');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { el.style.transitionDuration = ''; });
+      });
+    }
+    obs.observe(el);
+  });
 }
 
 async function renderHome() {
