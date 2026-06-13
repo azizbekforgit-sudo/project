@@ -1,1480 +1,1545 @@
-/* ============================================================
-   delivery.js — Модуль Доставки AgroVerse v2.0
-   - /delivery   — поиск Йўлчи (для покупателя/фермера)
-   - /yulchi     — дашборд Йўлчи
-   - /yulchi/:id — публичный профиль Йўлчи
-   ============================================================ */
+/* pages/delivery.js — Йўлчи (Курьер) дашборд AgroVerse
+   Sidebar: Главная | Заказы | Карта | Тарифы | ИИ | Кошелёк | Рынок | Профиль
+   Onboarding: только грузовые типы транспорта
+   Admin approval flow: после регистрации показывает pending banner
+*/
 
-// ─── Leaflet + Routing Machine lazy loader ───────────────────────────────────
-async function ensureLeaflet() {
-  if (window.L && window.L.Routing) return;
-  await new Promise((res, rej) => {
-    const loaded = [];
-    const done = () => { if (loaded.length >= 2) res(); };
+// ─── Константы ────────────────────────────────────────────────────────────────
 
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css'; link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-    if (!document.getElementById('lrm-css')) {
-      const link = document.createElement('link');
-      link.id = 'lrm-css'; link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css';
-      document.head.appendChild(link);
-    }
+const TRUCK_TYPES = [
+  { id: 'fura',       label: 'Фура',         icon: '🚛', desc: 'Тяжёлый грузовик до 20т' },
+  { id: 'refrig',     label: 'Рефрижератор', icon: '❄️',  desc: 'Рефрижератор, до 10т' },
+  { id: 'tentovan',   label: 'Тентованный',  icon: '🚚', desc: 'Тент-фургон, до 15т' },
+  { id: 'samosval',   label: 'Самосвал',     icon: '🚜', desc: 'Самосвал, до 25т' },
+  { id: 'bortovoy',   label: 'Бортовой',     icon: '🚐', desc: 'Бортовой грузовик, до 8т' },
+];
 
-    function loadScript(id, src, cb) {
-      if (document.getElementById(id)) { cb(); return; }
-      const s = document.createElement('script');
-      s.id = id; s.src = src;
-      s.onload = cb; s.onerror = rej;
-      document.head.appendChild(s);
-    }
+const SECTIONS = [
+  { id: 'home',    icon: '🏠', label: 'Главная' },
+  { id: 'orders',  icon: '📦', label: 'Заказы' },
+  { id: 'map',     icon: '🗺️', label: 'Карта' },
+  { id: 'tariffs', icon: '💳', label: 'Тарифы' },
+  { id: 'ai',      icon: '🤖', label: 'ИИ' },
+  { id: 'wallet',  icon: '💰', label: 'Кошелёк' },
+  { id: 'market',  icon: '🛒', label: 'Рынок' },
+  { id: 'profile', icon: '👤', label: 'Профиль' },
+];
 
-    loadScript('leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', () => {
-      loaded.push(1); done();
-      loadScript('lrm-js', 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js', () => {
-        loaded.push(2); done();
-      });
-    });
-  });
-}
+// ─── State ────────────────────────────────────────────────────────────────────
 
-// ─── Transport config (no foot/bike) ─────────────────────────────────────────
-const TRANSPORT_ICONS = { moto:'🛵', car:'🚗', truck:'🚐' };
-const TRANSPORT_LABELS = { moto:'Мотоцикл', car:'Автомобиль', truck:'Грузовик' };
-const TARIFFS_FE = {
-  moto:  { base: 8000,  per_km: 900,  extra_weight: 1000 },
-  car:   { base: 12000, per_km: 1200, extra_weight: 2000 },
-  truck: { base: 25000, per_km: 2000, extra_weight: 0 },
+let _deliveryState = {
+  section: 'home',
+  profile: null,
+  orders: [],
+  wallet: { balance: 0, history: [] },
+  aiMessages: [],
+  onboarding: {
+    step: 0,      // 0=transport 1=zone 2=docs
+    transport_type: '',
+    max_weight: 5000,
+    has_thermo_bag: false,
+    experience_years: 0,
+    city: '',
+    radius_km: 50,
+    work_mode: 'flexible',
+    work_hours: '08:00-20:00',
+    full_name: '',
+    phone: '',
+    vehicle_number: '',
+    bio: '',
+  },
+  mapInstance: null,
 };
 
-// ─── Confetti ────────────────────────────────────────────────────────────────
-function launchConfetti() {
-  const colors = ['#10b981','#4ade80','#059669','#fbbf24','#3b82f6'];
-  for (let i = 0; i < 80; i++) {
-    const el = document.createElement('div');
-    el.style.cssText = `
-      position:fixed;top:${Math.random()*30}%;left:${Math.random()*100}%;
-      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      border-radius:${Math.random()>0.5?'50%':'2px'};
-      z-index:99999;pointer-events:none;
-      animation:confettiFall ${1.5+Math.random()*2}s ease-out forwards;
-      animation-delay:${Math.random()*0.5}s;`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3500);
-  }
-  if (!document.getElementById('confetti-style')) {
-    const s = document.createElement('style');
-    s.id = 'confetti-style';
-    s.textContent = `@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}`;
-    document.head.appendChild(s);
-  }
-}
+// ─── Entry point ──────────────────────────────────────────────────────────────
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-function injectDeliveryStyles() {
-  if (document.getElementById('av-delivery-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'av-delivery-styles';
-  s.textContent = `
-  /* ── Онбординг ── */
-  .onboarding-page { max-width:600px;margin:0 auto; }
-  .onb-progress { display:flex;gap:8px;margin-bottom:32px; }
-  .onb-step-dot { flex:1;height:4px;border-radius:2px;background:rgba(16,185,129,0.2);transition:background 0.3s; }
-  .onb-step-dot.active { background:#10b981; }
-  .onb-card { background:#fff;border:1px solid rgba(16,185,129,0.15);border-radius:20px;padding:32px;box-shadow:0 8px 32px rgba(16,185,129,0.08); }
-  .onb-card h3 { font-size:22px;font-weight:800;color:#0f1f12;margin-bottom:8px; }
-  .onb-card .sub { color:#6b7280;margin-bottom:28px; }
-
-  /* Transport grid (3 items only) */
-  .transport-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px; }
-  .transport-btn {
-    display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;
-    border-radius:14px;border:2px solid rgba(16,185,129,0.2);background:#f0fdf4;
-    cursor:pointer;transition:all 0.2s;font-size:12px;font-weight:600;color:#374151;
-  }
-  .transport-btn .t-icon { font-size:32px; }
-  .transport-btn:hover,.transport-btn.sel { border-color:#10b981;background:rgba(16,185,129,0.1);color:#059669; }
-
-  .onb-field { margin-bottom:16px; }
-  .onb-field label { font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px; }
-  .onb-field input,.onb-field select,.onb-field textarea {
-    width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid rgba(16,185,129,0.2);
-    background:#fff;font-size:14px;color:#0f1f12;outline:none;box-sizing:border-box;transition:border-color 0.2s;
-  }
-  .onb-field input:focus,.onb-field select:focus,.onb-field textarea:focus { border-color:#10b981; }
-  .onb-field textarea { resize:vertical;min-height:80px; }
-  .onb-toggle-wrap { display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#f0fdf4;border-radius:12px;border:1px solid rgba(16,185,129,0.15); }
-  .toggle-switch { position:relative;width:44px;height:24px; }
-  .toggle-switch input { opacity:0;width:0;height:0; }
-  .toggle-slider { position:absolute;inset:0;cursor:pointer;background:#d1d5db;border-radius:24px;transition:0.3s; }
-  .toggle-slider::before { content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;top:3px;transition:0.3s; }
-  input:checked+.toggle-slider { background:#10b981; }
-  input:checked+.toggle-slider::before { transform:translateX(20px); }
-  .onb-actions { display:flex;gap:12px;justify-content:flex-end;margin-top:24px; }
-
-  /* Pending approval banner */
-  .pending-banner {
-    background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);
-    border-radius:14px;padding:18px 20px;margin-bottom:20px;
-    display:flex;align-items:center;gap:12px;
-  }
-  .pending-banner .pb-icon { font-size:28px; }
-  .pending-banner p { color:#92400e;font-size:14px;line-height:1.5;margin:0; }
-  .pending-banner strong { color:#78350f; }
-
-  /* ── Courier Dashboard ── */
-  .courier-layout { display:flex;gap:0;min-height:calc(100vh - 140px); }
-  .courier-sidebar {
-    width:220px;flex-shrink:0;background:#fff;
-    border-right:1px solid rgba(16,185,129,0.15);
-    border-radius:16px 0 0 16px;padding:20px 0;
-  }
-  .cs-logo { padding:0 20px 20px;font-size:18px;font-weight:800;color:#0f1f12;border-bottom:1px solid rgba(16,185,129,0.1);margin-bottom:12px; }
-  .cs-nav-item {
-    display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;
-    font-size:13px;font-weight:500;color:#6b7280;transition:all 0.15s;border-left:3px solid transparent;
-  }
-  .cs-nav-item:hover { background:rgba(16,185,129,0.05);color:#059669; }
-  .cs-nav-item.active { background:rgba(16,185,129,0.08);color:#059669;border-left-color:#10b981;font-weight:600; }
-  .courier-content { flex:1;padding:24px;overflow:auto; }
-
-  /* Online toggle */
-  .online-toggle-bar {
-    display:flex;align-items:center;justify-content:space-between;
-    background:#fff;border:1px solid rgba(16,185,129,0.15);
-    border-radius:14px;padding:16px 20px;margin-bottom:20px;
-    box-shadow:0 2px 12px rgba(16,185,129,0.06);
-  }
-  .status-dot { width:10px;height:10px;border-radius:50%;background:#d1d5db; }
-  .status-dot.online { background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.2); }
-  .status-dot.busy { background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.2); }
-
-  /* Stats row */
-  .courier-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
-  .cstat-card { background:#fff;border:1px solid rgba(16,185,129,0.12);border-radius:14px;padding:16px;box-shadow:0 2px 12px rgba(16,185,129,0.04); }
-  .cstat-label { font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px; }
-  .cstat-value { font-size:26px;font-weight:800;color:#0f1f12;line-height:1; }
-  .cstat-sub { font-size:11px;color:#6b7280;margin-top:4px; }
-
-  /* Orders list */
-  .courier-orders-list { display:flex;flex-direction:column;gap:12px; }
-  .courier-order-card {
-    background:#fff;border:1px solid rgba(16,185,129,0.12);
-    border-radius:14px;padding:18px;display:flex;gap:16px;align-items:flex-start;transition:box-shadow 0.2s;
-  }
-  .courier-order-card:hover { box-shadow:0 4px 20px rgba(16,185,129,0.1); }
-  .order-status-badge { padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap; }
-  .badge-pending   { background:rgba(245,158,11,0.1);color:#d97706; }
-  .badge-accepted  { background:rgba(59,130,246,0.1);color:#2563eb; }
-  .badge-in_transit{ background:rgba(16,185,129,0.1);color:#059669; }
-  .badge-delivered { background:rgba(16,185,129,0.15);color:#059669; }
-  .badge-cancelled { background:rgba(239,68,68,0.1);color:#dc2626; }
-
-  /* ── Delivery Search Page ── */
-  .delivery-page { display:grid;grid-template-columns:380px 1fr;gap:20px;min-height:70vh; }
-  @media(max-width:900px){ .delivery-page { grid-template-columns:1fr; } }
-  .delivery-panel {
-    background:#fff;border:1px solid rgba(16,185,129,0.15);
-    border-radius:16px;padding:24px;
-    box-shadow:0 4px 24px rgba(16,185,129,0.06);
-    display:flex;flex-direction:column;gap:16px;
-    max-height:90vh;overflow-y:auto;
-  }
-  .delivery-map-wrap { border-radius:16px;overflow:hidden;border:1px solid rgba(16,185,129,0.15);min-height:500px; }
-  #delivery-map { width:100%;height:100%;min-height:500px; }
-  .radius-slider { width:100%;accent-color:#10b981; }
-
-  /* Courier card in list */
-  .yulchi-card {
-    display:flex;align-items:center;gap:12px;padding:13px 14px;
-    border:1.5px solid rgba(16,185,129,0.15);border-radius:12px;
-    cursor:pointer;transition:all 0.2s;background:#fff;position:relative;
-  }
-  .yulchi-card:hover,.yulchi-card.selected { border-color:#10b981;background:rgba(16,185,129,0.04); }
-  .yulchi-avatar {
-    width:44px;height:44px;border-radius:50%;
-    background:linear-gradient(135deg,#10b981,#059669);
-    display:grid;place-items:center;color:#fff;font-size:20px;flex-shrink:0;
-  }
-  .yulchi-info { flex:1;min-width:0; }
-  .yulchi-name { font-size:14px;font-weight:700;color:#0f1f12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .yulchi-meta { font-size:11px;color:#6b7280;margin-top:3px; }
-  .yulchi-dist-badge {
-    position:absolute;top:10px;right:12px;
-    background:#10b981;color:#fff;
-    font-size:10px;font-weight:700;
-    padding:3px 8px;border-radius:20px;
-  }
-  .stars { color:#fbbf24;font-size:12px;letter-spacing:1px; }
-
-  /* Route options */
-  .route-options { display:flex;gap:8px;margin-bottom:12px; }
-  .route-opt-btn {
-    flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(16,185,129,0.2);
-    background:#f0fdf4;cursor:pointer;text-align:center;
-    font-size:12px;font-weight:600;color:#374151;transition:all 0.2s;
-  }
-  .route-opt-btn:hover,.route-opt-btn.active { border-color:#10b981;background:rgba(16,185,129,0.1);color:#059669; }
-  .route-opt-btn .ro-label { font-size:10px;color:#9ca3af;display:block;margin-top:2px; }
-
-  /* Order modal */
-  .order-modal-overlay {
-    position:fixed;inset:0;background:rgba(0,0,0,0.5);
-    z-index:9000;display:flex;align-items:center;justify-content:center;
-    backdrop-filter:blur(4px);
-  }
-  .order-modal {
-    background:#fff;border-radius:20px;padding:32px;
-    max-width:500px;width:95%;max-height:90vh;overflow-y:auto;
-    box-shadow:0 24px 64px rgba(16,185,129,0.2);
-    animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  @keyframes popIn { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
-  .price-breakdown {
-    background:#f0fdf4;border-radius:12px;padding:16px;
-    margin:16px 0;border:1px solid rgba(16,185,129,0.15);
-  }
-  .pb-row { display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:6px; }
-  .pb-total { display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#0f1f12;margin-top:8px;padding-top:8px;border-top:1px solid rgba(16,185,129,0.2); }
-
-  /* Yulchi profile modal */
-  .yulchi-profile-modal {
-    background:#fff;border-radius:24px;padding:36px;
-    max-width:460px;width:95%;max-height:90vh;overflow-y:auto;
-    box-shadow:0 24px 64px rgba(16,185,129,0.25);
-    animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .yp-avatar-big {
-    width:80px;height:80px;border-radius:50%;margin:0 auto 16px;
-    background:linear-gradient(135deg,#10b981,#059669);
-    display:grid;place-items:center;font-size:36px;
-    box-shadow:0 8px 24px rgba(16,185,129,0.3);
-  }
-  .yp-stat { text-align:center;padding:12px; }
-  .yp-stat-val { font-size:22px;font-weight:800;color:#0f1f12; }
-  .yp-stat-lbl { font-size:11px;color:#9ca3af;margin-top:2px; }
-
-  /* Map markers */
-  .yulchi-marker {
-    width:36px;height:36px;border-radius:50%;
-    display:grid;place-items:center;font-size:18px;
-    border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;
-  }
-  .yulchi-marker.online { background:#10b981; }
-  .yulchi-marker.busy   { background:#f59e0b; }
-
-  /* Rating popup */
-  .rating-popup {
-    position:fixed;bottom:80px;right:24px;z-index:9000;
-    background:#fff;border-radius:16px;padding:24px;
-    box-shadow:0 12px 48px rgba(16,185,129,0.2);max-width:320px;
-    animation:slideInRight 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  @keyframes slideInRight { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
-  .star-row { display:flex;gap:8px;justify-content:center;margin:12px 0; }
-  .star-btn { font-size:32px;cursor:pointer;transition:transform 0.15s; }
-  .star-btn:hover,.star-btn.active { transform:scale(1.3); }
-
-  /* Wallet */
-  .wallet-card-courier { background:linear-gradient(135deg,#10b981,#059669);border-radius:20px;padding:28px;color:#fff;margin-bottom:20px; }
-  .wc-balance { font-size:40px;font-weight:800;margin:8px 0; }
-  .history-item { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(16,185,129,0.08); }
-  .hi-icon { width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px; }
-  .hi-icon.income   { background:rgba(16,185,129,0.1);color:#059669; }
-  .hi-icon.withdraw { background:rgba(239,68,68,0.1);color:#dc2626; }
-
-  /* AI chat */
-  .courier-ai-wrap { display:flex;flex-direction:column;height:500px; }
-  .courier-ai-messages { flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:16px 0;margin-bottom:12px; }
-  .ai-msg { max-width:80%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.5; }
-  .ai-msg.user { background:#10b981;color:#fff;align-self:flex-end;border-radius:16px 16px 4px 16px; }
-  .ai-msg.bot  { background:#f0fdf4;color:#0f1f12;border:1px solid rgba(16,185,129,0.15);align-self:flex-start;border-radius:16px 16px 16px 4px; }
-  .ai-input-row { display:flex;gap:10px; }
-  .ai-input-row input { flex:1;padding:12px 16px;border-radius:12px;border:1.5px solid rgba(16,185,129,0.2);outline:none;font-size:14px; }
-  .ai-input-row input:focus { border-color:#10b981; }
-
-  @media(max-width:700px){
-    .courier-layout { flex-direction:column; }
-    .courier-sidebar { width:100%;border-radius:16px 16px 0 0;padding:12px 0; }
-    .courier-stats { grid-template-columns:repeat(2,1fr); }
-  }
-  `;
-  document.head.appendChild(s);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// СТРАНИЦА ПОИСКА ЙЎЛЧИ (/delivery)
-// ─────────────────────────────────────────────────────────────────────────────
 async function renderDelivery() {
-  injectDeliveryStyles();
   const app = document.getElementById('app');
-
-  app.innerHTML = pageShell(`
-    <div style="margin-bottom:24px;">
-      <h1 style="font-size:28px;font-weight:800;color:#0f1f12;margin-bottom:6px;">
-        <i class="fi fi-rr-truck-side" style="color:#10b981;"></i> Найти Йўлчи
-      </h1>
-      <p style="color:#6b7280;">Выберите точку отправки, укажите радиус и нажмите «Найти»</p>
-    </div>
-
-    <div class="delivery-page">
-      <!-- Левая панель -->
-      <div class="delivery-panel">
-        <div>
-          <label style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Адрес отправки</label>
-          <div style="display:flex;gap:8px;">
-            <input id="pickup-addr" type="text" placeholder="Введите адрес или кликните на карте"
-              style="flex:1;padding:11px 14px;border-radius:10px;border:1.5px solid rgba(16,185,129,0.2);outline:none;font-size:13px;"
-              oninput="window._deliveryAddrInput(this.value)" />
-            <button class="btn btn-primary" style="padding:0 14px;" onclick="window._deliveryGeo()" title="Моя геолокация">
-              <i class="fi fi-rr-location-crosshairs"></i>
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <label style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Радиус поиска</label>
-            <span id="radius-label" style="font-size:13px;font-weight:700;color:#059669;">10 км</span>
-          </div>
-          <input class="radius-slider" type="range" min="1" max="200" value="10" id="radius-input"
-            oninput="window._deliveryRadiusChange(this.value)" />
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-top:2px;"><span>1 км</span><span>200 км</span></div>
-        </div>
-
-        <button class="btn btn-primary" style="width:100%;" onclick="window._deliverySearch()">
-          <i class="fi fi-rr-search"></i> Найти Йўлчи
-        </button>
-
-        <div id="couriers-list" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;">
-          <div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px;">
-            <i class="fi fi-rr-truck-side" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.3;"></i>
-            Введите адрес и нажмите «Найти»
-          </div>
-        </div>
-      </div>
-
-      <!-- Карта -->
-      <div class="delivery-map-wrap">
-        <div id="delivery-map"></div>
-      </div>
-    </div>
-  `);
-
-  await ensureLeaflet();
-  window._deliveryMap = L.map('delivery-map').setView([41.2995, 69.2401], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(window._deliveryMap);
-
-  let _pickupMarker = null;
-  let _radiusCircle = null;
-  let _courierMarkers = [];
-  let _routeControl = null;
-  let _pickupLat = 41.2995, _pickupLng = 69.2401;
-  let _radius = 10;
-  let _selectedCourier = null;
-
-  window._deliveryAddrInput = function(val) {
-    clearTimeout(window._addrTimer);
-    window._addrTimer = setTimeout(async () => {
-      if (val.length < 4) return;
-      try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1`);
-        const d = await r.json();
-        if (d[0]) {
-          _pickupLat = parseFloat(d[0].lat);
-          _pickupLng = parseFloat(d[0].lon);
-          _updatePickupMarker();
-        }
-      } catch(e) {}
-    }, 600);
-  };
-
-  window._deliveryGeo = function() {
-    if (!navigator.geolocation) return showToast('Геолокация недоступна', 'warn');
-    navigator.geolocation.getCurrentPosition(pos => {
-      _pickupLat = pos.coords.latitude;
-      _pickupLng = pos.coords.longitude;
-      _updatePickupMarker();
-      document.getElementById('pickup-addr').value = `${_pickupLat.toFixed(4)}, ${_pickupLng.toFixed(4)}`;
-    }, () => showToast('Не удалось получить геолокацию', 'warn'));
-  };
-
-  window._deliveryRadiusChange = function(val) {
-    _radius = parseInt(val);
-    document.getElementById('radius-label').textContent = `${_radius} км`;
-    if (_radiusCircle) _radiusCircle.setRadius(_radius * 1000);
-  };
-
-  function _updatePickupMarker() {
-    if (_pickupMarker) _pickupMarker.remove();
-    _pickupMarker = L.marker([_pickupLat, _pickupLng], {
-      icon: L.divIcon({
-        html: '<div style="background:#10b981;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
-        className:'', iconSize:[18,18], iconAnchor:[9,9]
-      })
-    }).addTo(window._deliveryMap).bindPopup('<b>Точка отправки</b>');
-
-    if (_radiusCircle) _radiusCircle.remove();
-    _radiusCircle = L.circle([_pickupLat, _pickupLng], {
-      radius: _radius * 1000,
-      color:'#10b981', fillColor:'#10b981', fillOpacity:0.07, weight:2
-    }).addTo(window._deliveryMap);
-
-    window._deliveryMap.setView([_pickupLat, _pickupLng], _radius > 50 ? 9 : 12);
+  if (!Auth.isLoggedIn || !Auth.isLoggedIn()) {
+    if (window.router) router.go('/login');
+    return;
   }
 
-  window._deliveryMap.on('click', e => {
-    _pickupLat = e.latlng.lat;
-    _pickupLng = e.latlng.lng;
-    document.getElementById('pickup-addr').value = `${_pickupLat.toFixed(4)}, ${_pickupLng.toFixed(4)}`;
-    _updatePickupMarker();
+  app.innerHTML = `<div class="spinner" style="margin:40px auto;display:block;"></div>`;
+
+  // Попробовать загрузить профиль
+  try {
+    const profile = await API.getCourierProfile().catch(() => null);
+    _deliveryState.profile = profile;
+  } catch (_) {}
+
+  if (!_deliveryState.profile) {
+    _renderOnboarding();
+  } else {
+    _renderDashboard();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function _renderOnboarding() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="delivery-onboard">
+      <div class="onboard-header">
+        <div class="onboard-logo">🚛 AgroVerse Йўлчи</div>
+        <p class="onboard-subtitle">Зарегистрируйтесь как курьер за 3 шага</p>
+      </div>
+      <div class="onboard-progress">
+        <div class="op-step ${_deliveryState.onboarding.step >= 0 ? 'active' : ''}" id="ops-0">1. Транспорт</div>
+        <div class="op-line"></div>
+        <div class="op-step ${_deliveryState.onboarding.step >= 1 ? 'active' : ''}" id="ops-1">2. Зона</div>
+        <div class="op-line"></div>
+        <div class="op-step ${_deliveryState.onboarding.step >= 2 ? 'active' : ''}" id="ops-2">3. Данные</div>
+      </div>
+      <div id="onboard-step-body"></div>
+    </div>
+  `;
+  _renderOnboardStep();
+}
+
+function _renderOnboardStep() {
+  const body = document.getElementById('onboard-step-body');
+  const s = _deliveryState.onboarding;
+
+  if (s.step === 0) {
+    // Шаг 1: Тип транспорта
+    body.innerHTML = `
+      <div class="onboard-card">
+        <h2 class="ob-title">Выберите тип транспорта</h2>
+        <p class="ob-desc">AgroVerse работает только с грузовыми перевозками</p>
+        <div class="truck-chips">
+          ${TRUCK_TYPES.map(tt => `
+            <div class="truck-chip ${s.transport_type === tt.id ? 'selected' : ''}"
+                 onclick="_selectTruckType('${tt.id}')">
+              <div class="tc-icon">${tt.icon}</div>
+              <div class="tc-label">${tt.label}</div>
+              <div class="tc-desc">${tt.desc}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Грузоподъёмность (кг)</label>
+          <input type="number" class="ob-input" id="ob-weight" value="${s.max_weight}" min="100" max="50000" step="100"
+                 onchange="_deliveryState.onboarding.max_weight = +this.value">
+        </div>
+        <div class="ob-checkbox">
+          <input type="checkbox" id="ob-thermo" ${s.has_thermo_bag ? 'checked' : ''}
+                 onchange="_deliveryState.onboarding.has_thermo_bag = this.checked">
+          <label for="ob-thermo">❄️ Есть рефрижератор / термоизоляция</label>
+        </div>
+        <button class="btn btn-primary ob-next" onclick="_obNext()">Далее →</button>
+      </div>
+    `;
+
+  } else if (s.step === 1) {
+    // Шаг 2: Зона работы
+    body.innerHTML = `
+      <div class="onboard-card">
+        <h2 class="ob-title">Зона работы</h2>
+        <p class="ob-desc">Укажите город и радиус доставки</p>
+        <div class="ob-field">
+          <label class="ob-label">Город / регион</label>
+          <input type="text" class="ob-input" id="ob-city" value="${s.city}" placeholder="Ташкент"
+                 oninput="_deliveryState.onboarding.city = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Радиус доставки (км): <b id="radius-val">${s.radius_km}</b></label>
+          <input type="range" class="ob-range" id="ob-radius" value="${s.radius_km}" min="10" max="500" step="10"
+                 oninput="_deliveryState.onboarding.radius_km = +this.value; document.getElementById('radius-val').textContent = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Опыт вождения (лет)</label>
+          <input type="number" class="ob-input" id="ob-exp" value="${s.experience_years}" min="0" max="50"
+                 onchange="_deliveryState.onboarding.experience_years = +this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Режим работы</label>
+          <select class="ob-select" onchange="_deliveryState.onboarding.work_mode = this.value">
+            <option value="flexible" ${s.work_mode==='flexible'?'selected':''}>Гибкий</option>
+            <option value="day" ${s.work_mode==='day'?'selected':''}>Дневной (09:00–18:00)</option>
+            <option value="evening" ${s.work_mode==='evening'?'selected':''}>Вечерний (18:00–24:00)</option>
+            <option value="night" ${s.work_mode==='night'?'selected':''}>Ночной (00:00–08:00)</option>
+          </select>
+        </div>
+        <div class="ob-nav">
+          <button class="btn btn-ghost" onclick="_obBack()">← Назад</button>
+          <button class="btn btn-primary" onclick="_obNext()">Далее →</button>
+        </div>
+      </div>
+    `;
+
+  } else if (s.step === 2) {
+    // Шаг 3: Личные данные
+    body.innerHTML = `
+      <div class="onboard-card">
+        <h2 class="ob-title">Личные данные</h2>
+        <p class="ob-desc">Ваши данные будут проверены администратором</p>
+        <div class="ob-field">
+          <label class="ob-label">ФИО</label>
+          <input type="text" class="ob-input" id="ob-name" value="${s.full_name}" placeholder="Иванов Иван Иванович"
+                 oninput="_deliveryState.onboarding.full_name = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Телефон</label>
+          <input type="tel" class="ob-input" id="ob-phone" value="${s.phone}" placeholder="+998 90 000 00 00"
+                 oninput="_deliveryState.onboarding.phone = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Гос. номер транспорта</label>
+          <input type="text" class="ob-input" id="ob-vehiclenum" value="${s.vehicle_number}" placeholder="01 A 123 BC"
+                 oninput="_deliveryState.onboarding.vehicle_number = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">О себе (необязательно)</label>
+          <textarea class="ob-input ob-textarea" id="ob-bio" placeholder="Опыт, маршруты..."
+                    oninput="_deliveryState.onboarding.bio = this.value">${s.bio}</textarea>
+        </div>
+        <div class="ob-nav">
+          <button class="btn btn-ghost" onclick="_obBack()">← Назад</button>
+          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()">✅ Отправить заявку</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function _selectTruckType(id) {
+  _deliveryState.onboarding.transport_type = id;
+  document.querySelectorAll('.truck-chip').forEach(el => {
+    el.classList.toggle('selected', el.onclick.toString().includes(`'${id}'`));
   });
+  // re-render chips
+  document.querySelectorAll('.truck-chip').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.truck-chip').forEach(el => {
+    const match = el.getAttribute('onclick') || '';
+    if (match.includes(`'${id}'`)) el.classList.add('selected');
+  });
+}
 
-  window._deliverySearch = async function() {
-    const listEl = document.getElementById('couriers-list');
-    listEl.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-    _courierMarkers.forEach(m => m.remove());
-    _courierMarkers = [];
-
-    try {
-      const data = await API.request('GET', '/api/delivery/couriers/nearby', {
-        params: { lat: _pickupLat, lng: _pickupLng, radius: _radius }
-      });
-
-      if (!data.length) {
-        listEl.innerHTML = `<div style="color:#9ca3af;font-size:13px;text-align:center;padding:24px;">
-          <i class="fi fi-rr-truck-side" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.3;"></i>
-          Йўлчи не найдены в радиусе ${_radius} км
-        </div>`;
-        return;
-      }
-
-      // Sort ascending by distance (already sorted by backend, but ensure)
-      data.sort((a,b) => a.distance_km - b.distance_km);
-
-      listEl.innerHTML = `
-        <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:4px;">
-          Найдено: ${data.length} Йўлчи — отсортировано по близости
-        </div>
-        ${data.map(c => `
-        <div class="yulchi-card" id="ccard-${c.id}"
-          onclick="window._openYulchiProfile(${JSON.stringify(c).replace(/"/g,'&quot;')})">
-          <div class="yulchi-avatar">${TRANSPORT_ICONS[c.transport_type] || '🚗'}</div>
-          <div class="yulchi-info">
-            <div class="yulchi-name">${c.full_name}</div>
-            <div class="yulchi-meta">
-              <span class="stars">${'★'.repeat(Math.round(c.rating))}${'☆'.repeat(5-Math.round(c.rating))}</span>
-              ${c.rating} · ${TRANSPORT_LABELS[c.transport_type]||''}
-              <span style="margin-left:6px;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:700;
-                background:${c.status==='online'?'rgba(16,185,129,0.1)':'rgba(245,158,11,0.1)'};
-                color:${c.status==='online'?'#059669':'#d97706'};">
-                ${c.status==='online'?'Свободен':'Занят'}
-              </span>
-            </div>
-            <div style="font-size:11px;color:#9ca3af;margin-top:2px;">
-              Опыт: ${c.experience_years||0} лет · Макс. груз: ${c.max_weight||20} кг
-            </div>
-          </div>
-          <div class="yulchi-dist-badge">${c.distance_km} км</div>
-        </div>
-        `).join('')}
-      `;
-
-      // Map markers
-      data.forEach(c => {
-        if (c.lat && c.lng) {
-          const icon = L.divIcon({
-            html: `<div class="yulchi-marker ${c.status}" title="${c.full_name}">${TRANSPORT_ICONS[c.transport_type]||'🚗'}</div>`,
-            className:'', iconSize:[36,36], iconAnchor:[18,18]
-          });
-          const m = L.marker([c.lat, c.lng], { icon })
-            .addTo(window._deliveryMap)
-            .bindPopup(`
-              <b>${c.full_name}</b><br>
-              ${TRANSPORT_LABELS[c.transport_type]||''} · ⭐ ${c.rating}<br>
-              ${c.distance_km} км от вас<br>
-              <b style="color:#059669;">${c.est_price.toLocaleString()} сум</b><br>
-              <button onclick="window._openYulchiProfile(window._allYulchi.find(x=>x.id==${c.id}))"
-                style="margin-top:8px;padding:4px 10px;background:#10b981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;">
-                Профиль
-              </button>
-            `);
-          _courierMarkers.push(m);
-        }
-      });
-
-      window._allYulchi = data;
-
-    } catch(e) {
-      listEl.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:12px;">Ошибка: ${e.message}</div>`;
-    }
-  };
-
-  // Build route on map between pickup and courier
-  window._buildRoute = function(courierLat, courierLng) {
-    if (!window.L.Routing) return;
-    if (_routeControl) { window._deliveryMap.removeControl(_routeControl); _routeControl = null; }
-    try {
-      _routeControl = L.Routing.control({
-        waypoints: [
-          L.latLng(_pickupLat, _pickupLng),
-          L.latLng(courierLat, courierLng),
-        ],
-        routeWhileDragging: false,
-        show: false,
-        lineOptions: { styles: [{ color: '#10b981', weight: 4, opacity: 0.8 }] },
-        createMarker: () => null,
-      }).addTo(window._deliveryMap);
-    } catch(e) {}
-  };
-
-  // Open courier profile modal
-  window._openYulchiProfile = function(c) {
-    if (!c) return;
-    _selectedCourier = c;
-    document.querySelectorAll('.yulchi-card').forEach(el => el.classList.remove('selected'));
-    const card = document.getElementById(`ccard-${c.id}`);
-    if (card) card.classList.add('selected');
-
-    // Build route on map if has coords
-    if (c.lat && c.lng) window._buildRoute(c.lat, c.lng);
-
-    _showYulchiProfileModal(c);
-  };
-
-  function _showYulchiProfileModal(c) {
-    document.getElementById('yulchi-profile-modal')?.remove();
-    const modal = document.createElement('div');
-    modal.className = 'order-modal-overlay';
-    modal.id = 'yulchi-profile-modal';
-    modal.innerHTML = `
-      <div class="yulchi-profile-modal">
-        <button onclick="document.getElementById('yulchi-profile-modal').remove()"
-          style="position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;font-size:22px;color:#9ca3af;">✕</button>
-
-        <div style="text-align:center;margin-bottom:20px;">
-          <div class="yp-avatar-big">${TRANSPORT_ICONS[c.transport_type]||'🚗'}</div>
-          <div style="font-size:20px;font-weight:800;color:#0f1f12;">${c.full_name}</div>
-          <div style="font-size:13px;color:#6b7280;margin-top:4px;">
-            ${TRANSPORT_LABELS[c.transport_type]||''} ·
-            <span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;
-              background:${c.status==='online'?'rgba(16,185,129,0.1)':'rgba(245,158,11,0.1)'};
-              color:${c.status==='online'?'#059669':'#d97706'};">
-              ${c.status==='online'?'Свободен':'Занят'}
-            </span>
-          </div>
-        </div>
-
-        <!-- Stats row -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#f0fdf4;border-radius:14px;margin-bottom:20px;border:1px solid rgba(16,185,129,0.15);">
-          <div class="yp-stat" style="border-right:1px solid rgba(16,185,129,0.15);">
-            <div class="yp-stat-val" style="color:#f59e0b;">${c.rating}</div>
-            <div class="yp-stat-lbl">⭐ Рейтинг</div>
-          </div>
-          <div class="yp-stat" style="border-right:1px solid rgba(16,185,129,0.15);">
-            <div class="yp-stat-val">${c.experience_years||0}</div>
-            <div class="yp-stat-lbl">Лет опыта</div>
-          </div>
-          <div class="yp-stat">
-            <div class="yp-stat-val" style="color:#10b981;">${c.distance_km}</div>
-            <div class="yp-stat-lbl">км от вас</div>
-          </div>
-        </div>
-
-        <!-- Details -->
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-          <div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#374151;">
-            <i class="fi fi-rr-weight" style="color:#10b981;width:16px;"></i>
-            Макс. груз: <b>${c.max_weight||20} кг</b>
-          </div>
-          ${c.has_thermo_bag ? `<div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#374151;"><i class="fi fi-rr-temperature-low" style="color:#10b981;width:16px;"></i> Есть термосумка</div>` : ''}
-          <div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#374151;">
-            <i class="fi fi-rr-map-marker" style="color:#10b981;width:16px;"></i>
-            Город: <b>${c.city||'—'}</b>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#374151;">
-            <i class="fi fi-rr-money" style="color:#10b981;width:16px;"></i>
-            Примерная цена: <b style="color:#059669;">${c.est_price.toLocaleString()} сум</b>
-          </div>
-        </div>
-
-        <!-- Route options -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Тип маршрута</div>
-          <div class="route-options">
-            <div class="route-opt-btn active" id="ropt-shortest" onclick="window._setRouteType('shortest')">
-              <i class="fi fi-rr-route"></i> Короткий
-              <span class="ro-label">Минимум км</span>
-            </div>
-            <div class="route-opt-btn" id="ropt-fastest" onclick="window._setRouteType('fastest')">
-              <i class="fi fi-rr-rocket"></i> Быстрый
-              <span class="ro-label">Минимум времени</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('yulchi-profile-modal').remove()">
-            <i class="fi fi-rr-arrow-left"></i> Назад
-          </button>
-          <button class="btn btn-primary" style="flex:1;" onclick="window._showOrderForm(${JSON.stringify(c).replace(/"/g,'&quot;')})">
-            <i class="fi fi-rr-truck-side"></i> Вызвать
-          </button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+function _obNext() {
+  const s = _deliveryState.onboarding;
+  if (s.step === 0 && !s.transport_type) {
+    showToast('Выберите тип транспорта', 'error'); return;
   }
-
-  window._setRouteType = function(type) {
-    document.querySelectorAll('.route-opt-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`ropt-${type}`)?.classList.add('active');
-    // OSRM supports profile switch via router option
-    if (window._routeControl && window._deliveryMap) {
-      // rebuild with different osrm profile
-      const waypoints = window._routeControl.getWaypoints();
-      window._deliveryMap.removeControl(window._routeControl);
-      window._routeControl = L.Routing.control({
-        waypoints,
-        routeWhileDragging: false,
-        show: false,
-        router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: type === 'fastest' ? 'driving' : 'driving' }),
-        lineOptions: { styles: [{ color: type==='fastest'?'#3b82f6':'#10b981', weight:4, opacity:0.8 }] },
-        createMarker: () => null,
-      }).addTo(window._deliveryMap);
-    }
-  };
-
-  // Order form
-  window._showOrderForm = function(c) {
-    document.getElementById('yulchi-profile-modal')?.remove();
-    const modal = document.createElement('div');
-    modal.className = 'order-modal-overlay';
-    modal.id = 'order-modal';
-    modal.innerHTML = `
-      <div class="order-modal">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-          <h3 style="margin:0;font-size:20px;font-weight:800;color:#0f1f12;">Оформить доставку</h3>
-          <button onclick="document.getElementById('order-modal').remove()"
-            style="background:none;border:none;cursor:pointer;font-size:20px;color:#9ca3af;">✕</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f0fdf4;border-radius:12px;margin-bottom:20px;border:1px solid rgba(16,185,129,0.15);">
-          <span style="font-size:28px;">${TRANSPORT_ICONS[c.transport_type]||'🚗'}</span>
-          <div>
-            <div style="font-weight:700;color:#0f1f12;">${c.full_name}</div>
-            <div style="font-size:12px;color:#6b7280;">⭐ ${c.rating} · ${c.distance_km} км от вас</div>
-          </div>
-        </div>
-        <div class="onb-field">
-          <label>Адрес доставки</label>
-          <input type="text" id="del-addr" placeholder="Куда доставить?" />
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="onb-field">
-            <label>Описание груза</label>
-            <input type="text" id="del-cargo" placeholder="Напр.: овощи 5кг" />
-          </div>
-          <div class="onb-field">
-            <label>Вес (кг)</label>
-            <input type="number" id="del-weight" value="5" min="0.1" step="0.5" />
-          </div>
-        </div>
-        <div class="onb-field">
-          <label>Желаемое время (необязательно)</label>
-          <input type="datetime-local" id="del-time" />
-        </div>
-        <div class="price-breakdown" id="del-price-box">
-          <div class="pb-row"><span>Базовая ставка</span><span id="pb-base">—</span></div>
-          <div class="pb-row"><span>За расстояние</span><span id="pb-dist">—</span></div>
-          <div class="pb-total"><span>Итого</span><span id="pb-total">—</span></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:4px;">
-          <button class="btn btn-ghost" style="flex:1;" onclick="window._calcDelivery('${c.transport_type}',${c.distance_km})">
-            <i class="fi fi-rr-calculator"></i> Рассчитать
-          </button>
-          <button class="btn btn-primary" style="flex:1;" onclick="window._confirmOrder(${c.id})">
-            <i class="fi fi-rr-check"></i> Подтвердить
-          </button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-    // Auto-calculate
-    window._calcDelivery(c.transport_type, c.distance_km);
-  };
-
-  window._calcDelivery = function(transport, distKm) {
-    const weight = parseFloat(document.getElementById('del-weight')?.value || 5);
-    const t = TARIFFS_FE[transport] || TARIFFS_FE.car;
-    const base = t.base;
-    const distCost = Math.round(t.per_km * (distKm || 5));
-    let extra = 0;
-    if (weight > 10 && t.extra_weight) extra = t.extra_weight * Math.ceil((weight-10)/5);
-    const total = base + distCost + extra;
-    const pbBase = document.getElementById('pb-base');
-    const pbDist = document.getElementById('pb-dist');
-    const pbTotal = document.getElementById('pb-total');
-    if (pbBase) pbBase.textContent = base.toLocaleString() + ' сум';
-    if (pbDist) pbDist.textContent = distCost.toLocaleString() + ' сум';
-    if (pbTotal) pbTotal.textContent = total.toLocaleString() + ' сум';
-  };
-
-  window._confirmOrder = async function(courierId) {
-    const addr  = document.getElementById('del-addr')?.value?.trim();
-    const cargo = document.getElementById('del-cargo')?.value?.trim();
-    const weight = parseFloat(document.getElementById('del-weight')?.value || 5);
-    const time  = document.getElementById('del-time')?.value;
-    if (!addr || !cargo) { showToast('Заполните все поля', 'warn'); return; }
-    try {
-      await API.request('POST', '/api/delivery/orders', { body: {
-        courier_id: courierId,
-        pickup_address: document.getElementById('pickup-addr')?.value || '',
-        delivery_address: addr,
-        pickup_lat: _pickupLat, pickup_lng: _pickupLng,
-        delivery_lat: _pickupLat + 0.01, delivery_lng: _pickupLng + 0.01,
-        cargo_description: cargo,
-        weight_kg: weight,
-        scheduled_time: time || null,
-      }});
-      document.getElementById('order-modal')?.remove();
-      launchConfetti();
-      showToast('Заявка отправлена Йўлчи! ✅', 'success');
-    } catch(e) {
-      showToast('Ошибка: ' + e.message, 'error');
-    }
-  };
+  if (s.step === 1 && !s.city.trim()) {
+    showToast('Укажите город', 'error'); return;
+  }
+  s.step = Math.min(s.step + 1, 2);
+  _renderOnboarding();
 }
 
-// Public Yulchi profile page (for /yulchi/:id)
-async function renderYulchiProfile(id) {
-  injectDeliveryStyles();
-  const app = document.getElementById('app');
-  app.innerHTML = pageShell(`<div class="spinner"></div>`);
-  // In production: fetch /api/delivery/couriers/${id}
-  // For now show placeholder with what we have
-  showToast('Загрузка профиля Йўлчи...', 'info');
-  app.innerHTML = pageShell(`
-    <div style="max-width:480px;margin:0 auto;text-align:center;padding:40px 20px;">
-      <div class="yp-avatar-big" style="margin:0 auto 16px;"><i class="fi fi-rr-truck-side"></i></div>
-      <h2 style="font-size:22px;font-weight:800;color:#0f1f12;">Профиль Йўлчи #${id}</h2>
-      <p style="color:#6b7280;margin:12px 0 24px;">Для просмотра профиля найдите Йўлчи через страницу доставки</p>
-      <button class="btn btn-primary" onclick="router.go('/delivery')">
-        <i class="fi fi-rr-search"></i> Найти Йўлчи
-      </button>
-    </div>
-  `);
+function _obBack() {
+  _deliveryState.onboarding.step = Math.max(_deliveryState.onboarding.step - 1, 0);
+  _renderOnboarding();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COURIER DASHBOARD (/yulchi)
-// ─────────────────────────────────────────────────────────────────────────────
-let _courierSection = 'home';
+async function _obSubmit() {
+  const s = _deliveryState.onboarding;
+  if (!s.full_name.trim()) { showToast('Введите ФИО', 'error'); return; }
+  if (!s.phone.trim())     { showToast('Введите телефон', 'error'); return; }
 
-async function renderCourierDashboard() {
-  injectDeliveryStyles();
+  const btn = document.getElementById('ob-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Отправка...'; }
+
+  try {
+    await API.setupCourierProfile({
+      transport_type:   s.transport_type,
+      max_weight:       s.max_weight,
+      has_thermo_bag:   s.has_thermo_bag,
+      experience_years: s.experience_years,
+      city:             s.city,
+      radius_km:        s.radius_km,
+      work_mode:        s.work_mode,
+      work_hours:       s.work_hours,
+      full_name:        s.full_name,
+      phone:            s.phone,
+      vehicle_number:   s.vehicle_number,
+      bio:              s.bio,
+    });
+    showToast('Заявка отправлена! Ожидайте одобрения администратора', 'success');
+    // Load profile and show dashboard with pending banner
+    const profile = await API.getCourierProfile().catch(() => null);
+    _deliveryState.profile = profile;
+    _renderDashboard();
+  } catch (e) {
+    showToast(e.message || 'Ошибка при сохранении', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Отправить заявку'; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function _renderDashboard() {
   const app = document.getElementById('app');
-  const user = Auth.getUser();
+  const profile = _deliveryState.profile || {};
+  const approved = profile.admin_approved === true;
 
-  const SECTIONS = [
-    { id: 'home',    icon: 'fi fi-rr-home',        label: 'Главная' },
-    { id: 'orders',  icon: 'fi fi-rr-box-open',    label: 'Заказы' },
-    { id: 'map',     icon: 'fi fi-rr-map-marker',  label: 'Карта' },
-    { id: 'tariffs', icon: 'fi fi-rr-dollar',      label: 'Тарифы' },
-    { id: 'ai',      icon: 'fi fi-rr-comment-alt', label: 'ИИ' },
-    { id: 'wallet',  icon: 'fi fi-rr-wallet',      label: 'Кошелёк' },
-    { id: 'market',  icon: 'fi fi-rr-store-alt',   label: 'Рынок' },
-    { id: 'profile', icon: 'fi fi-rr-user',        label: 'Профиль' },
-  ];
-
-  app.innerHTML = pageShell(`
-    <div class="courier-layout">
-      <aside class="courier-sidebar">
-        <div class="cs-logo">
-          <i class="fi fi-rr-truck-side" style="color:#10b981;"></i> Йўлчи
+  app.innerHTML = `
+    <div class="delivery-layout">
+      <!-- Sidebar -->
+      <aside class="delivery-sidebar">
+        <div class="ds-brand">
+          <span class="ds-logo">🚛</span>
+          <span class="ds-name">Йўлчи</span>
         </div>
-        ${SECTIONS.map(s => `
-          <div class="cs-nav-item ${s.id === _courierSection ? 'active' : ''}" id="cs-nav-${s.id}"
-            onclick="window._courierNav('${s.id}')">
-            <i class="${s.icon}"></i> ${s.label}
+        <nav class="ds-nav">
+          ${SECTIONS.map(s => `
+            <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
+                 id="dnav-${s.id}"
+                 onclick="_deliverySection('${s.id}')">
+              <span class="ds-nav-icon">${s.icon}</span>
+              <span class="ds-nav-label">${s.label}</span>
+            </div>
+          `).join('')}
+        </nav>
+        <div class="ds-footer">
+          <div class="ds-courier-info">
+            <div class="ds-courier-name">${profile.full_name || 'Курьер'}</div>
+            <div class="ds-courier-status ${approved ? 'status-active' : 'status-pending'}">
+              ${approved ? '🟢 Активен' : '🟡 На проверке'}
+            </div>
           </div>
-        `).join('')}
-        <div style="padding:16px 20px;margin-top:auto;">
-          <button class="btn btn-ghost" style="width:100%;font-size:12px;" onclick="Auth.logout()">
-            <i class="fi fi-rr-sign-out-alt"></i> Выйти
-          </button>
         </div>
       </aside>
-      <div class="courier-content" id="courier-content">
+
+      <!-- Main content -->
+      <main class="delivery-main" id="delivery-main">
         <div class="spinner"></div>
+      </main>
+    </div>
+  `;
+
+  _deliverySection(_deliveryState.section);
+}
+
+function _deliverySection(id) {
+  _deliveryState.section = id;
+  // Update nav active
+  document.querySelectorAll('.ds-nav-item').forEach(el => {
+    el.classList.toggle('active', el.id === `dnav-${id}`);
+  });
+
+  const main = document.getElementById('delivery-main');
+  if (!main) return;
+
+  switch (id) {
+    case 'home':    _sectionHome(main);    break;
+    case 'orders':  _sectionOrders(main);  break;
+    case 'map':     _sectionMap(main);     break;
+    case 'tariffs': _sectionTariffs(main); break;
+    case 'ai':      _sectionAI(main);      break;
+    case 'wallet':  _sectionWallet(main);  break;
+    case 'market':  _sectionMarket(main);  break;
+    case 'profile': _sectionProfile(main); break;
+    default:        main.innerHTML = '<div class="empty-state">Раздел в разработке</div>';
+  }
+}
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+
+async function _sectionHome(main) {
+  const profile = _deliveryState.profile || {};
+  const approved = profile.admin_approved === true;
+
+  main.innerHTML = `
+    <div class="section-home">
+      <div class="section-header">
+        <h1 class="section-title">Главная</h1>
+        <div class="section-date">${new Date().toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'})}</div>
+      </div>
+
+      ${!approved ? `
+        <div class="pending-banner">
+          <div class="pb-icon">⏳</div>
+          <div class="pb-body">
+            <div class="pb-title">Заявка на проверке</div>
+            <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
+            <div class="pb-progress">
+              <div class="pb-bar">
+                <div class="pb-fill" style="width: 60%"></div>
+              </div>
+              <div class="pb-bar-label">Проверка данных...</div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Stats row -->
+      <div class="home-stats">
+        <div class="hs-card clickable" onclick="_deliverySection('orders')">
+          <div class="hs-icon">📦</div>
+          <div class="hs-num" id="stat-available">—</div>
+          <div class="hs-label">Доступные заказы</div>
+        </div>
+        <div class="hs-card">
+          <div class="hs-icon">✅</div>
+          <div class="hs-num" id="stat-done">—</div>
+          <div class="hs-label">Выполнено доставок</div>
+        </div>
+        <div class="hs-card">
+          <div class="hs-icon">⭐</div>
+          <div class="hs-num" id="stat-rating">${profile.rating ?? '5.0'}</div>
+          <div class="hs-label">Рейтинг</div>
+        </div>
+        <div class="hs-card clickable" onclick="_deliverySection('wallet')">
+          <div class="hs-icon">💰</div>
+          <div class="hs-num" id="stat-balance">—</div>
+          <div class="hs-label">Баланс сум</div>
+        </div>
+      </div>
+
+      <!-- Profile completion -->
+      <div class="home-section-block">
+        <div class="hsb-title">Профиль</div>
+        ${_profileCompletionBar(profile)}
+      </div>
+
+      <!-- Notifications -->
+      <div class="home-section-block">
+        <div class="hsb-title">Уведомления</div>
+        <div id="notif-list">
+          <div class="notif-item">
+            <div class="ni-icon">🎉</div>
+            <div class="ni-body">
+              <div class="ni-title">Добро пожаловать в AgroVerse!</div>
+              <div class="ni-time">Только что</div>
+            </div>
+          </div>
+          ${!approved ? `
+            <div class="notif-item">
+              <div class="ni-icon">🔍</div>
+              <div class="ni-body">
+                <div class="ni-title">Ваш профиль проходит проверку</div>
+                <div class="ni-time">Сегодня</div>
+              </div>
+            </div>
+          ` : `
+            <div class="notif-item">
+              <div class="ni-icon">✅</div>
+              <div class="ni-body">
+                <div class="ni-title">Профиль одобрен! Можете принимать заказы</div>
+                <div class="ni-time">Сегодня</div>
+              </div>
+            </div>
+          `}
+        </div>
       </div>
     </div>
-  `);
+  `;
 
-  window._courierNav = function(section) {
-    _courierSection = section;
-    document.querySelectorAll('.cs-nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(`cs-nav-${section}`)?.classList.add('active');
-    renderCourierSection(section);
-  };
+  // Load stats async
+  try {
+    const [orders, wallet] = await Promise.all([
+      API.getCourierOrders().catch(() => []),
+      API.getCourierWallet().catch(() => ({ balance: 0, history: [] })),
+    ]);
+    _deliveryState.orders = orders;
+    _deliveryState.wallet = wallet;
+    const done = orders.filter(o => o.status === 'delivered').length;
+    const el = (id) => document.getElementById(id);
+    if (el('stat-done'))    el('stat-done').textContent    = done;
+    if (el('stat-balance')) el('stat-balance').textContent = Number(wallet.balance || 0).toLocaleString('ru-RU');
 
-  renderCourierSection(_courierSection);
+    // Available orders
+    const avail = await API.getAvailableOrders().catch(() => []);
+    if (el('stat-available')) el('stat-available').textContent = avail.length;
+  } catch (_) {}
 }
 
-async function renderCourierSection(section) {
-  const el = document.getElementById('courier-content');
-  if (!el) return;
-  el.innerHTML = '<div class="spinner"></div>';
-  switch (section) {
-    case 'home':    await renderCourierHome(el); break;
-    case 'orders':  await renderCourierOrders(el); break;
-    case 'map':     await renderCourierMap(el); break;
-    case 'tariffs': renderCourierTariffs(el); break;
-    case 'ai':      renderCourierAI(el); break;
-    case 'wallet':  await renderCourierWallet(el); break;
-    case 'market':  window.router.go('/market'); break;
-    case 'profile': await renderCourierProfile(el); break;
-    default:        el.innerHTML = '<p>Раздел в разработке</p>';
-  }
+function _profileCompletionBar(profile) {
+  const fields = ['full_name', 'phone', 'transport_type', 'city', 'vehicle_number', 'bio'];
+  const filled = fields.filter(f => profile[f] && profile[f] !== '').length;
+  const pct = Math.round((filled / fields.length) * 100);
+  return `
+    <div class="profile-completion">
+      <div class="pc-bar">
+        <div class="pc-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="pc-label">${pct}% заполнено</div>
+    </div>
+  `;
 }
 
-// ── Главная Йўлчи ─────────────────────────────────────────────────────────────
-async function renderCourierHome(el) {
-  let profile = null;
-  let orders = [];
+// ─── ORDERS ───────────────────────────────────────────────────────────────────
+
+async function _sectionOrders(main) {
+  main.innerHTML = `
+    <div class="section-orders">
+      <div class="section-header">
+        <h1 class="section-title">Заказы</h1>
+      </div>
+      <div class="orders-tabs">
+        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')">📦 Доступные</button>
+        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')">🚚 Принятые</button>
+        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')">✅ Выполненные</button>
+        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')">❌ Отменённые</button>
+      </div>
+      <div id="orders-list"><div class="spinner"></div></div>
+    </div>
+  `;
+  _loadOrdersTab('available');
+}
+
+function _ordersTab(btn, tab) {
+  document.querySelectorAll('.ot-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _loadOrdersTab(tab);
+}
+
+async function _loadOrdersTab(tab) {
+  const list = document.getElementById('orders-list');
+  if (!list) return;
+  list.innerHTML = '<div class="spinner"></div>';
 
   try {
-    profile = await API.request('GET', '/api/courier/profile');
-  } catch(e) {
-    el.innerHTML = `
-      <div style="text-align:center;padding:60px 20px;">
-        <div style="font-size:64px;margin-bottom:16px;"><i class="fi fi-rr-truck-side" style="color:#10b981;"></i></div>
-        <h2 style="font-size:24px;font-weight:800;color:#0f1f12;margin-bottom:8px;">Добро пожаловать, Йўлчи!</h2>
-        <p style="color:#6b7280;margin-bottom:28px;">Заполните профиль чтобы начать принимать заявки</p>
-        <button class="btn btn-primary btn-lg" onclick="window._startOnboarding()">
-          <i class="fi fi-rr-arrow-right"></i> Заполнить профиль
-        </button>
-      </div>`;
-    window._startOnboarding = () => renderOnboarding();
-    return;
+    let orders = [];
+    if (tab === 'available') {
+      orders = await API.getAvailableOrders().catch(() => []);
+    } else {
+      const all = await API.getCourierOrders().catch(() => []);
+      const statusMap = { accepted: 'accepted', done: 'delivered', cancelled: 'cancelled' };
+      orders = all.filter(o => o.status === (statusMap[tab] || tab));
+    }
+
+    if (!orders.length) {
+      list.innerHTML = `<div class="empty-state">📭 Заказов нет</div>`;
+      return;
+    }
+
+    list.innerHTML = orders.map(o => _orderCard(o, tab)).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function _orderCard(o, tab) {
+  const price = Number(o.price || 0).toLocaleString('ru-RU');
+  const dist  = o.distance_km ? `${o.distance_km} км` : '';
+  const cargo = o.cargo || o.cargo_description || 'Груз';
+  const from  = o.pickup_address  || '—';
+  const to    = o.delivery_address || '—';
+
+  const actions = tab === 'available' ? `
+    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})">✅ Принять</button>
+  ` : tab === 'accepted' ? `
+    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})">📦 Доставлен</button>
+    <button class="btn btn-ghost btn-sm"   onclick="_cancelOrder(${o.id})">Отмена</button>
+  ` : '';
+
+  return `
+    <div class="order-card" id="oc-${o.id}">
+      <div class="oc-left">
+        <div class="oc-cargo-icon">🌾</div>
+      </div>
+      <div class="oc-body">
+        <div class="oc-title">${cargo}</div>
+        <div class="oc-route">
+          <span class="oc-from">📍 ${from}</span>
+          <span class="oc-arrow">→</span>
+          <span class="oc-to">🏁 ${to}</span>
+        </div>
+        ${dist ? `<div class="oc-dist">📏 ${dist}</div>` : ''}
+        ${o.weight_kg ? `<div class="oc-weight">⚖️ ${o.weight_kg} кг</div>` : ''}
+      </div>
+      <div class="oc-right">
+        <div class="oc-price">${price} сум</div>
+        ${actions ? `<div class="oc-actions">${actions}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+async function _acceptOrder(id) {
+  try {
+    await API.acceptDeliveryOrder(id);
+    showToast('Заказ принят! 🚛', 'success');
+    _sectionOrders(document.getElementById('delivery-main'));
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function _deliverOrder(id) {
+  try {
+    await API.updateDeliveryStatus(id, 'delivered');
+    showToast('Доставлено! ✅', 'success');
+    _sectionOrders(document.getElementById('delivery-main'));
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function _cancelOrder(id) {
+  try {
+    await API.updateDeliveryStatus(id, 'cancelled');
+    showToast('Заказ отменён', 'info');
+    _sectionOrders(document.getElementById('delivery-main'));
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ─── MAP ──────────────────────────────────────────────────────────────────────
+
+async function _sectionMap(main) {
+  main.innerHTML = `
+    <div class="section-map">
+      <div class="section-header">
+        <h1 class="section-title">Карта заказов</h1>
+        <button class="btn btn-sm btn-primary" onclick="_setOnline()">📍 Я онлайн</button>
+      </div>
+      <div id="delivery-map" style="width:100%;height:500px;border-radius:12px;overflow:hidden;"></div>
+      <div id="map-orders-list" style="margin-top:16px;"></div>
+    </div>
+  `;
+
+  // Init map
+  if (typeof L === 'undefined') {
+    // load leaflet dynamically
+    await _loadLeaflet();
   }
 
-  // Check admin_approved flag
-  if (profile.admin_approved === false) {
-    el.innerHTML = `
-      <div class="pending-banner">
-        <div class="pb-icon"><i class="fi fi-rr-clock" style="color:#f59e0b;"></i></div>
-        <p><strong>Ваш профиль на проверке.</strong><br>
-        Администратор должен одобрить ваш аккаунт. После одобрения вы появитесь в поиске. Обычно это занимает до 24 часов.</p>
+  try {
+    const map = L.map('delivery-map').setView([41.2995, 69.2401], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    _deliveryState.mapInstance = map;
+
+    // Get location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        map.setView([lat, lng], 13);
+        L.marker([lat, lng], {
+          icon: L.divIcon({ className: '', html: '<div style="font-size:28px;">🚛</div>', iconSize: [32,32] })
+        }).addTo(map).bindPopup('Вы здесь').openPopup();
+
+        // Load nearby orders
+        API.getAvailableOrders().then(orders => {
+          orders.forEach(o => {
+            if (o.pickup_lat && o.pickup_lng) {
+              L.marker([o.pickup_lat, o.pickup_lng], {
+                icon: L.divIcon({ className: '', html: '<div style="font-size:24px;">📦</div>', iconSize: [28,28] })
+              }).addTo(map).bindPopup(`
+                <b>${o.cargo || 'Груз'}</b><br>
+                ${Number(o.price||0).toLocaleString()} сум<br>
+                ${o.distance_km || '?'} км
+              `);
+            }
+          });
+        }).catch(() => {});
+      });
+    }
+  } catch (e) {
+    main.querySelector('#delivery-map').innerHTML = `<div class="empty-state">Карта недоступна</div>`;
+  }
+}
+
+async function _loadLeaflet() {
+  return new Promise(resolve => {
+    if (typeof L !== 'undefined') { resolve(); return; }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = resolve;
+    document.head.appendChild(script);
+  });
+}
+
+async function _setOnline() {
+  if (!navigator.geolocation) { showToast('Геолокация недоступна', 'error'); return; }
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    try {
+      await API.updateCourierStatus({ status: 'online', lat, lng });
+      showToast('Вы онлайн! 🟢', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+}
+
+// ─── TARIFFS ──────────────────────────────────────────────────────────────────
+
+function _sectionTariffs(main) {
+  main.innerHTML = `
+    <div class="section-tariffs">
+      <div class="section-header">
+        <h1 class="section-title">Тарифы</h1>
+        <p class="section-subtitle">Выберите план, который подходит вашему бизнесу</p>
+      </div>
+      <div class="tariff-cards">
+        <div class="tariff-card">
+          <div class="tc-badge">Стандарт</div>
+          <div class="tc-price">Бесплатно</div>
+          <div class="tc-period">навсегда</div>
+          <ul class="tc-features">
+            <li>✅ До 10 заказов в месяц</li>
+            <li>✅ Базовый ИИ-помощник</li>
+            <li>✅ Карта заказов</li>
+            <li>❌ Приоритет в поиске</li>
+            <li>❌ Аналитика</li>
+          </ul>
+          <button class="btn btn-ghost tc-btn" disabled>Текущий план</button>
+        </div>
+        <div class="tariff-card featured">
+          <div class="tc-top-badge">⭐ Популярный</div>
+          <div class="tc-badge">Оптимальный</div>
+          <div class="tc-price">49 900 <span>сум/мес</span></div>
+          <div class="tc-period">в месяц</div>
+          <ul class="tc-features">
+            <li>✅ Неограниченные заказы</li>
+            <li>✅ Приоритет в поиске</li>
+            <li>✅ Расширенный ИИ</li>
+            <li>✅ Базовая аналитика</li>
+            <li>❌ Выделенный менеджер</li>
+          </ul>
+          <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
+        </div>
+        <div class="tariff-card premium">
+          <div class="tc-badge">Премиум</div>
+          <div class="tc-price">149 900 <span>сум/мес</span></div>
+          <div class="tc-period">в месяц</div>
+          <ul class="tc-features">
+            <li>✅ Всё из Оптимального</li>
+            <li>✅ Выделенный менеджер</li>
+            <li>✅ Полная аналитика</li>
+            <li>✅ API доступ</li>
+            <li>✅ Брендирование</li>
+          </ul>
+          <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
+        </div>
+      </div>
+
+      <!-- Calculator -->
+      <div class="tariff-calc">
+        <h3>💰 Калькулятор стоимости доставки</h3>
+        <div class="calc-row">
+          <label>Расстояние (км)</label>
+          <input type="number" id="calc-dist" class="ob-input" value="50" min="1" max="2000">
+        </div>
+        <div class="calc-row">
+          <label>Вес груза (кг)</label>
+          <input type="number" id="calc-weight" class="ob-input" value="5000" min="100" max="50000">
+        </div>
+        <button class="btn btn-primary" onclick="_calcPrice()">Рассчитать</button>
+        <div id="calc-result" class="calc-result"></div>
+      </div>
+    </div>
+  `;
+}
+
+async function _calcPrice() {
+  const dist   = +document.getElementById('calc-dist').value   || 50;
+  const weight = +document.getElementById('calc-weight').value || 5000;
+  const profile = _deliveryState.profile || {};
+  const transport = profile.transport_type || 'truck';
+  try {
+    const res = await API.calculateDeliveryPrice(transport, dist, weight);
+    document.getElementById('calc-result').innerHTML = `
+      <div class="calc-price-result">
+        Стоимость: <b>${Number(res.price).toLocaleString('ru-RU')} сум</b><br>
+        <small>Расстояние: ${dist} км · Вес: ${weight} кг</small>
       </div>
     `;
-    // Still show stats below
+  } catch (e) {
+    document.getElementById('calc-result').innerHTML = `<div class="calc-price-result err">${e.message}</div>`;
   }
+}
 
-  try { orders = await API.request('GET', '/api/courier/orders'); } catch(e) {}
+// ─── AI ───────────────────────────────────────────────────────────────────────
 
-  const isOnline = profile.status === 'online';
-  const isBusy   = profile.status === 'busy';
-
-  el.innerHTML = `
-    ${profile.admin_approved === false ? `
-    <div class="pending-banner">
-      <div class="pb-icon"><i class="fi fi-rr-clock" style="color:#f59e0b;"></i></div>
-      <p><strong>Ваш профиль на проверке.</strong><br>
-      Вы не появляетесь в поиске до одобрения администратора.</p>
-    </div>` : ''}
-
-    <div class="online-toggle-bar">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="status-dot ${profile.status}"></div>
-        <div>
-          <div style="font-weight:600;color:#0f1f12;font-size:14px;">
-            ${isOnline ? 'Онлайн — доступен' : isBusy ? 'Занят' : 'Офлайн'}
+function _sectionAI(main) {
+  main.innerHTML = `
+    <div class="section-ai">
+      <div class="section-header">
+        <h1 class="section-title">🤖 ИИ-помощник</h1>
+        <p class="section-subtitle">Задайте вопрос о маршрутах, тарифах или заказах</p>
+      </div>
+      <div class="ai-chat" id="ai-chat">
+        <div class="ai-msg ai-bot">
+          <div class="ai-msg-bubble">Привет! Я ИИ-помощник AgroVerse. Могу помочь с маршрутами, расчётом стоимости и вопросами по заказам. Чем могу помочь? 🚛</div>
+        </div>
+        ${_deliveryState.aiMessages.map(m => `
+          <div class="ai-msg ${m.role === 'user' ? 'ai-user' : 'ai-bot'}">
+            <div class="ai-msg-bubble">${m.text}</div>
           </div>
-          <div style="font-size:12px;color:#6b7280;">Нажмите чтобы изменить статус</div>
-        </div>
+        `).join('')}
       </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="courier-online-toggle" ${isOnline || isBusy ? 'checked' : ''}
-          onchange="window._toggleCourierStatus(this.checked)">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-
-    <div class="courier-stats">
-      <div class="cstat-card">
-        <div class="cstat-label">Заказов</div>
-        <div class="cstat-value">${orders.length}</div>
-        <div class="cstat-sub">за всё время</div>
-      </div>
-      <div class="cstat-card">
-        <div class="cstat-label">Завершено</div>
-        <div class="cstat-value">${orders.filter(o=>o.status==='delivered').length}</div>
-        <div class="cstat-sub">доставок</div>
-      </div>
-      <div class="cstat-card">
-        <div class="cstat-label">Рейтинг</div>
-        <div class="cstat-value" style="color:#f59e0b;">⭐ ${profile.rating || 5.0}</div>
-        <div class="cstat-sub">средний балл</div>
-      </div>
-      <div class="cstat-card">
-        <div class="cstat-label">Кошелёк</div>
-        <div class="cstat-value" style="color:#059669;">${(profile.wallet||0).toLocaleString()}</div>
-        <div class="cstat-sub">сум</div>
-      </div>
-    </div>
-
-    ${orders.filter(o=>['pending','accepted','in_transit'].includes(o.status)).length > 0 ? `
-      <div style="margin-bottom:16px;">
-        <div style="font-size:16px;font-weight:700;color:#0f1f12;margin-bottom:12px;">Активные заявки</div>
-        <div class="courier-orders-list">${_renderOrderCards(orders.filter(o=>['pending','accepted','in_transit'].includes(o.status)).slice(0,3))}</div>
-      </div>` : `
-      <div style="background:#f0fdf4;border-radius:14px;padding:24px;text-align:center;border:1px solid rgba(16,185,129,0.15);">
-        <i class="fi fi-rr-inbox" style="font-size:32px;color:#10b981;opacity:0.5;display:block;margin-bottom:8px;"></i>
-        <div style="color:#6b7280;font-size:14px;">Нет активных заявок</div>
-        ${isOnline && profile.admin_approved !== false ? '<div style="color:#10b981;font-size:12px;margin-top:4px;">Ожидаем новые заявки...</div>' : ''}
-      </div>`}
-  `;
-
-  window._toggleCourierStatus = async function(online) {
-    try {
-      await API.request('PUT', '/api/courier/status', { body: { status: online ? 'online' : 'offline' } });
-      showToast(online ? 'Вы онлайн' : 'Вы офлайн', 'info');
-    } catch(e) { showToast('Ошибка', 'error'); }
-  };
-}
-
-// ── Заказы ───────────────────────────────────────────────────────────────────
-async function renderCourierOrders(el) {
-  let orders = [];
-  try { orders = await API.request('GET', '/api/courier/orders'); } catch(e) {}
-  el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h2 style="font-size:20px;font-weight:800;color:#0f1f12;">Мои заявки</h2>
-      <span style="color:#6b7280;font-size:13px;">Всего: ${orders.length}</span>
-    </div>
-    ${orders.length
-      ? `<div class="courier-orders-list">${_renderOrderCards(orders)}</div>`
-      : `<div style="text-align:center;padding:40px;color:#9ca3af;">
-          <i class="fi fi-rr-inbox" style="font-size:40px;display:block;margin-bottom:8px;opacity:0.4;"></i>
-          Пока нет заявок
-        </div>`}
-  `;
-}
-
-function _renderOrderCards(orders) {
-  const STATUS_MAP = {
-    pending:    ['Ожидает', 'pending'],
-    accepted:   ['Принято', 'accepted'],
-    picked_up:  ['Забрали', 'accepted'],
-    in_transit: ['В пути', 'in_transit'],
-    delivered:  ['Доставлено', 'delivered'],
-    cancelled:  ['Отменено', 'cancelled'],
-  };
-  return orders.map(o => {
-    const [label, cls] = STATUS_MAP[o.status] || [o.status, 'pending'];
-    return `
-      <div class="courier-order-card">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <span style="font-weight:700;color:#0f1f12;">#${o.id}</span>
-            <span class="order-status-badge badge-${cls}">${label}</span>
-          </div>
-          <div style="font-size:13px;color:#374151;margin-bottom:4px;">
-            <i class="fi fi-rr-map-marker" style="color:#10b981;"></i>
-            ${o.pickup_address||'—'} → ${o.delivery_address||'—'}
-          </div>
-          <div style="font-size:12px;color:#6b7280;">${o.cargo||''} · ${o.weight_kg||0} кг · ${o.distance_km||0} км</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:16px;font-weight:800;color:#059669;">${(o.price||0).toLocaleString()} сум</div>
-          ${o.status==='pending' ? `<button class="btn btn-primary" style="margin-top:8px;font-size:12px;padding:6px 14px;" onclick="window._acceptOrder(${o.id})">Принять</button>` : ''}
-          ${o.status==='accepted' ? `<button class="btn btn-primary" style="margin-top:8px;font-size:12px;padding:6px 14px;" onclick="window._updateOrderStatus(${o.id},'delivered')">Доставлено</button>` : ''}
-        </div>
-      </div>`;
-  }).join('');
-}
-
-window._acceptOrder = async function(id) {
-  try {
-    await API.request('POST', `/api/delivery/orders/${id}/accept`);
-    showToast('Заявка принята!', 'success');
-    renderCourierSection('orders');
-  } catch(e) { showToast('Ошибка: ' + e.message, 'error'); }
-};
-
-window._updateOrderStatus = async function(id, status) {
-  try {
-    await API.request('PUT', `/api/delivery/orders/${id}/status`, { body: { status } });
-    showToast(status==='delivered' ? 'Доставлено! Деньги зачислены' : 'Статус обновлён', 'success');
-    if (status==='delivered') { launchConfetti(); _showRatingPrompt(); }
-    renderCourierSection('orders');
-  } catch(e) { showToast('Ошибка', 'error'); }
-};
-
-function _showRatingPrompt() {
-  const pop = document.createElement('div');
-  pop.className = 'rating-popup';
-  pop.innerHTML = `
-    <div style="font-weight:700;font-size:16px;color:#0f1f12;margin-bottom:4px;">Оцените клиента</div>
-    <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">Как прошла доставка?</div>
-    <div class="star-row" id="star-row">
-      ${[1,2,3,4,5].map(i=>`<span class="star-btn" data-val="${i}" onclick="window._setRating(${i})">☆</span>`).join('')}
-    </div>
-    <textarea id="rating-comment" placeholder="Комментарий (необязательно)"
-      style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(16,185,129,0.2);font-size:13px;resize:none;height:60px;box-sizing:border-box;"></textarea>
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="this.closest('.rating-popup').remove()">Позже</button>
-      <button class="btn btn-primary" style="flex:1;font-size:12px;" onclick="window._submitRating()">Отправить</button>
-    </div>`;
-  document.body.appendChild(pop);
-  window._ratingVal = 0;
-  window._setRating = function(val) {
-    window._ratingVal = val;
-    document.querySelectorAll('.star-btn').forEach((s,i) => {
-      s.textContent = i < val ? '★' : '☆';
-      s.style.color = i < val ? '#fbbf24' : '#9ca3af';
-    });
-  };
-  window._submitRating = async function() {
-    if (!window._ratingVal) { showToast('Выберите оценку', 'warn'); return; }
-    showToast('Спасибо за оценку!', 'success');
-    pop.remove();
-  };
-}
-
-// ── Карта ────────────────────────────────────────────────────────────────────
-async function renderCourierMap(el) {
-  el.innerHTML = `
-    <h2 style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:16px;">Карта Йўлчи</h2>
-    <div style="border-radius:16px;overflow:hidden;border:1px solid rgba(16,185,129,0.15);">
-      <div id="courier-map" style="height:500px;"></div>
-    </div>
-    <div style="display:flex;gap:16px;margin-top:12px;font-size:13px;">
-      <span><span style="color:#10b981;">●</span> Свободен</span>
-      <span><span style="color:#f59e0b;">●</span> Занят</span>
-    </div>`;
-  await ensureLeaflet();
-  const map = L.map('courier-map').setView([41.2995, 69.2401], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OSM' }).addTo(map);
-  try {
-    const couriers = await API.request('GET', '/api/delivery/couriers/nearby', {
-      params: { lat: 41.2995, lng: 69.2401, radius: 200 }
-    });
-    couriers.forEach(c => {
-      if (!c.lat || !c.lng) return;
-      L.marker([c.lat, c.lng], {
-        icon: L.divIcon({
-          html: `<div class="yulchi-marker ${c.status}">${TRANSPORT_ICONS[c.transport_type]||'🚗'}</div>`,
-          className:'', iconSize:[36,36], iconAnchor:[18,18]
-        })
-      }).addTo(map).bindPopup(`<b>${c.full_name}</b><br>⭐ ${c.rating}`);
-    });
-  } catch(e) {}
-}
-
-// ── Тарифы ───────────────────────────────────────────────────────────────────
-function renderCourierTariffs(el) {
-  const rows = [
-    { icon:'🛵', label:'Мотоцикл', key:'moto',  base:'8 000', km:'900',   extra:'+1 000' },
-    { icon:'🚗', label:'Авто',     key:'car',   base:'12 000',km:'1 200', extra:'+2 000' },
-    { icon:'🚐', label:'Грузовик', key:'truck', base:'25 000',km:'2 000', extra:'договор' },
-  ];
-
-  el.innerHTML = `
-    <h2 style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:20px;">Тарифы доставки</h2>
-    <div style="background:#fff;border:1px solid rgba(16,185,129,0.15);border-radius:16px;overflow:hidden;margin-bottom:24px;">
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr style="background:#f0fdf4;">
-            <th style="padding:14px 16px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Транспорт</th>
-            <th style="padding:14px 16px;text-align:right;font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">База</th>
-            <th style="padding:14px 16px;text-align:right;font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">За км</th>
-            <th style="padding:14px 16px;text-align:right;font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Доп. вес >10кг</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map((r,i) => `
-            <tr style="border-top:1px solid rgba(16,185,129,0.08);${i%2===1?'background:#fafff8':''}">
-              <td style="padding:14px 16px;font-weight:600;color:#0f1f12;">${r.icon} ${r.label}</td>
-              <td style="padding:14px 16px;text-align:right;color:#059669;font-weight:700;">${r.base} сум</td>
-              <td style="padding:14px 16px;text-align:right;color:#374151;">+${r.km} сум</td>
-              <td style="padding:14px 16px;text-align:right;color:#374151;">${r.extra}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <div style="background:#fff;border:1px solid rgba(16,185,129,0.15);border-radius:16px;padding:24px;">
-      <h3 style="font-size:16px;font-weight:700;color:#0f1f12;margin-bottom:16px;">
-        <i class="fi fi-rr-calculator" style="color:#10b981;"></i> Калькулятор
-      </h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div class="onb-field" style="margin:0;">
-          <label>Транспорт</label>
-          <select id="calc-transport">
-            ${rows.map(r=>`<option value="${r.key}">${r.icon} ${r.label}</option>`).join('')}
-          </select>
-        </div>
-        <div class="onb-field" style="margin:0;">
-          <label>Расстояние (км)</label>
-          <input type="number" id="calc-dist" value="5" min="0.1" step="0.5" />
-        </div>
-        <div class="onb-field" style="margin:0;">
-          <label>Вес (кг)</label>
-          <input type="number" id="calc-weight" value="3" min="0" step="0.5" />
-        </div>
-      </div>
-      <button class="btn btn-primary" onclick="window._calcTariff()">Рассчитать</button>
-      <div id="calc-result" style="margin-top:16px;display:none;background:#f0fdf4;border-radius:10px;padding:16px;border:1px solid rgba(16,185,129,0.15);">
-        <div style="font-size:24px;font-weight:800;color:#059669;" id="calc-price"></div>
-        <div style="font-size:12px;color:#6b7280;margin-top:4px;" id="calc-breakdown"></div>
-      </div>
-    </div>
-  `;
-
-  window._calcTariff = function() {
-    const transport = document.getElementById('calc-transport').value;
-    const dist   = parseFloat(document.getElementById('calc-dist').value) || 5;
-    const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
-    const t = TARIFFS_FE[transport];
-    let price = t.base + t.per_km * dist;
-    if (weight > 10 && t.extra_weight) price += t.extra_weight * Math.ceil((weight-10)/5);
-    document.getElementById('calc-price').textContent = price.toLocaleString() + ' сум';
-    document.getElementById('calc-breakdown').textContent =
-      `${t.base.toLocaleString()} (база) + ${Math.round(t.per_km*dist).toLocaleString()} (${dist}км)${weight>10?' + доп. вес':''}`;
-    document.getElementById('calc-result').style.display = 'block';
-  };
-}
-
-// ── ИИ-помощник ──────────────────────────────────────────────────────────────
-function renderCourierAI(el) {
-  let msgs = [{ role:'bot', text:'Привет! Я ИИ-помощник Йўлчи AgroVerse. Спросите про маршруты, тарифы или что угодно связанное с работой.' }];
-
-  function renderMsgs() {
-    const box = document.getElementById('courier-ai-msgs');
-    if (!box) return;
-    box.innerHTML = msgs.map(m =>
-      `<div class="ai-msg ${m.role}">${m.text}</div>`
-    ).join('');
-    box.scrollTop = box.scrollHeight;
-  }
-
-  el.innerHTML = `
-    <h2 style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:20px;">
-      <i class="fi fi-rr-comment-alt" style="color:#10b981;"></i> ИИ-помощник
-    </h2>
-    <div class="onb-card courier-ai-wrap">
-      <div id="courier-ai-msgs" class="courier-ai-messages"></div>
       <div class="ai-input-row">
-        <input type="text" id="courier-ai-input" placeholder="Спросите про маршрут, тариф…"
-          onkeydown="if(event.key==='Enter')window._courierAISend()" />
-        <button class="btn btn-primary" onclick="window._courierAISend()">
-          <i class="fi fi-rr-paper-plane"></i>
-        </button>
+        <input type="text" id="ai-input" class="ai-input" placeholder="Введите вопрос..." 
+               onkeydown="if(event.key==='Enter') _sendAIMessage()">
+        <button class="btn btn-primary" onclick="_sendAIMessage()">➤</button>
       </div>
+    </div>
+  `;
+}
+
+async function _sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const msg = (input?.value || '').trim();
+  if (!msg) return;
+  input.value = '';
+
+  _deliveryState.aiMessages.push({ role: 'user', text: msg });
+  const chat = document.getElementById('ai-chat');
+  if (chat) {
+    chat.innerHTML += `<div class="ai-msg ai-user"><div class="ai-msg-bubble">${msg}</div></div>`;
+    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble">⏳ Думаю...</div></div>`;
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  try {
+    const res = await API.courierAIChat(msg);
+    const typingEl = document.getElementById('ai-typing');
+    if (typingEl) typingEl.outerHTML = `<div class="ai-msg ai-bot"><div class="ai-msg-bubble">${res.reply}</div></div>`;
+    _deliveryState.aiMessages.push({ role: 'bot', text: res.reply });
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  } catch (e) {
+    const typingEl = document.getElementById('ai-typing');
+    if (typingEl) typingEl.outerHTML = `<div class="ai-msg ai-bot"><div class="ai-msg-bubble">Ошибка: ${e.message}</div></div>`;
+  }
+}
+
+// ─── WALLET ───────────────────────────────────────────────────────────────────
+
+async function _sectionWallet(main) {
+  main.innerHTML = `
+    <div class="section-wallet">
+      <div class="section-header">
+        <h1 class="section-title">💰 Кошелёк</h1>
+      </div>
+      <div class="wallet-card">
+        <div class="wc-label">Текущий баланс</div>
+        <div class="wc-balance" id="wallet-balance">Загрузка...</div>
+        <div class="wc-actions">
+          <button class="btn btn-primary" onclick="_withdrawModal()">💸 Вывести</button>
+        </div>
+      </div>
+      <div class="wallet-history">
+        <h3>История транзакций</h3>
+        <div id="wallet-tx-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+  `;
+
+  try {
+    const wallet = await API.getCourierWallet();
+    _deliveryState.wallet = wallet;
+    const balEl = document.getElementById('wallet-balance');
+    if (balEl) balEl.textContent = `${Number(wallet.balance || 0).toLocaleString('ru-RU')} сум`;
+    const txList = document.getElementById('wallet-tx-list');
+    if (txList) {
+      if (!wallet.history || !wallet.history.length) {
+        txList.innerHTML = `<div class="empty-state">История пуста</div>`;
+      } else {
+        txList.innerHTML = wallet.history.slice().reverse().map(tx => `
+          <div class="tx-item ${tx.type === 'income' ? 'tx-in' : 'tx-out'}">
+            <div class="tx-icon">${tx.type === 'income' ? '⬇️' : '⬆️'}</div>
+            <div class="tx-body">
+              <div class="tx-desc">${tx.desc || tx.method || tx.type}</div>
+              <div class="tx-status">${tx.status || ''}</div>
+            </div>
+            <div class="tx-amount ${tx.type === 'income' ? 'tx-plus' : 'tx-minus'}">
+              ${tx.type === 'income' ? '+' : '-'}${Number(tx.amount).toLocaleString('ru-RU')} сум
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch (e) {
+    const el = document.getElementById('wallet-tx-list');
+    if (el) el.innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function _withdrawModal() {
+  const bal = _deliveryState.wallet?.balance || 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-ic">💸</div>
+      <h3 class="modal-title">Вывод средств</h3>
+      <p class="modal-desc">Доступно: ${Number(bal).toLocaleString('ru-RU')} сум</p>
+      <input type="number" id="wd-amount" class="ob-input" placeholder="Сумма" max="${bal}" min="1000">
+      <select id="wd-method" class="ob-select" style="margin-top:10px;">
+        <option value="click">Click</option>
+        <option value="payme">Payme</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Отмена</button>
+        <button class="btn btn-primary" id="wd-confirm" onclick="_doWithdraw()">Вывести</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+async function _doWithdraw() {
+  const amount = +document.getElementById('wd-amount').value;
+  const method = document.getElementById('wd-method').value;
+  if (!amount || amount < 1000) { showToast('Минимум 1 000 сум', 'error'); return; }
+  const btn = document.getElementById('wd-confirm');
+  btn.disabled = true; btn.textContent = 'Обработка...';
+  try {
+    await API.withdrawCourierWallet({ amount, method });
+    document.querySelector('.modal-overlay')?.remove();
+    showToast('Заявка на вывод принята!', 'success');
+    _sectionWallet(document.getElementById('delivery-main'));
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Вывести';
+  }
+}
+
+// ─── MARKET ───────────────────────────────────────────────────────────────────
+
+async function _sectionMarket(main) {
+  main.innerHTML = `
+    <div class="section-market">
+      <div class="section-header">
+        <h1 class="section-title">🛒 Рынок</h1>
+        <p class="section-subtitle">Товары от фермеров, доступные для доставки</p>
+      </div>
+      <div id="market-list"><div class="spinner"></div></div>
+    </div>
+  `;
+
+  try {
+    const products = await API.getProducts({}).catch(() => []);
+    const list = document.getElementById('market-list');
+    if (!list) return;
+    if (!products.length) {
+      list.innerHTML = `<div class="empty-state">📦 Товаров пока нет</div>`;
+      return;
+    }
+    list.innerHTML = `<div class="market-grid">
+      ${products.slice(0, 20).map(p => `
+        <div class="market-card">
+          ${p.image_url ? `<img src="${p.image_url}" class="mc-img" alt="${p.title}">` : `<div class="mc-img-placeholder">🌾</div>`}
+          <div class="mc-body">
+            <div class="mc-title">${p.title || p.name}</div>
+            <div class="mc-farmer">🌱 ${p.fermer_name || 'Фермер'}</div>
+            <div class="mc-price">${Number(p.price_per_unit ?? p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
+          </div>
+        </div>
+      `).join('')}
     </div>`;
-
-  renderMsgs();
-
-  window._courierAISend = async function() {
-    const inp = document.getElementById('courier-ai-input');
-    const text = inp?.value?.trim();
-    if (!text) return;
-    inp.value = '';
-    msgs.push({ role:'user', text });
-    renderMsgs();
-    msgs.push({ role:'bot', text:'...' });
-    renderMsgs();
-    try {
-      const r = await API.request('POST', '/api/courier/ai/chat', { body: { message: text } });
-      msgs[msgs.length-1].text = r.reply || 'Ошибка ответа';
-    } catch(e) {
-      msgs[msgs.length-1].text = 'Ошибка связи с ИИ';
-    }
-    renderMsgs();
-  };
-}
-
-// ── Кошелёк ──────────────────────────────────────────────────────────────────
-async function renderCourierWallet(el) {
-  let walletData = { balance: 0, history: [] };
-  try { walletData = await API.request('GET', '/api/courier/wallet'); } catch(e) {}
-
-  el.innerHTML = `
-    <h2 style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:20px;">
-      <i class="fi fi-rr-wallet" style="color:#10b981;"></i> Кошелёк
-    </h2>
-    <div class="wallet-card-courier">
-      <div style="font-size:13px;opacity:0.8;">Баланс</div>
-      <div class="wc-balance">${(walletData.balance||0).toLocaleString()} сум</div>
-      <div style="display:flex;gap:12px;margin-top:16px;">
-        <button class="btn" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);"
-          onclick="window._withdrawModal()">
-          <i class="fi fi-rr-arrow-up"></i> Вывести
-        </button>
-      </div>
-    </div>
-    <div>
-      <div style="font-size:16px;font-weight:700;color:#0f1f12;margin-bottom:12px;">История транзакций</div>
-      ${walletData.history?.length ? walletData.history.slice().reverse().map(h => `
-        <div class="history-item">
-          <div class="hi-icon ${h.type}">
-            <i class="fi ${h.type==='income'?'fi-rr-arrow-down':'fi-rr-arrow-up'}"></i>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;color:#0f1f12;">${h.desc||h.method||''}</div>
-            <div style="font-size:11px;color:#9ca3af;">${h.status||''}</div>
-          </div>
-          <div style="font-size:14px;font-weight:700;color:${h.type==='income'?'#059669':'#dc2626'};">
-            ${h.type==='income'?'+':'−'}${(h.amount||0).toLocaleString()} сум
-          </div>
-        </div>`).join('')
-      : '<div style="text-align:center;padding:32px;color:#9ca3af;font-size:13px;">Нет транзакций</div>'}
-    </div>
-  `;
-
-  window._withdrawModal = function() {
-    const m = document.createElement('div');
-    m.className = 'order-modal-overlay';
-    m.innerHTML = `
-      <div class="order-modal" style="max-width:380px;">
-        <h3 style="margin:0 0 20px;font-size:18px;font-weight:800;">Вывод средств</h3>
-        <div class="onb-field">
-          <label>Сумма</label>
-          <input type="number" id="withdraw-amount" placeholder="Сколько вывести?" max="${walletData.balance}" />
-        </div>
-        <div class="onb-field">
-          <label>Способ</label>
-          <select id="withdraw-method">
-            <option value="click">Click</option>
-            <option value="payme">Payme</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:4px;">
-          <button class="btn btn-ghost" style="flex:1;" onclick="this.closest('.order-modal-overlay').remove()">Отмена</button>
-          <button class="btn btn-primary" style="flex:1;" onclick="window._doWithdraw(this)">Вывести</button>
-        </div>
-      </div>`;
-    document.body.appendChild(m);
-    m.addEventListener('click', e => { if(e.target===m) m.remove(); });
-
-    window._doWithdraw = async function(btn) {
-      const amount = parseFloat(document.getElementById('withdraw-amount')?.value);
-      const method = document.getElementById('withdraw-method')?.value;
-      if (!amount || amount <= 0) { showToast('Введите сумму', 'warn'); return; }
-      btn.disabled = true;
-      try {
-        await API.request('POST', '/api/courier/wallet/withdraw', { body: { amount, method } });
-        m.remove();
-        showToast('Заявка на вывод создана!', 'success');
-        renderCourierSection('wallet');
-      } catch(e) {
-        showToast('Ошибка: ' + e.message, 'error');
-        btn.disabled = false;
-      }
-    };
-  };
-}
-
-// ── Профиль курьера ───────────────────────────────────────────────────────────
-async function renderCourierProfile(el) {
-  let profile = null;
-  try { profile = await API.request('GET', '/api/courier/profile'); } catch(e) {}
-
-  if (!profile) {
-    el.innerHTML = `
-      <div style="text-align:center;padding:40px;">
-        <p style="color:#6b7280;">Профиль не заполнен</p>
-        <button class="btn btn-primary" onclick="window._startOnboarding()">
-          <i class="fi fi-rr-arrow-right"></i> Заполнить профиль
-        </button>
-      </div>`;
-    window._startOnboarding = () => renderOnboarding();
-    return;
+  } catch (e) {
+    const list = document.getElementById('market-list');
+    if (list) list.innerHTML = `<div class="empty-state">${e.message}</div>`;
   }
+}
 
-  el.innerHTML = `
-    <h2 style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:20px;">
-      <i class="fi fi-rr-user" style="color:#10b981;"></i> Мой профиль
-    </h2>
-    <div style="background:#fff;border:1px solid rgba(16,185,129,0.15);border-radius:16px;padding:28px;max-width:500px;">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
-        <div class="yp-avatar-big" style="width:60px;height:60px;font-size:26px;margin:0;">
-          ${TRANSPORT_ICONS[profile.transport_type]||'🚗'}
-        </div>
-        <div>
-          <div style="font-size:20px;font-weight:800;color:#0f1f12;">${profile.full_name}</div>
-          <div style="font-size:13px;color:#6b7280;">${TRANSPORT_LABELS[profile.transport_type]||''} · ⭐ ${profile.rating}</div>
-          ${profile.admin_approved === false ? `<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(245,158,11,0.1);color:#d97706;">На проверке</span>` : `<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(16,185,129,0.1);color:#059669;">Одобрен</span>`}
-        </div>
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+
+function _sectionProfile(main) {
+  const p = _deliveryState.profile || {};
+  const tt = TRUCK_TYPES.find(t => t.id === p.transport_type);
+  const approved = p.admin_approved === true;
+
+  main.innerHTML = `
+    <div class="section-profile">
+      <div class="section-header">
+        <h1 class="section-title">👤 Профиль</h1>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
-        <div><span style="color:#9ca3af;">Телефон:</span><br><b>${profile.phone||'—'}</b></div>
-        <div><span style="color:#9ca3af;">Город:</span><br><b>${profile.city||'—'}</b></div>
-        <div><span style="color:#9ca3af;">Макс. груз:</span><br><b>${profile.max_weight||20} кг</b></div>
-        <div><span style="color:#9ca3af;">Радиус работы:</span><br><b>${profile.radius_km||10} км</b></div>
-        <div><span style="color:#9ca3af;">Опыт:</span><br><b>${profile.experience_years||0} лет</b></div>
-        <div><span style="color:#9ca3af;">Режим работы:</span><br><b>${profile.work_hours||'09:00-18:00'}</b></div>
+
+      ${!approved ? `
+        <div class="pending-banner">
+          <div class="pb-icon">⏳</div>
+          <div class="pb-body">
+            <div class="pb-title">Ожидает одобрения администратора</div>
+            <div class="pb-text">Ваши данные проверяются. Обычно это занимает 1–2 рабочих дня.</div>
+            <div class="pb-progress">
+              <div class="pb-bar"><div class="pb-fill" style="width:60%"></div></div>
+              <div class="pb-bar-label">На рассмотрении...</div>
+            </div>
+          </div>
+        </div>
+      ` : `
+        <div class="approved-banner">✅ Профиль одобрен и активен</div>
+      `}
+
+      <div class="profile-card">
+        <div class="profile-avatar">🚛</div>
+        <div class="profile-name">${p.full_name || 'Не указано'}</div>
+        <div class="profile-role">Йўлчи · ${tt ? tt.label : p.transport_type || '—'}</div>
+        <div class="profile-rating">⭐ ${p.rating ?? '5.0'}</div>
       </div>
-      ${profile.bio ? `<div style="margin-top:16px;padding:14px;background:#f0fdf4;border-radius:10px;font-size:13px;color:#374151;">${profile.bio}</div>` : ''}
+
+      <!-- Completion bar -->
+      ${_profileCompletionBar(p)}
+
+      <div class="profile-details">
+        ${_profileRow('📞', 'Телефон', p.phone)}
+        ${_profileRow('🏙️', 'Город', p.city)}
+        ${_profileRow('🚛', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
+        ${_profileRow('⚖️', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
+        ${_profileRow('🔢', 'Гос. номер', p.vehicle_number)}
+        ${_profileRow('📅', 'Опыт', p.experience_years ? `${p.experience_years} лет` : '—')}
+        ${_profileRow('📍', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
+        ${_profileRow('❄️', 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
+        ${p.bio ? _profileRow('📝', 'О себе', p.bio) : ''}
+      </div>
+
+      <button class="btn btn-ghost" style="margin-top:16px;width:100%;" 
+              onclick="_editProfile()">✏️ Редактировать профиль</button>
+      <button class="btn btn-danger-ghost" style="margin-top:8px;width:100%;" 
+              onclick="Auth.logout ? Auth.logout() : (localStorage.clear(), router.go('/login'))">Выйти</button>
     </div>
   `;
 }
 
-// ── Онбординг (регистрация профиля курьера) ──────────────────────────────────
-async function renderOnboarding() {
-  injectDeliveryStyles();
-  const app = document.getElementById('app');
-  let step = 1;
-  let formData = {};
-
-  function renderStep() {
-    const content = document.getElementById('courier-content') || document.getElementById('app');
-    const steps = [
-      // Шаг 1 — транспорт
-      `<div class="onb-card">
-        <h3>Выберите транспорт</h3>
-        <p class="sub">Только 3 типа: мотоцикл, авто, грузовик</p>
-        <div class="transport-grid">
-          ${Object.entries(TRANSPORT_ICONS).map(([k,v]) => `
-            <div class="transport-btn ${formData.transport_type===k?'sel':''}" onclick="window._selTransport('${k}')">
-              <span class="t-icon">${v}</span>
-              ${TRANSPORT_LABELS[k]}
-            </div>`).join('')}
-        </div>
-        <div class="onb-field">
-          <label>Макс. грузоподъёмность (кг)</label>
-          <input type="number" id="onb-maxweight" value="${formData.max_weight||100}" min="1" />
-        </div>
-        <div class="onb-toggle-wrap">
-          <label style="font-size:14px;color:#374151;">Есть термосумка?</label>
-          <label class="toggle-switch">
-            <input type="checkbox" id="onb-thermo" ${formData.has_thermo_bag?'checked':''}>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>`,
-
-      // Шаг 2 — зона работы
-      `<div class="onb-card">
-        <h3>Зона работы</h3>
-        <p class="sub">Укажите ваш город и радиус доставки (до 200 км)</p>
-        <div class="onb-field">
-          <label>Город</label>
-          <input type="text" id="onb-city" value="${formData.city||''}" placeholder="Ташкент" />
-        </div>
-        <div class="onb-field">
-          <label>Радиус работы: <span id="onb-radius-lbl">${formData.radius_km||30}</span> км</label>
-          <input type="range" class="radius-slider" min="1" max="200" value="${formData.radius_km||30}" id="onb-radius"
-            oninput="document.getElementById('onb-radius-lbl').textContent=this.value" />
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;"><span>1 км</span><span>200 км</span></div>
-        </div>
-        <div class="onb-field">
-          <label>Опыт работы (лет)</label>
-          <input type="number" id="onb-exp" value="${formData.experience_years||0}" min="0" max="50" />
-        </div>
-        <div class="onb-field">
-          <label>Часы работы</label>
-          <input type="text" id="onb-hours" value="${formData.work_hours||'09:00-18:00'}" placeholder="09:00-18:00" />
-        </div>
-      </div>`,
-
-      // Шаг 3 — документы
-      `<div class="onb-card">
-        <h3>Личные данные</h3>
-        <p class="sub">Эти данные проверит администратор</p>
-        <div class="onb-field">
-          <label>Полное имя</label>
-          <input type="text" id="onb-name" value="${formData.full_name||''}" placeholder="Иванов Иван Иванович" />
-        </div>
-        <div class="onb-field">
-          <label>Телефон</label>
-          <input type="tel" id="onb-phone" value="${formData.phone||''}" placeholder="+998 90 000 00 00" />
-        </div>
-        <div class="onb-field">
-          <label>Номер ТС (необязательно)</label>
-          <input type="text" id="onb-vehicle" value="${formData.vehicle_number||''}" placeholder="01 A 123 AB" />
-        </div>
-        <div class="onb-field">
-          <label>О себе (необязательно)</label>
-          <textarea id="onb-bio" placeholder="Расскажите о себе…">${formData.bio||''}</textarea>
-        </div>
-        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 14px;font-size:12px;color:#92400e;margin-top:4px;">
-          <i class="fi fi-rr-info" style="margin-right:4px;"></i>
-          После подачи профиль пройдёт проверку администратором. Вы появитесь в поиске после одобрения.
-        </div>
-      </div>`,
-    ];
-
-    const el = document.getElementById('courier-content') || document.getElementById('app');
-    el.innerHTML = `
-      <div class="onboarding-page">
-        <div style="margin-bottom:24px;">
-          <h2 style="font-size:22px;font-weight:800;color:#0f1f12;">Профиль Йўлчи</h2>
-          <p style="color:#6b7280;">Шаг ${step} из 3</p>
-        </div>
-        <div class="onb-progress">
-          ${[1,2,3].map(i => `<div class="onb-step-dot ${i<=step?'active':''}"></div>`).join('')}
-        </div>
-        ${steps[step-1]}
-        <div class="onb-actions">
-          ${step > 1 ? `<button class="btn btn-ghost" onclick="window._onbBack()"><i class="fi fi-rr-arrow-left"></i> Назад</button>` : ''}
-          <button class="btn btn-primary" onclick="window._onbNext()">
-            ${step < 3 ? 'Далее <i class="fi fi-rr-arrow-right"></i>' : '<i class="fi fi-rr-check"></i> Отправить на проверку'}
-          </button>
-        </div>
-      </div>`;
-
-    window._selTransport = k => {
-      formData.transport_type = k;
-      document.querySelectorAll('.transport-btn').forEach(b => b.classList.remove('sel'));
-      event.currentTarget.classList.add('sel');
-    };
-  }
-
-  window._onbNext = async function() {
-    if (step === 1) {
-      if (!formData.transport_type) { showToast('Выберите транспорт', 'warn'); return; }
-      formData.max_weight   = parseFloat(document.getElementById('onb-maxweight')?.value) || 100;
-      formData.has_thermo_bag = document.getElementById('onb-thermo')?.checked || false;
-      step = 2; renderStep();
-    } else if (step === 2) {
-      formData.city = document.getElementById('onb-city')?.value?.trim();
-      if (!formData.city) { showToast('Введите город', 'warn'); return; }
-      formData.radius_km        = parseFloat(document.getElementById('onb-radius')?.value) || 30;
-      formData.experience_years = parseInt(document.getElementById('onb-exp')?.value) || 0;
-      formData.work_hours       = document.getElementById('onb-hours')?.value || '09:00-18:00';
-      step = 3; renderStep();
-    } else {
-      formData.full_name      = document.getElementById('onb-name')?.value?.trim();
-      formData.phone          = document.getElementById('onb-phone')?.value?.trim();
-      formData.vehicle_number = document.getElementById('onb-vehicle')?.value?.trim() || null;
-      formData.bio            = document.getElementById('onb-bio')?.value?.trim() || null;
-      if (!formData.full_name || !formData.phone) { showToast('Заполните имя и телефон', 'warn'); return; }
-      try {
-        await API.request('POST', '/api/courier/profile/setup', { body: formData });
-        launchConfetti();
-        showToast('Профиль отправлен на проверку!', 'success');
-        _courierSection = 'home';
-        renderCourierDashboard();
-      } catch(e) {
-        showToast('Ошибка: ' + e.message, 'error');
-      }
-    }
-  };
-
-  window._onbBack = function() {
-    if (step > 1) { step--; renderStep(); }
-  };
-
-  renderStep();
+function _profileRow(icon, label, value) {
+  return `
+    <div class="pdetail-row">
+      <span class="pdr-icon">${icon}</span>
+      <span class="pdr-label">${label}</span>
+      <span class="pdr-value">${value || '—'}</span>
+    </div>
+  `;
 }
+
+function _editProfile() {
+  // Pre-fill onboarding state with existing profile
+  const p = _deliveryState.profile || {};
+  _deliveryState.onboarding = {
+    step: 0,
+    transport_type: p.transport_type || '',
+    max_weight: p.max_weight || 5000,
+    has_thermo_bag: p.has_thermo_bag || false,
+    experience_years: p.experience_years || 0,
+    city: p.city || '',
+    radius_km: p.radius_km || 50,
+    work_mode: p.work_mode || 'flexible',
+    work_hours: p.work_hours || '08:00-20:00',
+    full_name: p.full_name || '',
+    phone: p.phone || '',
+    vehicle_number: p.vehicle_number || '',
+    bio: p.bio || '',
+  };
+  _renderOnboarding();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CSS STYLES (injected once)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+(function _injectDeliveryStyles() {
+  if (document.getElementById('delivery-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'delivery-styles';
+  style.textContent = `
+    /* ── Layout ── */
+    .delivery-layout {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #f4f6fa;
+    }
+
+    /* ── Sidebar ── */
+    .delivery-sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #1a2332;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .ds-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .ds-logo { font-size: 26px; }
+    .ds-name { font-size: 18px; font-weight: 700; color: #fff; }
+    .ds-nav { flex: 1; padding: 12px 0; }
+    .ds-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 18px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.65);
+      border-radius: 8px;
+      margin: 2px 8px;
+      transition: all 0.15s;
+      font-size: 14px;
+    }
+    .ds-nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+    .ds-nav-item.active { background: #2563eb; color: #fff; }
+    .ds-nav-icon { font-size: 18px; width: 24px; text-align: center; }
+    .ds-nav-label { font-weight: 500; }
+    .ds-footer {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .ds-courier-name { color: #fff; font-weight: 600; font-size: 13px; }
+    .ds-courier-status { font-size: 12px; margin-top: 3px; }
+    .status-active { color: #22c55e; }
+    .status-pending { color: #f59e0b; }
+
+    /* ── Main ── */
+    .delivery-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* ── Section header ── */
+    .section-header { margin-bottom: 24px; }
+    .section-title { font-size: 24px; font-weight: 700; color: #1a2332; margin: 0 0 4px; }
+    .section-subtitle { color: #64748b; font-size: 14px; margin: 0; }
+    .section-date { color: #64748b; font-size: 13px; margin-top: 2px; }
+
+    /* ── Home stats ── */
+    .home-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .hs-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.15s;
+    }
+    .hs-card.clickable { cursor: pointer; }
+    .hs-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(37,99,235,0.12); }
+    .hs-icon { font-size: 28px; margin-bottom: 8px; }
+    .hs-num { font-size: 26px; font-weight: 700; color: #1a2332; }
+    .hs-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+    /* ── Pending banner ── */
+    .pending-banner {
+      display: flex;
+      gap: 16px;
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .pb-icon { font-size: 32px; }
+    .pb-title { font-weight: 700; color: #92400e; font-size: 15px; margin-bottom: 4px; }
+    .pb-text { color: #78350f; font-size: 13px; margin-bottom: 12px; }
+    .pb-progress { }
+    .pb-bar { height: 6px; background: #fde68a; border-radius: 3px; overflow: hidden; }
+    .pb-fill { height: 100%; background: #f59e0b; border-radius: 3px; }
+    .pb-bar-label { font-size: 11px; color: #92400e; margin-top: 4px; }
+
+    /* Approved banner */
+    .approved-banner {
+      background: #f0fdf4;
+      border: 1px solid #22c55e;
+      color: #15803d;
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    /* ── Home blocks ── */
+    .home-section-block {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .hsb-title { font-weight: 700; color: #1a2332; margin-bottom: 14px; font-size: 15px; }
+
+    /* ── Profile completion ── */
+    .profile-completion { display: flex; align-items: center; gap: 14px; }
+    .pc-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .pc-fill { height: 100%; background: #2563eb; border-radius: 4px; transition: width 0.5s; }
+    .pc-label { font-size: 13px; color: #64748b; white-space: nowrap; }
+
+    /* ── Notifications ── */
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .ni-icon { font-size: 20px; }
+    .ni-title { font-size: 13px; color: #1a2332; font-weight: 500; }
+    .ni-time { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    /* ── Orders ── */
+    .orders-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .ot-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #64748b;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ot-tab:hover { border-color: #2563eb; color: #2563eb; }
+    .ot-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .order-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      gap: 14px;
+    }
+    .oc-left { }
+    .oc-cargo-icon { font-size: 36px; }
+    .oc-body { flex: 1; }
+    .oc-title { font-weight: 600; color: #1a2332; font-size: 15px; margin-bottom: 6px; }
+    .oc-route { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: #64748b; margin-bottom: 4px; }
+    .oc-dist, .oc-weight { font-size: 12px; color: #94a3b8; }
+    .oc-right { text-align: right; }
+    .oc-price { font-size: 17px; font-weight: 700; color: #2563eb; margin-bottom: 8px; }
+    .oc-actions { display: flex; flex-direction: column; gap: 6px; }
+    .btn-sm { font-size: 12px; padding: 6px 12px; border-radius: 6px; }
+
+    /* ── Tariffs ── */
+    .tariff-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .tariff-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      border: 2px solid #e2e8f0;
+      position: relative;
+    }
+    .tariff-card.featured {
+      border-color: #2563eb;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.15);
+    }
+    .tariff-card.premium { border-color: #7c3aed; }
+    .tc-top-badge {
+      position: absolute;
+      top: -12px; left: 50%; transform: translateX(-50%);
+      background: #2563eb; color: #fff;
+      padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .tc-badge { font-weight: 700; color: #1a2332; font-size: 17px; margin-bottom: 10px; }
+    .tc-price { font-size: 26px; font-weight: 800; color: #1a2332; }
+    .tc-price span { font-size: 14px; color: #64748b; font-weight: 400; }
+    .tc-period { font-size: 12px; color: #94a3b8; margin-bottom: 18px; }
+    .tc-features { list-style: none; padding: 0; margin: 0 0 20px; }
+    .tc-features li { font-size: 13px; color: #475569; padding: 5px 0; }
+    .tc-btn { width: 100%; }
+
+    .tariff-calc {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .tariff-calc h3 { margin: 0 0 16px; color: #1a2332; }
+    .calc-row { margin-bottom: 14px; }
+    .calc-row label { display: block; font-size: 13px; color: #64748b; margin-bottom: 6px; }
+    .calc-result { margin-top: 16px; }
+    .calc-price-result {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #0369a1;
+    }
+    .calc-price-result.err { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+
+    /* ── AI Chat ── */
+    .section-ai { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+    .ai-chat {
+      flex: 1;
+      overflow-y: auto;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ai-msg { display: flex; }
+    .ai-user { justify-content: flex-end; }
+    .ai-bot  { justify-content: flex-start; }
+    .ai-msg-bubble {
+      max-width: 70%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .ai-user .ai-msg-bubble { background: #2563eb; color: #fff; border-radius: 14px 14px 4px 14px; }
+    .ai-bot  .ai-msg-bubble { background: #fff; color: #1a2332; box-shadow: 0 2px 6px rgba(0,0,0,0.07); border-radius: 14px 14px 14px 4px; }
+    .ai-input-row { display: flex; gap: 10px; }
+    .ai-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .ai-input:focus { border-color: #2563eb; }
+
+    /* ── Wallet ── */
+    .wallet-card {
+      background: linear-gradient(135deg, #1a2332 0%, #2563eb 100%);
+      border-radius: 20px;
+      padding: 32px;
+      color: #fff;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .wc-label { font-size: 14px; opacity: 0.75; margin-bottom: 8px; }
+    .wc-balance { font-size: 36px; font-weight: 800; margin-bottom: 20px; }
+    .wc-actions { display: flex; justify-content: center; gap: 10px; }
+    .wallet-history h3 { margin: 0 0 14px; color: #1a2332; }
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .tx-icon { font-size: 20px; }
+    .tx-body { flex: 1; }
+    .tx-desc { font-size: 13px; color: #1a2332; font-weight: 500; }
+    .tx-status { font-size: 11px; color: #94a3b8; }
+    .tx-amount { font-weight: 700; font-size: 14px; }
+    .tx-plus { color: #22c55e; }
+    .tx-minus { color: #ef4444; }
+
+    /* ── Market ── */
+    .market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .market-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .mc-img { width: 100%; height: 140px; object-fit: cover; }
+    .mc-img-placeholder { width: 100%; height: 140px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+    .mc-body { padding: 12px; }
+    .mc-title { font-weight: 600; color: #1a2332; font-size: 14px; margin-bottom: 4px; }
+    .mc-farmer { font-size: 12px; color: #64748b; margin-bottom: 6px; }
+    .mc-price { font-weight: 700; color: #2563eb; font-size: 14px; }
+
+    /* ── Profile ── */
+    .profile-card { text-align: center; background: #fff; border-radius: 16px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .profile-avatar { font-size: 56px; margin-bottom: 10px; }
+    .profile-name { font-size: 20px; font-weight: 700; color: #1a2332; }
+    .profile-role { font-size: 13px; color: #64748b; margin-top: 4px; }
+    .profile-rating { font-size: 16px; margin-top: 8px; }
+    .profile-details { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .pdetail-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .pdetail-row:last-child { border-bottom: none; }
+    .pdr-icon { font-size: 18px; width: 28px; text-align: center; }
+    .pdr-label { flex: 1; font-size: 13px; color: #64748b; }
+    .pdr-value { font-size: 13px; font-weight: 600; color: #1a2332; }
+
+    /* ── Onboarding ── */
+    .delivery-onboard {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+    .onboard-header { text-align: center; margin-bottom: 28px; }
+    .onboard-logo { font-size: 28px; font-weight: 800; color: #1a2332; }
+    .onboard-subtitle { color: #64748b; font-size: 14px; margin-top: 6px; }
+    .onboard-progress {
+      display: flex;
+      align-items: center;
+      margin-bottom: 28px;
+      gap: 0;
+    }
+    .op-step {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      padding: 8px 4px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .op-step.active { color: #2563eb; }
+    .op-line { flex: 0.3; height: 2px; background: #e2e8f0; }
+    .onboard-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .ob-title { font-size: 20px; font-weight: 700; color: #1a2332; margin: 0 0 8px; }
+    .ob-desc { color: #64748b; font-size: 14px; margin: 0 0 20px; }
+    .ob-field { margin-bottom: 16px; }
+    .ob-label { display: block; font-size: 13px; color: #64748b; margin-bottom: 6px; font-weight: 500; }
+    .ob-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .ob-input:focus { border-color: #2563eb; }
+    .ob-textarea { resize: vertical; min-height: 80px; }
+    .ob-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    .ob-range { width: 100%; accent-color: #2563eb; }
+    .ob-checkbox { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 14px; cursor: pointer; }
+    .ob-next { width: 100%; margin-top: 8px; }
+    .ob-nav { display: flex; gap: 10px; margin-top: 8px; }
+    .ob-nav .btn { flex: 1; }
+
+    /* Truck chips */
+    .truck-chips {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .truck-chip {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .truck-chip:hover { border-color: #93c5fd; background: #eff6ff; }
+    .truck-chip.selected { border-color: #2563eb; background: #eff6ff; }
+    .tc-icon { font-size: 28px; margin-bottom: 6px; }
+    .tc-label { font-weight: 600; font-size: 13px; color: #1a2332; }
+    .tc-desc { font-size: 11px; color: #64748b; margin-top: 3px; }
+
+    /* ── Misc ── */
+    .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 15px; }
+    .btn-success { background: #22c55e; color: #fff; border: none; }
+    .btn-danger-ghost { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-size: 14px; }
+    .btn-danger-ghost:hover { background: #fef2f2; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .delivery-sidebar { width: 64px; min-width: 64px; }
+      .ds-name, .ds-nav-label, .ds-courier-name, .ds-courier-status { display: none; }
+      .ds-brand { justify-content: center; padding: 16px 8px; }
+      .ds-nav-item { justify-content: center; padding: 12px; margin: 2px 4px; }
+      .ds-footer { display: none; }
+      .home-stats { grid-template-columns: repeat(2, 1fr); }
+      .tariff-cards { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .delivery-main { padding: 16px; }
+      .home-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// API WRAPPERS (если нет в глобальном API)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+(function _ensureAPIWrappers() {
+  if (!window.API) window.API = {};
+
+  const base = window.API._base || (
+    window.API._base = window.location.hostname.includes('localhost')
+      ? 'http://127.0.0.1:8000'
+      : 'https://fearless-learning-production-00ca.up.railway.app'
+  );
+
+  const authGet  = (url, params) => {
+    const token = localStorage.getItem('token');
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return fetch(base + url + qs, { headers: { Authorization: `Bearer ${token}` } }).then(r => {
+      if (!r.ok) return r.json().then(e => Promise.reject(new Error(e.detail || r.statusText)));
+      return r.json();
+    });
+  };
+  const authPost = (url, body) => {
+    const token = localStorage.getItem('token');
+    return fetch(base + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }).then(r => {
+      if (!r.ok) return r.json().then(e => Promise.reject(new Error(e.detail || r.statusText)));
+      return r.json();
+    });
+  };
+  const authPut  = (url, body) => {
+    const token = localStorage.getItem('token');
+    return fetch(base + url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }).then(r => {
+      if (!r.ok) return r.json().then(e => Promise.reject(new Error(e.detail || r.statusText)));
+      return r.json();
+    });
+  };
+
+  if (!API.getCourierProfile)       API.getCourierProfile       = ()      => authGet('/api/courier/profile');
+  if (!API.setupCourierProfile)     API.setupCourierProfile     = (d)     => authPost('/api/courier/profile/setup', d);
+  if (!API.updateCourierStatus)     API.updateCourierStatus     = (d)     => authPut('/api/courier/status', d);
+  if (!API.getCourierOrders)        API.getCourierOrders        = ()      => authGet('/api/courier/orders');
+  if (!API.getAvailableOrders)      API.getAvailableOrders      = ()      => authGet('/api/delivery/available-orders');
+  if (!API.acceptDeliveryOrder)     API.acceptDeliveryOrder     = (id)    => authPost(`/api/delivery/orders/${id}/accept`, {});
+  if (!API.updateDeliveryStatus)    API.updateDeliveryStatus    = (id, s) => authPut(`/api/delivery/orders/${id}/status`, { status: s });
+  if (!API.getCourierWallet)        API.getCourierWallet        = ()      => authGet('/api/courier/wallet');
+  if (!API.withdrawCourierWallet)   API.withdrawCourierWallet   = (d)     => authPost('/api/courier/wallet/withdraw', d);
+  if (!API.courierAIChat)           API.courierAIChat           = (msg)   => authPost('/api/courier/ai/chat', { message: msg });
+  if (!API.calculateDeliveryPrice)  API.calculateDeliveryPrice  = (t,d,w) => authGet('/api/delivery/calculate', { transport: t, distance_km: d, weight_kg: w });
+})();
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
+
+window.renderDelivery       = renderDelivery;
+window._deliverySection     = _deliverySection;
+window._selectTruckType     = _selectTruckType;
+window._obNext              = _obNext;
+window._obBack              = _obBack;
+window._obSubmit            = _obSubmit;
+window._ordersTab           = _ordersTab;
+window._acceptOrder         = _acceptOrder;
+window._deliverOrder        = _deliverOrder;
+window._cancelOrder         = _cancelOrder;
+window._setOnline           = _setOnline;
+window._calcPrice           = _calcPrice;
+window._sendAIMessage       = _sendAIMessage;
+window._withdrawModal       = _withdrawModal;
+window._doWithdraw          = _doWithdraw;
+window._editProfile         = _editProfile;

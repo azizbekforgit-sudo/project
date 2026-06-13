@@ -1,4 +1,4 @@
-/* pages/admin.js — Админ-панель: статистика, пользователи, модерация */
+/* pages/admin.js — Админ-панель: статистика, пользователи, модерация, Йўлчи заявки */
 
 async function renderAdmin() {
   const app = document.getElementById('app');
@@ -16,10 +16,12 @@ async function renderAdmin() {
         <div class="stat-card"><div class="stat-ic">👥</div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
         <div class="stat-card"><div class="stat-ic">📦</div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
         <div class="stat-card"><div class="stat-ic">🧾</div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
+        <div class="stat-card"><div class="stat-ic">🚛</div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
       </div>
 
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')">🛂 ${t('admin_moderation')}</button>
+        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')">🚛 Йўлчи заявки</button>
         <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')">👥 ${t('admin_users')}</button>
         <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')">📈 ${t('admin_reports')}</button>
       </div>
@@ -34,34 +36,34 @@ async function renderAdmin() {
 
 async function loadAdminStats() {
   try {
-    const [usersRes, pendingRes, ordersRes, prodsRes] = await Promise.all([
+    const [usersRes, pendingRes, ordersRes, prodsRes, couriersRes] = await Promise.all([
       API.adminGetUsers({}).catch(() => null),
       API.adminPendingProducts().catch(() => null),
       API.adminOrdersReport().catch(() => null),
       API.getProducts({}).catch(() => []),
+      _adminGetPendingCouriers().catch(() => []),
     ]);
 
     const elU = document.getElementById('st-users');
     const elP = document.getElementById('st-products');
     const elO = document.getElementById('st-orders');
+    const elC = document.getElementById('st-couriers');
 
-    // Users: бэк возвращает { users: [...] }
     if (elU) {
       const users = usersRes?.users ?? (Array.isArray(usersRes) ? usersRes : []);
       elU.textContent = users.length;
     }
-
-    // Products: API.getProducts возвращает нормализованный массив
     if (elP) {
       const prods = Array.isArray(prodsRes) ? prodsRes : [];
       elP.textContent = prods.length;
     }
-
-    // Orders: бэк возвращает { total: N, orders: [...] }
     if (elO) {
       const cnt = ordersRes?.total ?? ordersRes?.total_orders ?? ordersRes?.count
         ?? (Array.isArray(ordersRes?.orders) ? ordersRes.orders.length : 0);
       elO.textContent = cnt;
+    }
+    if (elC) {
+      elC.textContent = Array.isArray(couriersRes) ? couriersRes.length : 0;
     }
   } catch (e) { /* тихо */ }
 }
@@ -74,7 +76,6 @@ async function adminSwitchTab(tab) {
   if (tab === 'moderation') {
     try {
       const res = await API.adminPendingProducts();
-      // бэк возвращает { products: [...] }
       const pending = res?.products ?? (Array.isArray(res) ? res : []);
       if (!pending || pending.length === 0) {
         box.innerHTML = `<div class="empty-state">✅ ${t('no_pending')}</div>`;
@@ -100,10 +101,58 @@ async function adminSwitchTab(tab) {
       box.innerHTML = `<div class="empty-state">${e.message}</div>`;
     }
 
+  } else if (tab === 'couriers') {
+    // ── Йўлчи заявки ──────────────────────────────────────────────────────────
+    try {
+      const couriers = await _adminGetPendingCouriers();
+      if (!couriers || couriers.length === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            ✅ Нет ожидающих заявок от курьеров
+          </div>`;
+        return;
+      }
+      box.innerHTML = `
+        <h3 style="margin-bottom:16px;">🚛 Заявки Йўлчи (${couriers.length})</h3>
+        <div class="admin-list">
+          ${couriers.map(c => {
+            const truckLabel = {
+              fura:      'Фура',
+              refrig:    'Рефрижератор',
+              tentovan:  'Тентованный',
+              samosval:  'Самосвал',
+              bortovoy:  'Бортовой',
+              truck:     'Грузовик',
+            }[c.transport_type] || c.transport_type || '—';
+
+            return `
+            <div class="admin-row" id="crow-${c.id}">
+              <div class="ar-main">
+                <div class="ar-title">🚛 ${c.full_name || 'Без имени'}</div>
+                <div class="ar-sub">
+                  📞 ${c.phone || '—'} &nbsp;·&nbsp;
+                  🏙️ ${c.city || '—'} &nbsp;·&nbsp;
+                  ${truckLabel} &nbsp;·&nbsp;
+                  ⚖️ ${c.max_weight ? c.max_weight + ' кг' : '—'} &nbsp;·&nbsp;
+                  ${c.experience_years ? c.experience_years + ' лет опыта' : 'Нет опыта'}
+                </div>
+                ${c.vehicle_number ? `<div class="ar-vehicle">🔢 ${c.vehicle_number}</div>` : ''}
+                ${c.bio ? `<div class="ar-bio">📝 ${c.bio}</div>` : ''}
+              </div>
+              <div class="ar-actions">
+                <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.id})">✓ Одобрить</button>
+                <button class="btn-sm btn-reject"  onclick="adminRejectCourier(${c.id})">✕ Отклонить</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${e.message}</div>`;
+    }
+
   } else if (tab === 'users') {
     try {
       const res = await API.adminGetUsers({});
-      // бэк возвращает { users: [...] }
       const users = res?.users ?? (Array.isArray(res) ? res : []);
       if (!users.length) {
         box.innerHTML = `<div class="empty-state">${t('no_users') || 'Пользователей нет'}</div>`;
@@ -156,6 +205,8 @@ async function adminSwitchTab(tab) {
 
 function roleIcon(r) { return r === 'fermer' ? '🌱' : r === 'admin' ? '👑' : '🛍️'; }
 
+// ─── Product moderation ────────────────────────────────────────────────────────
+
 async function adminApprove(id) {
   try {
     await API.adminApproveProduct(id);
@@ -173,6 +224,84 @@ async function adminReject(id) {
     loadAdminStats();
   } catch (e) { showToast(e.message, 'error'); }
 }
+
+// ─── Courier approval ─────────────────────────────────────────────────────────
+
+async function _adminGetPendingCouriers() {
+  const token = localStorage.getItem('token');
+  const base = (window.API && window.API._base)
+    ? window.API._base
+    : (window.location.hostname.includes('localhost')
+        ? 'http://127.0.0.1:8000'
+        : 'https://fearless-learning-production-00ca.up.railway.app');
+  const res = await fetch(base + '/api/admin/couriers/pending', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+async function adminApproveCourier(id) {
+  const token = localStorage.getItem('token');
+  const base = (window.API && window.API._base)
+    ? window.API._base
+    : (window.location.hostname.includes('localhost')
+        ? 'http://127.0.0.1:8000'
+        : 'https://fearless-learning-production-00ca.up.railway.app');
+  try {
+    const res = await fetch(base + `/api/admin/couriers/${id}/approve`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || res.statusText);
+    }
+    document.getElementById(`crow-${id}`)?.remove();
+    showToast(`Курьер #${id} одобрен ✅`, 'success');
+    loadAdminStats();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function adminRejectCourier(id) {
+  const token = localStorage.getItem('token');
+  const base = (window.API && window.API._base)
+    ? window.API._base
+    : (window.location.hostname.includes('localhost')
+        ? 'http://127.0.0.1:8000'
+        : 'https://fearless-learning-production-00ca.up.railway.app');
+  try {
+    const res = await fetch(base + `/api/admin/couriers/${id}/reject`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || res.statusText);
+    }
+    document.getElementById(`crow-${id}`)?.remove();
+    showToast(`Курьер #${id} отклонён`, 'info');
+    loadAdminStats();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ─── Extra styles for courier rows ────────────────────────────────────────────
+
+(function _injectCourierAdminStyles() {
+  if (document.getElementById('admin-courier-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'admin-courier-styles';
+  style.textContent = `
+    .ar-vehicle { font-size: 12px; color: #475569; margin-top: 4px; }
+    .ar-bio     { font-size: 12px; color: #64748b; margin-top: 3px; font-style: italic; }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ─── User management ──────────────────────────────────────────────────────────
 
 function adminBlock(id) {
   const overlay = document.createElement('div');
@@ -217,9 +346,11 @@ async function adminUnblock(id) {
   } catch (e) { showToast(e.message, 'error'); }
 }
 
-window.renderAdmin = renderAdmin;
-window.adminSwitchTab = adminSwitchTab;
-window.adminApprove = adminApprove;
-window.adminReject = adminReject;
-window.adminBlock = adminBlock;
-window.adminUnblock = adminUnblock;
+window.renderAdmin          = renderAdmin;
+window.adminSwitchTab       = adminSwitchTab;
+window.adminApprove         = adminApprove;
+window.adminReject          = adminReject;
+window.adminApproveCourier  = adminApproveCourier;
+window.adminRejectCourier   = adminRejectCourier;
+window.adminBlock           = adminBlock;
+window.adminUnblock         = adminUnblock;

@@ -278,35 +278,58 @@ function injectStyles() {
     .delay-5 { transition-delay: 0.40s !important; }
     .delay-6 { transition-delay: 0.48s !important; }
 
-    /* ── How-card scroll reveal — scale + fade bounce ── */
+    /* ── How-card scroll reveal — каждая карточка с разной стороны ── */
     .how-card {
       cursor: default;
       opacity: 0;
-      transform: translateY(40px) scale(0.93);
-      transition: transform 0.55s cubic-bezier(0.34,1.56,0.64,1),
-                  opacity 0.5s ease,
+      transition: transform 0.65s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.65s ease,
                   box-shadow 0.35s ease;
+      will-change: opacity, transform;
     }
+    /* Направления: 1-слева, 2-снизу, 3-снизу, 4-справа */
+    .how-card:nth-child(1) { transform: translateX(-60px) scale(0.93); }
+    .how-card:nth-child(2) { transform: translateY(60px) scale(0.93); }
+    .how-card:nth-child(3) { transform: translateY(60px) scale(0.93); }
+    .how-card:nth-child(4) { transform: translateX(60px) scale(0.93); }
     .how-card.revealed {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateY(0) translateX(0) scale(1);
+    }
+    /* Затухание при уходе вверх */
+    .how-card.fade-out {
+      opacity: 0;
+      transition: opacity 0.4s ease;
     }
     .how-card:hover {
       transform: translateY(-6px) scale(1.03) !important;
       box-shadow: 0 16px 40px rgba(16,185,129,0.18);
     }
 
-    /* ── tip/benefit card scroll reveal — slide-up ── */
+    /* ── tip/benefit card — каждая с разной стороны ── */
     .tip-card, .benefit-card {
       opacity: 0;
-      transform: translateY(32px);
-      transition: transform 0.55s cubic-bezier(0.22,1,0.36,1),
-                  opacity 0.5s ease,
+      transition: transform 0.6s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.6s ease,
                   box-shadow 0.35s ease;
+      will-change: opacity, transform;
     }
+    /* tip: 1-слева, 2-снизу, 3-справа */
+    .tip-card:nth-child(1) { transform: translateX(-50px); }
+    .tip-card:nth-child(2) { transform: translateY(50px); }
+    .tip-card:nth-child(3) { transform: translateX(50px); }
+    /* benefit: 1-слева, 2-снизу, 3-снизу, 4-справа */
+    .benefit-card:nth-child(1) { transform: translateX(-50px); }
+    .benefit-card:nth-child(2) { transform: translateY(50px); }
+    .benefit-card:nth-child(3) { transform: translateY(50px); }
+    .benefit-card:nth-child(4) { transform: translateX(50px); }
     .tip-card.revealed, .benefit-card.revealed {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) translateX(0);
+    }
+    .tip-card.fade-out, .benefit-card.fade-out {
+      opacity: 0;
+      transition: opacity 0.35s ease;
     }
     .tip-card:hover, .benefit-card:hover {
       transform: translateY(-5px) scale(1.02) !important;
@@ -323,6 +346,10 @@ function injectStyles() {
     .promo.revealed {
       opacity: 1;
       transform: translateX(0);
+    }
+    .promo.fade-out {
+      opacity: 0;
+      transition: opacity 0.35s ease;
     }
 
     /* ── Section heading scroll reveal ── */
@@ -484,7 +511,6 @@ function initScrollReveal() {
   ];
 
   staggerGroups.forEach(({ sel, baseDelay }) => {
-    // Group cards by their parent so siblings stagger together
     const cards = [...document.querySelectorAll(sel)];
     const parents = new Map();
     cards.forEach(card => {
@@ -499,7 +525,7 @@ function initScrollReveal() {
     });
   });
 
-  // Other scroll-reveal elements (not how/tip/benefit — they already have their own classes)
+  // Other scroll-reveal elements
   const otherSelectors = [
     '.cat-card', '.product-card', '.section-head',
   ];
@@ -512,15 +538,26 @@ function initScrollReveal() {
     });
   });
 
-  // Observe everything that needs reveal
+  // Observe everything — с поддержкой fade-out при уходе вверх
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
+        // Элемент входит в зону — показываем
         e.target.classList.add('revealed');
-        obs.unobserve(e.target);
+        e.target.classList.remove('fade-out');
+      } else {
+        const rect = e.target.getBoundingClientRect();
+        if (rect.bottom < 0) {
+          // Элемент ушёл вверх — затухаем (но не сбрасываем revealed)
+          e.target.classList.add('fade-out');
+        } else {
+          // Элемент ещё не дошёл снизу — сброс для повторной анимации
+          e.target.classList.remove('revealed');
+          e.target.classList.remove('fade-out');
+        }
       }
     });
-  }, { threshold: 0.10, rootMargin: '0px 0px -30px 0px' });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
   document.querySelectorAll(
     '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale, ' +
