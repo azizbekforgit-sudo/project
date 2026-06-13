@@ -127,9 +127,9 @@ const API = {
     return normalizeProduct(res);
   },
   createProduct: (data) => {
-    if (data instanceof FormData) return request('POST', '/api/products/', { formData: data });
-    return request('POST', '/api/products/', { body: data });
-  },
+    if (data instanceof FormData) return request('POST', '/api/products', { formData: data });
+    return request('POST', '/api/products', { body: data });
+},
   deleteProduct: (id)       => request('DELETE', `/api/products/${id}`),
 
   // Orders
