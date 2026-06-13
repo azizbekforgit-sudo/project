@@ -11,6 +11,7 @@ from app.models import User, Product, UserRole, ProductStatus, BonusTransaction
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from app.dependencies import get_current_user, get_current_fermer
 from app.config import settings
+
 try:
     from PIL import Image
     _PIL_AVAILABLE = True
@@ -18,19 +19,6 @@ except ImportError:
     _PIL_AVAILABLE = False
 
 router = APIRouter(prefix="/api/products", tags=["products"])
-
-CORS_HEADERS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Origin, X-Requested-With",
-}
-
-# ── OPTIONS preflight для всех эндпоинтов роутера ──
-@router.options("/")
-@router.options("/{rest:path}")
-async def products_options(rest: str = ""):
-    return Response(status_code=200, headers=CORS_HEADERS)
-
 
 # Вспомогательная функция сохранения фото
 async def save_photo(file: UploadFile, product_id: int) -> str:
@@ -46,7 +34,6 @@ async def save_photo(file: UploadFile, product_id: int) -> str:
 
     return f"/uploads/products/{product_id}/{filename}"
 
-
 @router.get("/", response_model=ProductListResponse)
 async def get_products(
     category: Optional[str] = None,
@@ -58,7 +45,6 @@ async def get_products(
     limit: int = 50,
     db: AsyncSession = Depends(get_db)
 ):
-    """Просмотр каталога товаров (доступен всем, только активные товары)"""
     query = select(Product).where(
         Product.status.in_([ProductStatus.ACTIVE, ProductStatus.PENDING])
     )
@@ -113,10 +99,8 @@ async def get_products(
         products=product_responses
     )
 
-
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
-    """Детальная страница товара"""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
 
@@ -143,7 +127,6 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         created_at=product.created_at
     )
 
-
 @router.post("/", response_model=ProductResponse)
 async def create_product(
     title: str = Form(...),
@@ -156,13 +139,6 @@ async def create_product(
     current_user: User = Depends(get_current_fermer),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Публикация товара фермером
-    - Проверка тарифа (лимит товаров)
-    - Загрузка фото
-    - Статус pending (ожидает модерации)
-    - Начисление бонусов
-    """
     tariff_limits = {
         "standart": 5,
         "normal": 30,
@@ -236,7 +212,6 @@ async def create_product(
         created_at=new_product.created_at
     )
 
-
 @router.put("/{product_id}", response_model=ProductResponse)
 async def update_product(
     product_id: int,
@@ -244,7 +219,6 @@ async def update_product(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Обновление товара (только автор-фермер)"""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
 
@@ -280,14 +254,12 @@ async def update_product(
         created_at=product.created_at
     )
 
-
 @router.delete("/{product_id}")
 async def delete_product(
     product_id: int,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Удаление товара (фермер свой или админ)"""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
 
@@ -302,7 +274,6 @@ async def delete_product(
 
     return {"message": "Product deleted successfully"}
 
-
 @router.post("/{product_id}/photos")
 async def upload_product_photos(
     product_id: int,
@@ -310,7 +281,6 @@ async def upload_product_photos(
     current_user: User = Depends(get_current_fermer),
     db: AsyncSession = Depends(get_db)
 ):
-    """Загрузка фото к товару"""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
 
