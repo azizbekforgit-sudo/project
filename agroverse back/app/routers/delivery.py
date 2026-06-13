@@ -1,15 +1,14 @@
 """
-delivery.py — Модуль доставки AgroVerse
-Роль: courier | Статусы: online/offline/busy
+delivery.py — Модуль доставки AgroVerse (БД версия)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, and_, func
+from sqlalchemy import select, func
 from app.database import AsyncSessionLocal
 from app.dependencies import get_current_user
-from app.models import User, UserRole
+from app.models import User, CourierProfile, CourierOrder, CourierTransaction, CourierRatingEntry
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 import math
 import httpx
 import os
@@ -20,63 +19,66 @@ async def get_db():
     async with AsyncSessionLocal() as s:
         yield s
 
-# ─── Pydantic schemas ─────────────────────────────────────────────────────────
+# ─── Schemas ──────────────────────────────────────────────────
 
 class CourierProfileSetup(BaseModel):
-    # Шаг 1 — транспорт
-    transport_type: str           # moto / car / truck
-    max_weight: float             # кг
-    has_thermo_bag: bool = False
-    # Шаг 2 — зона
+    transport_type:   str
+    max_weight:       float = 5000
+    has_thermo_bag:   bool = False
     experience_years: int = 0
-    city: str
-    radius_km: float = 10
-    work_mode: str = "flexible"   # flexible / day / evening
-    work_hours: str = "09:00-18:00"
-    # Шаг 3 — документы
-    full_name: str
-    phone: str
-    vehicle_number: Optional[str] = None
-    bio: Optional[str] = None
-    photo_url: Optional[str] = None
+    city:             str
+    radius_km:        float = 50
+    work_mode:        str = "flexible"
+    work_hours:       str = "08:00-20:00"
+    full_name:        str
+    phone:            str
+    vehicle_number:   Optional[str] = None
+    bio:              Optional[str] = None
+    photo_url:        Optional[str] = None
 
 class CourierStatusUpdate(BaseModel):
-    status: str   # online / offline / busy
+    status: str
     lat: Optional[float] = None
     lng: Optional[float] = None
 
 class DeliveryOrderCreate(BaseModel):
-    courier_id: int
-    pickup_address: str
+    courier_id:       int
+    pickup_address:   str
     delivery_address: str
-    pickup_lat: float
-    pickup_lng: float
-    delivery_lat: float
-    delivery_lng: float
+    pickup_lat:       float
+    pickup_lng:       float
+    delivery_lat:     float
+    delivery_lng:     float
     cargo_description: str
-    weight_kg: float
-    scheduled_time: Optional[str] = None
+    weight_kg:        float
+    scheduled_time:   Optional[str] = None
 
 class DeliveryStatusUpdate(BaseModel):
-    status: str  # accepted / picked_up / in_transit / delivered / cancelled
+    status: str
 
-class CourierRating(BaseModel):
-    rating: int   # 1–5
+class CourierRatingSchema(BaseModel):
+    rating:  int
     comment: Optional[str] = None
 
 class WalletWithdraw(BaseModel):
     amount: float
-    method: str   # click / payme
+    method: str = "click"
 
 class AIChatMessage(BaseModel):
     message: str
 
-# ─── Утилиты ──────────────────────────────────────────────────────────────────
+# ─── Utils ────────────────────────────────────────────────────
 
 TARIFFS = {
     "moto":  {"base": 8000,  "per_km": 900,  "extra_weight": 1000},
     "car":   {"base": 12000, "per_km": 1200, "extra_weight": 2000},
     "truck": {"base": 25000, "per_km": 2000, "extra_weight": 0},
+    # Грузовые типы из фронтенда
+    "fura":      {"base": 30000, "per_km": 2500, "extra_weight": 0},
+    "refrig":    {"base": 28000, "per_km": 2200, "extra_weight": 0},
+    "tentovan":  {"base": 27000, "per_km": 2100, "extra_weight": 0},
+    "samosval":  {"base": 32000, "per_km": 2800, "extra_weight": 0},
+    "bortovoy":  {"base": 22000, "per_km": 1800, "extra_weight": 0},
 }
 
 def haversine(lat1, lng1, lat2, lng2):
@@ -89,245 +91,346 @@ def haversine(lat1, lng1, lat2, lng2):
 def calc_price(transport: str, distance_km: float, weight_kg: float) -> int:
     t = TARIFFS.get(transport, TARIFFS["car"])
     price = t["base"] + t["per_km"] * distance_km
-    if weight_kg > 10 and t["extra_weight"]:
+    if weight_kg > 10 and t.get("extra_weight"):
         price += t["extra_weight"] * math.ceil((weight_kg - 10) / 5)
     return int(price)
 
-# ─── In-memory хранилище курьеров (в проде — Redis/DB) ───────────────────────
-# В реальном деплое эти данные хранятся в таблицах. Здесь упрощённо в памяти.
-_courier_profiles: dict = {}   # user_id -> profile dict
-_courier_status: dict = {}     # user_id -> {status, lat, lng}
-_delivery_orders: dict = {}    # order_id -> order dict
-_courier_ratings: dict = {}    # courier_id -> [ratings]
-_courier_wallets: dict = {}    # user_id -> balance
-_wallet_history: dict = {}     # user_id -> [transactions]
-_order_counter = [1000]
+def profile_to_dict(p: CourierProfile) -> dict:
+    return {
+        "id": p.id,
+        "user_id": p.user_id,
+        "full_name": p.full_name,
+        "phone": p.phone,
+        "transport_type": p.transport_type,
+        "max_weight": p.max_weight,
+        "has_thermo_bag": p.has_thermo_bag,
+        "experience_years": p.experience_years,
+        "city": p.city,
+        "radius_km": p.radius_km,
+        "work_mode": p.work_mode,
+        "work_hours": p.work_hours,
+        "vehicle_number": p.vehicle_number,
+        "bio": p.bio,
+        "photo_url": p.photo_url,
+        "admin_approved": p.admin_approved,
+        "rating": p.rating,
+        "balance": p.balance,
+        "status": p.status,
+        "lat": p.lat,
+        "lng": p.lng,
+    }
 
-# ─── 1. Настройка профиля курьера ─────────────────────────────────────────────
+def order_to_dict(o: CourierOrder) -> dict:
+    return {
+        "id": o.id,
+        "courier_id": o.courier_id,
+        "client_id": o.client_id,
+        "cargo": o.cargo,
+        "cargo_description": o.cargo_description,
+        "pickup_address": o.pickup_address,
+        "delivery_address": o.delivery_address,
+        "pickup_lat": o.pickup_lat,
+        "pickup_lng": o.pickup_lng,
+        "delivery_lat": o.delivery_lat,
+        "delivery_lng": o.delivery_lng,
+        "distance_km": o.distance_km,
+        "weight_kg": o.weight_kg,
+        "price": o.price,
+        "status": o.status,
+        "scheduled_time": o.scheduled_time,
+    }
+
+# ─── 1. Профиль курьера ───────────────────────────────────────
 
 @router.post("/courier/profile/setup")
 async def setup_courier_profile(
     data: CourierProfileSetup,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    profile_data = data.model_dump()
-    profile_data["admin_approved"] = False  # Requires admin approval before appearing in search
-    _courier_profiles[current_user.id] = profile_data
-    _courier_status[current_user.id] = {"status": "offline", "lat": None, "lng": None}
-    if current_user.id not in _courier_wallets:
-        _courier_wallets[current_user.id] = 0.0
-        _wallet_history[current_user.id] = []
-    return {"ok": True, "message": "Профиль курьера сохранён"}
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+
+    if profile:
+        profile.transport_type   = data.transport_type
+        profile.max_weight       = data.max_weight
+        profile.has_thermo_bag   = data.has_thermo_bag
+        profile.experience_years = data.experience_years
+        profile.city             = data.city
+        profile.radius_km        = data.radius_km
+        profile.work_mode        = data.work_mode
+        profile.work_hours       = data.work_hours
+        profile.full_name        = data.full_name
+        profile.phone            = data.phone
+        profile.vehicle_number   = data.vehicle_number or ""
+        profile.bio              = data.bio or ""
+        profile.photo_url        = data.photo_url
+    else:
+        profile = CourierProfile(
+            user_id=current_user.id,
+            transport_type=data.transport_type,
+            max_weight=data.max_weight,
+            has_thermo_bag=data.has_thermo_bag,
+            experience_years=data.experience_years,
+            city=data.city,
+            radius_km=data.radius_km,
+            work_mode=data.work_mode,
+            work_hours=data.work_hours,
+            full_name=data.full_name,
+            phone=data.phone,
+            vehicle_number=data.vehicle_number or "",
+            bio=data.bio or "",
+            photo_url=data.photo_url,
+            admin_approved=False,
+        )
+        db.add(profile)
+
+    # Меняем роль на courier
+    current_user.role = "courier"
+    await db.commit()
+    return {"ok": True, "message": "Профиль курьера сохранён, ожидайте одобрения администратора"}
+
 
 @router.get("/courier/profile")
-async def get_courier_profile(current_user: User = Depends(get_current_user)):
-    profile = _courier_profiles.get(current_user.id)
+async def get_courier_profile(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(404, "Профиль не найден")
-    return {
-        **profile,
-        "status": _courier_status.get(current_user.id, {}).get("status", "offline"),
-        "rating": _get_avg_rating(current_user.id),
-        "wallet": _courier_wallets.get(current_user.id, 0),
-        "admin_approved": profile.get("admin_approved", False),
-    }
+    return profile_to_dict(profile)
 
-# ─── 2. Статус курьера ────────────────────────────────────────────────────────
+# ─── 2. Статус курьера ────────────────────────────────────────
 
 @router.put("/courier/status")
 async def update_courier_status(
     data: CourierStatusUpdate,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    if data.status not in ("online", "offline", "busy"):
-        raise HTTPException(400, "Неверный статус")
-    _courier_status[current_user.id] = {
-        "status": data.status,
-        "lat": data.lat,
-        "lng": data.lng,
-    }
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(404, "Профиль не найден")
+    profile.status = data.status
+    if data.lat is not None:
+        profile.lat = data.lat
+    if data.lng is not None:
+        profile.lng = data.lng
+    await db.commit()
     return {"ok": True, "status": data.status}
 
-# ─── 3. Поиск курьеров поблизости ─────────────────────────────────────────────
+# ─── 3. Поиск курьеров поблизости ────────────────────────────
 
 @router.get("/delivery/couriers/nearby")
 async def couriers_nearby(
     lat: float = Query(...),
     lng: float = Query(...),
     radius: float = Query(10),
+    db: AsyncSession = Depends(get_db),
 ):
-    result = []
-    for uid, st in _courier_status.items():
-        if st["status"] == "offline":
+    result = await db.execute(
+        select(CourierProfile).where(
+            CourierProfile.admin_approved == True,
+            CourierProfile.status != "offline"
+        )
+    )
+    profiles = result.scalars().all()
+    out = []
+    for p in profiles:
+        dist = haversine(lat, lng, p.lat or 0, p.lng or 0) if (p.lat and p.lng) else 0
+        if dist > radius:
             continue
-        # Only show admin-approved couriers in search
-        profile_check = _courier_profiles.get(uid, {})
-        if not profile_check.get("admin_approved", False):
-            continue
-        if st["lat"] is None or st["lng"] is None:
-            # курьер онлайн но без координат — добавляем с 0 dist
-            dist = 0
-        else:
-            dist = haversine(lat, lng, st["lat"], st["lng"])
-            if dist > radius:
-                continue
-
-        profile = _courier_profiles.get(uid, {})
-        rating = _get_avg_rating(uid)
-        t = TARIFFS.get(profile.get("transport_type", "car"), TARIFFS["car"])
-        est_price = t["base"] + t["per_km"] * max(dist, 1)
-
-        result.append({
-            "id": uid,
-            "full_name": profile.get("full_name", f"Йўлчи #{uid}"),
-            "transport_type": profile.get("transport_type", "car"),
-            "status": st["status"],
-            "lat": st["lat"],
-            "lng": st["lng"],
+        t = TARIFFS.get(p.transport_type, TARIFFS["car"])
+        out.append({
+            **profile_to_dict(p),
             "distance_km": round(dist, 1),
-            "rating": rating,
-            "reviews_count": len(_courier_ratings.get(uid, [])),
-            "est_price": int(est_price),
-            "city": profile.get("city", ""),
-            "has_thermo_bag": profile.get("has_thermo_bag", False),
-            "max_weight": profile.get("max_weight", 20),
-            "experience_years": profile.get("experience_years", 0),
-            "photo_url": profile.get("photo_url"),
-            "admin_approved": profile.get("admin_approved", False),
+            "est_price": int(t["base"] + t["per_km"] * max(dist, 1)),
         })
+    out.sort(key=lambda x: x["distance_km"])
+    return out
 
-    result.sort(key=lambda x: x["distance_km"])
-    return result
-
-# ─── 4. Создание заявки на доставку ───────────────────────────────────────────
+# ─── 4. Создание заявки ───────────────────────────────────────
 
 @router.post("/delivery/orders")
 async def create_delivery_order(
     data: DeliveryOrderCreate,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     dist = haversine(data.pickup_lat, data.pickup_lng, data.delivery_lat, data.delivery_lng)
-    courier_profile = _courier_profiles.get(data.courier_id, {})
-    transport = courier_profile.get("transport_type", "car")
+
+    # Узнать транспорт курьера
+    cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == data.courier_id))
+    cp = cp_res.scalar_one_or_none()
+    transport = cp.transport_type if cp else "car"
     price = calc_price(transport, dist, data.weight_kg)
 
-    _order_counter[0] += 1
-    order_id = _order_counter[0]
+    order = CourierOrder(
+        courier_id=data.courier_id,
+        client_id=current_user.id,
+        cargo=data.cargo_description,
+        cargo_description=data.cargo_description,
+        pickup_address=data.pickup_address,
+        delivery_address=data.delivery_address,
+        pickup_lat=data.pickup_lat,
+        pickup_lng=data.pickup_lng,
+        delivery_lat=data.delivery_lat,
+        delivery_lng=data.delivery_lng,
+        distance_km=round(dist, 1),
+        weight_kg=data.weight_kg,
+        price=price,
+        status="pending",
+        scheduled_time=data.scheduled_time,
+    )
+    db.add(order)
 
-    order = {
-        "id": order_id,
-        "client_id": current_user.id,
-        "courier_id": data.courier_id,
-        "pickup_address": data.pickup_address,
-        "delivery_address": data.delivery_address,
-        "pickup_lat": data.pickup_lat, "pickup_lng": data.pickup_lng,
-        "delivery_lat": data.delivery_lat, "delivery_lng": data.delivery_lng,
-        "cargo": data.cargo_description,
-        "weight_kg": data.weight_kg,
-        "distance_km": round(dist, 1),
-        "price": price,
-        "status": "pending",
-        "scheduled_time": data.scheduled_time,
-    }
-    _delivery_orders[order_id] = order
+    if cp:
+        cp.status = "busy"
 
-    # Ставим курьера занятым
-    if data.courier_id in _courier_status:
-        _courier_status[data.courier_id]["status"] = "busy"
+    await db.commit()
+    await db.refresh(order)
+    return {"ok": True, "order": order_to_dict(order)}
 
-    return {"ok": True, "order": order}
-
-# ─── 5. Принять/обновить статус заявки ────────────────────────────────────────
+# ─── 5. Принять / обновить статус заявки ─────────────────────
 
 @router.post("/delivery/orders/{order_id}/accept")
 async def accept_delivery_order(
     order_id: int,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    order = _delivery_orders.get(order_id)
+    result = await db.execute(select(CourierOrder).where(CourierOrder.id == order_id))
+    order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(404, "Заявка не найдена")
-    if order["courier_id"] != current_user.id:
-        raise HTTPException(403, "Нет доступа")
-    order["status"] = "accepted"
-    return {"ok": True, "order": order}
+    order.courier_id = current_user.id
+    order.status = "accepted"
+    await db.commit()
+    return {"ok": True, "order": order_to_dict(order)}
+
 
 @router.put("/delivery/orders/{order_id}/status")
 async def update_delivery_order_status(
     order_id: int,
     data: DeliveryStatusUpdate,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    order = _delivery_orders.get(order_id)
+    result = await db.execute(select(CourierOrder).where(CourierOrder.id == order_id))
+    order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(404, "Заявка не найдена")
-    order["status"] = data.status
-    if data.status == "delivered":
-        # Зачислить деньги на кошелёк курьера
-        courier_id = order["courier_id"]
-        _courier_wallets[courier_id] = _courier_wallets.get(courier_id, 0) + order["price"]
-        _wallet_history.setdefault(courier_id, []).append({
-            "type": "income", "amount": order["price"],
-            "desc": f"Доставка #{order_id}", "status": "completed"
-        })
-        # Курьер снова свободен
-        if courier_id in _courier_status:
-            _courier_status[courier_id]["status"] = "online"
-    return {"ok": True, "order": order}
+    order.status = data.status
 
-# ─── 6. Рейтинг курьера ───────────────────────────────────────────────────────
+    if data.status == "delivered":
+        # Зачислить на кошелёк
+        cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == order.courier_id))
+        cp = cp_res.scalar_one_or_none()
+        if cp:
+            cp.balance += order.price
+            cp.status = "online"
+        tx = CourierTransaction(
+            courier_id=order.courier_id,
+            amount=order.price,
+            type="income",
+            desc=f"Доставка #{order_id}",
+            status="completed",
+        )
+        db.add(tx)
+
+    await db.commit()
+    return {"ok": True, "order": order_to_dict(order)}
+
+# ─── 6. Рейтинг ──────────────────────────────────────────────
 
 @router.post("/couriers/{courier_id}/rate")
 async def rate_courier(
     courier_id: int,
-    data: CourierRating,
+    data: CourierRatingSchema,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     if data.rating < 1 or data.rating > 5:
         raise HTTPException(400, "Рейтинг 1–5")
-    _courier_ratings.setdefault(courier_id, []).append({
-        "rating": data.rating,
-        "comment": data.comment,
-        "from": current_user.id,
-    })
-    avg = _get_avg_rating(courier_id)
-    warning = None
-    if avg < 2.5:
-        warning = "blocked"
-    elif avg < 3.0:
-        warning = "warning"
-    return {"ok": True, "new_avg": avg, "warning": warning}
 
-def _get_avg_rating(uid):
-    ratings = _courier_ratings.get(uid, [])
-    if not ratings:
-        return 5.0
-    return round(sum(r["rating"] for r in ratings) / len(ratings), 1)
+    entry = CourierRatingEntry(
+        courier_id=courier_id,
+        from_id=current_user.id,
+        rating=data.rating,
+        comment=data.comment,
+    )
+    db.add(entry)
 
-# ─── 7. Кошелёк ───────────────────────────────────────────────────────────────
+    # Пересчитать средний рейтинг
+    res = await db.execute(
+        select(func.avg(CourierRatingEntry.rating)).where(CourierRatingEntry.courier_id == courier_id)
+    )
+    avg = round(float(res.scalar() or 5.0), 1)
+
+    cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
+    cp = cp_res.scalar_one_or_none()
+    if cp:
+        cp.rating = avg
+
+    await db.commit()
+    return {"ok": True, "new_avg": avg}
+
+# ─── 7. Кошелёк ──────────────────────────────────────────────
 
 @router.get("/courier/wallet")
-async def get_wallet(current_user: User = Depends(get_current_user)):
-    balance = _courier_wallets.get(current_user.id, 0)
-    history = _wallet_history.get(current_user.id, [])
-    return {"balance": balance, "history": history[-30:]}
+async def get_wallet(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    cp = cp_res.scalar_one_or_none()
+    balance = cp.balance if cp else 0
+
+    tx_res = await db.execute(
+        select(CourierTransaction).where(CourierTransaction.courier_id == current_user.id)
+        .order_by(CourierTransaction.created_at.desc()).limit(30)
+    )
+    txs = tx_res.scalars().all()
+    return {
+        "balance": balance,
+        "history": [
+            {"id": t.id, "amount": t.amount, "type": t.type,
+             "desc": t.desc, "method": t.method, "status": t.status}
+            for t in txs
+        ]
+    }
+
 
 @router.post("/courier/wallet/withdraw")
 async def wallet_withdraw(
     data: WalletWithdraw,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    bal = _courier_wallets.get(current_user.id, 0)
-    if data.amount > bal:
+    cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    cp = cp_res.scalar_one_or_none()
+    if not cp:
+        raise HTTPException(404, "Профиль не найден")
+    if cp.balance < data.amount:
         raise HTTPException(400, "Недостаточно средств")
-    _courier_wallets[current_user.id] -= data.amount
-    _wallet_history.setdefault(current_user.id, []).append({
-        "type": "withdraw", "amount": data.amount,
-        "method": data.method, "status": "processing"
-    })
-    return {"ok": True, "new_balance": _courier_wallets[current_user.id]}
 
-# ─── 8. ИИ-помощник курьера ───────────────────────────────────────────────────
+    cp.balance -= data.amount
+    tx = CourierTransaction(
+        courier_id=current_user.id,
+        amount=data.amount,
+        type="outcome",
+        desc="Вывод средств",
+        method=data.method,
+        status="processing",
+    )
+    db.add(tx)
+    await db.commit()
+    return {"ok": True, "new_balance": cp.balance}
+
+# ─── 8. ИИ-помощник ──────────────────────────────────────────
 
 @router.post("/courier/ai/chat")
 async def courier_ai_chat(
@@ -336,14 +439,17 @@ async def courier_ai_chat(
 ):
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
-        return {"reply": "AI ключ не настроен. Добавьте ANTHROPIC_API_KEY в переменные окружения."}
+        msg = data.message.lower()
+        if any(w in msg for w in ["маршрут", "куда", "дорога"]):
+            reply = "Для маршрута используйте раздел 'Карта' 🗺️"
+        elif any(w in msg for w in ["цена", "стоимость", "тариф"]):
+            reply = "Стоимость: база + 900–2500 сум/км в зависимости от транспорта 💰"
+        elif any(w in msg for w in ["заказ", "груз"]):
+            reply = "Доступные заказы в разделе 'Заказы' → 'Доступные' 📦"
+        else:
+            reply = "Помогу с маршрутами, тарифами и заказами. Спросите конкретнее! 🚛"
+        return {"reply": reply}
 
-    system_prompt = (
-        "Ты — ИИ-помощник курьера AgroVerse. "
-        "Помогаешь курьерам оптимизировать маршруты, разбираться с заявками, "
-        "считать заработок и решать рабочие вопросы. "
-        "Отвечай кратко и по делу на русском языке."
-    )
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
@@ -354,9 +460,9 @@ async def courier_ai_chat(
                     "content-type": "application/json",
                 },
                 json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 1024,
-                    "system": system_prompt,
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 512,
+                    "system": "Ты — ИИ-помощник курьера AgroVerse. Помогаешь с маршрутами, заказами и заработком. Отвечай кратко на русском.",
                     "messages": [{"role": "user", "content": data.message}],
                 }
             )
@@ -366,7 +472,7 @@ async def courier_ai_chat(
     except Exception as e:
         return {"reply": f"Ошибка связи: {str(e)}"}
 
-# ─── 9. Калькулятор тарифов ───────────────────────────────────────────────────
+# ─── 9. Тарифы и калькулятор ─────────────────────────────────
 
 @router.get("/delivery/tariffs")
 async def get_tariffs():
@@ -381,56 +487,72 @@ async def calculate_price(
     price = calc_price(transport, distance_km, weight_kg)
     return {"price": price, "transport": transport, "distance_km": distance_km, "weight_kg": weight_kg}
 
-# ─── 10. Заявки курьера ───────────────────────────────────────────────────────
+# ─── 10. Заявки курьера ──────────────────────────────────────
 
 @router.get("/courier/orders")
-async def get_courier_orders(current_user: User = Depends(get_current_user)):
-    orders = [o for o in _delivery_orders.values() if o["courier_id"] == current_user.id]
-    orders.sort(key=lambda x: x["id"], reverse=True)
-    return orders
+async def get_courier_orders(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CourierOrder).where(CourierOrder.courier_id == current_user.id)
+        .order_by(CourierOrder.id.desc())
+    )
+    return [order_to_dict(o) for o in result.scalars().all()]
+
 
 @router.get("/delivery/available-orders")
-async def get_available_orders(current_user: User = Depends(get_current_user)):
-    orders = [o for o in _delivery_orders.values() if o["status"] == "pending"]
-    return orders
+async def get_available_orders(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CourierOrder).where(CourierOrder.status == "pending")
+    )
+    return [order_to_dict(o) for o in result.scalars().all()]
 
-# ─── Admin: одобрить/отклонить курьера ────────────────────────────────────────
+# ─── 11. Админ: одобрить/отклонить курьера ───────────────────
+
+@router.get("/admin/couriers/pending")
+async def get_pending_couriers(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+        raise HTTPException(403, "Только для администраторов")
+    result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == False))
+    return [profile_to_dict(p) for p in result.scalars().all()]
+
 
 @router.post("/admin/couriers/{courier_id}/approve")
 async def approve_courier(
     courier_id: int,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    if current_user.role != "admin":
+    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
         raise HTTPException(403, "Только для администраторов")
-    profile = _courier_profiles.get(courier_id)
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
+    profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(404, "Курьер не найден")
-    _courier_profiles[courier_id]["admin_approved"] = True
-    return {"ok": True, "message": f"Курьер #{courier_id} одобрен"}
+    profile.admin_approved = True
+    await db.commit()
+    return {"ok": True}
+
 
 @router.post("/admin/couriers/{courier_id}/reject")
 async def reject_courier(
     courier_id: int,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    if current_user.role != "admin":
+    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
         raise HTTPException(403, "Только для администраторов")
-    profile = _courier_profiles.get(courier_id)
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
+    profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(404, "Курьер не найден")
-    _courier_profiles[courier_id]["admin_approved"] = False
-    return {"ok": True, "message": f"Курьер #{courier_id} отклонён"}
-
-@router.get("/admin/couriers/pending")
-async def get_pending_couriers(
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role != "admin":
-        raise HTTPException(403, "Только для администраторов")
-    result = []
-    for uid, profile in _courier_profiles.items():
-        if not profile.get("admin_approved", False):
-            result.append({"id": uid, **profile})
-    return result
-
+    profile.admin_approved = False
+    await db.commit()
+    return {"ok": True}
