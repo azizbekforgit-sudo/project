@@ -345,3 +345,271 @@ async def admin_revenue_report(admin: User = Depends(get_admin_user)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
+# ─── COURIER MODEL ────────────────────────────────────────────
+from sqlalchemy import Boolean
+
+class CourierProfile(Base):
+    __tablename__ = "courier_profiles"
+    id               = Column(Integer, primary_key=True, index=True)
+    user_id          = Column(Integer, unique=True, index=True)
+    full_name        = Column(String(200), default="")
+    phone            = Column(String(30), default="")
+    transport_type   = Column(String(50), default="")
+    max_weight       = Column(Integer, default=5000)
+    has_thermo_bag   = Column(String(5), default="false")
+    experience_years = Column(Integer, default=0)
+    city             = Column(String(100), default="")
+    radius_km        = Column(Integer, default=50)
+    work_mode        = Column(String(30), default="flexible")
+    work_hours       = Column(String(30), default="08:00-20:00")
+    vehicle_number   = Column(String(50), default="")
+    bio              = Column(Text, default="")
+    admin_approved   = Column(String(5), default="false")
+    rating           = Column(Float, default=5.0)
+    balance          = Column(Float, default=0.0)
+    status           = Column(String(20), default="offline")
+    lat              = Column(Float, default=0.0)
+    lng              = Column(Float, default=0.0)
+    created_at       = Column(DateTime, default=datetime.utcnow)
+
+class CourierOrder(Base):
+    __tablename__ = "courier_orders"
+    id                = Column(Integer, primary_key=True, index=True)
+    courier_id        = Column(Integer, index=True, default=0)
+    cargo             = Column(String(200), default="")
+    cargo_description = Column(Text, default="")
+    pickup_address    = Column(String(300), default="")
+    delivery_address  = Column(String(300), default="")
+    distance_km       = Column(Float, default=0)
+    weight_kg         = Column(Float, default=0)
+    price             = Column(Float, default=0)
+    status            = Column(String(30), default="available")
+    pickup_lat        = Column(Float, default=0)
+    pickup_lng        = Column(Float, default=0)
+    created_at        = Column(DateTime, default=datetime.utcnow)
+
+class CourierTransaction(Base):
+    __tablename__ = "courier_transactions"
+    id         = Column(Integer, primary_key=True, index=True)
+    courier_id = Column(Integer, index=True)
+    amount     = Column(Float, default=0)
+    type       = Column(String(20), default="income")
+    desc       = Column(String(200), default="")
+    method     = Column(String(50), default="")
+    status     = Column(String(30), default="completed")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# ─── COURIER SCHEMAS ──────────────────────────────────────────
+class CourierProfileSetup(BaseModel):
+    transport_type:   str
+    max_weight:       int = 5000
+    has_thermo_bag:   bool = False
+    experience_years: int = 0
+    city:             str = ""
+    radius_km:        int = 50
+    work_mode:        str = "flexible"
+    work_hours:       str = "08:00-20:00"
+    full_name:        str = ""
+    phone:            str = ""
+    vehicle_number:   str = ""
+    bio:              str = ""
+
+class CourierStatusUpdate(BaseModel):
+    status: str
+    lat: float = 0.0
+    lng: float = 0.0
+
+class WithdrawRequest(BaseModel):
+    amount: float
+    method: str = "click"
+
+class AIChatRequest(BaseModel):
+    message: str
+
+# ─── COURIER ENDPOINTS ────────────────────────────────────────
+
+@app.get("/api/courier/profile")
+async def get_courier_profile(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return {
+        "id": profile.id,
+        "user_id": profile.user_id,
+        "full_name": profile.full_name,
+        "phone": profile.phone,
+        "transport_type": profile.transport_type,
+        "max_weight": profile.max_weight,
+        "has_thermo_bag": profile.has_thermo_bag == "true",
+        "experience_years": profile.experience_years,
+        "city": profile.city,
+        "radius_km": profile.radius_km,
+        "work_mode": profile.work_mode,
+        "work_hours": profile.work_hours,
+        "vehicle_number": profile.vehicle_number,
+        "bio": profile.bio,
+        "admin_approved": profile.admin_approved == "true",
+        "rating": profile.rating,
+        "balance": profile.balance,
+        "status": profile.status,
+    }
+
+@app.post("/api/courier/profile/setup")
+async def setup_courier_profile(data: CourierProfileSetup, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if profile:
+        profile.transport_type   = data.transport_type
+        profile.max_weight       = data.max_weight
+        profile.has_thermo_bag   = "true" if data.has_thermo_bag else "false"
+        profile.experience_years = data.experience_years
+        profile.city             = data.city
+        profile.radius_km        = data.radius_km
+        profile.work_mode        = data.work_mode
+        profile.work_hours       = data.work_hours
+        profile.full_name        = data.full_name
+        profile.phone            = data.phone
+        profile.vehicle_number   = data.vehicle_number
+        profile.bio              = data.bio
+    else:
+        profile = CourierProfile(
+            user_id=current_user.id,
+            transport_type=data.transport_type,
+            max_weight=data.max_weight,
+            has_thermo_bag="true" if data.has_thermo_bag else "false",
+            experience_years=data.experience_years,
+            city=data.city,
+            radius_km=data.radius_km,
+            work_mode=data.work_mode,
+            work_hours=data.work_hours,
+            full_name=data.full_name,
+            phone=data.phone,
+            vehicle_number=data.vehicle_number,
+            bio=data.bio,
+            admin_approved="false",
+        )
+        db.add(profile)
+    current_user.role = "courier"
+    await db.commit()
+    return {"ok": True, "message": "Profile submitted for review"}
+
+@app.put("/api/courier/status")
+async def update_courier_status(data: CourierStatusUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    profile.status = data.status
+    profile.lat = data.lat
+    profile.lng = data.lng
+    await db.commit()
+    return {"ok": True}
+
+@app.get("/api/courier/orders")
+async def get_courier_orders(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierOrder).where(CourierOrder.courier_id == current_user.id))
+    orders = result.scalars().all()
+    return [{c.name: getattr(o, c.name) for c in o.__table__.columns} for o in orders]
+
+@app.get("/api/delivery/available-orders")
+async def get_available_orders(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierOrder).where(CourierOrder.status == "available"))
+    orders = result.scalars().all()
+    return [{c.name: getattr(o, c.name) for c in o.__table__.columns} for o in orders]
+
+@app.post("/api/delivery/orders/{order_id}/accept")
+async def accept_delivery_order(order_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierOrder).where(CourierOrder.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    order.courier_id = current_user.id
+    order.status = "accepted"
+    await db.commit()
+    return {"ok": True}
+
+@app.put("/api/delivery/orders/{order_id}/status")
+async def update_delivery_order_status(order_id: int, body: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierOrder).where(CourierOrder.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    order.status = body.get("status", order.status)
+    await db.commit()
+    return {"ok": True}
+
+@app.get("/api/delivery/calculate")
+async def calculate_delivery_price(transport: str, distance_km: float, weight_kg: float, current_user: User = Depends(get_current_user)):
+    price = 5000 + distance_km * 500 + weight_kg * 10
+    return {"price": round(price), "currency": "UZS"}
+
+@app.get("/api/courier/wallet")
+async def get_courier_wallet(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    balance = profile.balance if profile else 0
+    tx_result = await db.execute(select(CourierTransaction).where(CourierTransaction.courier_id == current_user.id))
+    transactions = tx_result.scalars().all()
+    return {
+        "balance": balance,
+        "history": [{c.name: getattr(t, c.name) for c in t.__table__.columns} for t in transactions]
+    }
+
+@app.post("/api/courier/wallet/withdraw")
+async def withdraw_courier_wallet(data: WithdrawRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    if profile.balance < data.amount:
+        raise HTTPException(status_code=400, detail="Insufficient balance")
+    profile.balance -= data.amount
+    tx = CourierTransaction(courier_id=current_user.id, amount=data.amount, type="outcome",
+                            desc="Вывод средств", method=data.method, status="pending")
+    db.add(tx)
+    await db.commit()
+    return {"ok": True}
+
+@app.post("/api/courier/ai/chat")
+async def courier_ai_chat(data: AIChatRequest, current_user: User = Depends(get_current_user)):
+    msg = data.message.lower()
+    if any(w in msg for w in ["маршрут", "куда", "откуда", "дорога"]):
+        reply = "Для оптимального маршрута используйте карту в разделе 'Карта' 🗺️"
+    elif any(w in msg for w in ["цена", "стоимость", "сколько", "тариф"]):
+        reply = "Стоимость: 5000 сум базовая + 500 сум/км + 10 сум/кг. Используйте калькулятор в разделе 'Тарифы' 💰"
+    elif any(w in msg for w in ["заказ", "груз", "доставка"]):
+        reply = "Доступные заказы в разделе 'Заказы' → 'Доступные' 📦"
+    elif any(w in msg for w in ["кошелёк", "баланс", "вывод", "деньги"]):
+        reply = "Вывод доступен через Click или Payme в разделе 'Кошелёк' 💳"
+    else:
+        reply = "Могу помочь с маршрутами, стоимостью доставки и заказами. Спросите что-нибудь конкретное! 🚛"
+    return {"reply": reply}
+
+# ─── ADMIN COURIER ENDPOINTS ──────────────────────────────────
+
+@app.get("/api/admin/couriers")
+async def admin_get_couriers(admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile))
+    profiles = result.scalars().all()
+    return {"couriers": [{c.name: getattr(p, c.name) for c in p.__table__.columns} for p in profiles]}
+
+@app.patch("/api/admin/couriers/{profile_id}/approve")
+async def admin_approve_courier(profile_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.id == profile_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Not found")
+    profile.admin_approved = "true"
+    await db.commit()
+    return {"ok": True}
+
+@app.patch("/api/admin/couriers/{profile_id}/reject")
+async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.id == profile_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Not found")
+    profile.admin_approved = "false"
+    await db.commit()
+    return {"ok": True}
