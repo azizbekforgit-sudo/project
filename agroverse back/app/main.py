@@ -63,7 +63,6 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
 ]
 
-# Единственный CORS — только CORSMiddleware, без дублирования
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -75,6 +74,17 @@ app.add_middleware(
 )
 
 
+def _safe_serialize(obj):
+    """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
+    if isinstance(obj, bytes):
+        return f"<binary {len(obj)} bytes>"
+    if isinstance(obj, dict):
+        return {k: _safe_serialize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_safe_serialize(i) for i in obj]
+    return obj
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -84,10 +94,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "msg": str(e.get("msg", "Validation error")),
             "type": str(e.get("type", "")),
         })
+    # _safe_serialize убирает бинарные байты из input, чтобы не было UnicodeDecodeError
+    safe_errors = _safe_serialize(errors)
     return JSONResponse(
         status_code=422,
         headers={"Access-Control-Allow-Origin": "*"},
-        content={"detail": errors},
+        content={"detail": safe_errors},
     )
 
 

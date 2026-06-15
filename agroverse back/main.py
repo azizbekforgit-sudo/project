@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Form, File, UploadFile
+from typing import Optional, List
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
 import uuid
 import os
@@ -66,14 +66,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://agroverse-production-4c57.up.railway.app",
-        "https://fearless-learning-production-00ca.up.railway.app",
         "http://localhost:3000",
-        "http://localhost:5173",
+        "http://localhost:5500",
         "http://127.0.0.1:5500",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    allow_methods=["*"],
+    allow_headers=["*"],
     expose_headers=["*"],
     max_age=600,
 )
@@ -213,12 +212,28 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     return {c.name: getattr(product, c.name) for c in product.__table__.columns}
 
 @app.post("/api/products/")
-async def create_product(data: CreateProductRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    product = Product(fermer_id=current_user.id, fermer_name=current_user.name,
-                      title=data.title, description=data.description, category=data.category,
-                      price_per_unit=data.price_per_unit, unit=data.unit,
-                      quantity_available=data.quantity_available,
-                      status="pending" if current_user.role == "fermer" else "active")
+async def create_product(
+    title: str = Form(...),
+    description: str = Form(""),
+    category: str = Form(""),
+    price_per_unit: float = Form(...),
+    unit: str = Form("kg"),
+    quantity_available: float = Form(...),
+    photos: List[UploadFile] = File(default=[]),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    product = Product(
+        fermer_id=current_user.id,
+        fermer_name=current_user.name,
+        title=title,
+        description=description,
+        category=category,
+        price_per_unit=price_per_unit,
+        unit=unit,
+        quantity_available=int(quantity_available),
+        status="pending" if current_user.role == "fermer" else "active"
+    )
     db.add(product)
     await db.commit()
     await db.refresh(product)
