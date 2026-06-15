@@ -66,13 +66,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://agroverse-production-4c57.up.railway.app",
+        "https://fearless-learning-production-00ca.up.railway.app",
         "http://localhost:3000",
-        "http://localhost:5500",
+        "http://localhost:5173",
         "http://127.0.0.1:5500",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
     expose_headers=["*"],
     max_age=600,
 )
