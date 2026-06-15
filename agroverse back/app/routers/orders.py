@@ -24,6 +24,9 @@ async def create_order(
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
+    if product.fermer_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Нельзя заказать собственный товар")
+
     if product.status not in ("active", "pending"):
         raise HTTPException(status_code=400, detail="Товар недоступен для заказа")
 
@@ -258,7 +261,7 @@ async def cancel_order(
         raise HTTPException(status_code=400, detail="Нельзя отменить завершенный или уже отмененный заказ")
 
     # FIX: при отмене оплаченного заказа корректно откатываем платёж
-    if order.status == OrderStatus.PAID:
+    if order.status in (OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP):
         xaridor_result = await db.execute(select(User).where(User.id == order.xaridor_id))
         xaridor = xaridor_result.scalar_one()
         # Возвращаем полную сумму покупателю

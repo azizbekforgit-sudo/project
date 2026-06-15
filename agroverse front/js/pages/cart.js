@@ -92,7 +92,7 @@ async function cartCheckout() {
   let ok = 0, fail = 0;
   for (const item of cart) {
     try {
-      await API.createOrder({ product_id: item.id, quantity: item.qty });
+      await API.createOrder({ product_id: item.id, quantity: item.qty, pickup_method: 'self' });
       ok++;
     } catch (e) { fail++; }
   }

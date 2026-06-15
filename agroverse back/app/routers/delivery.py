@@ -186,7 +186,8 @@ async def setup_courier_profile(
         db.add(profile)
 
     # Меняем роль на courier
-    current_user.role = "courier"
+    from app.models import UserRole as _UR
+    current_user.role = _UR.COURIER
     await db.commit()
     return {"ok": True, "message": "Профиль курьера сохранён, ожидайте одобрения администратора"}
 
@@ -518,7 +519,8 @@ async def get_pending_couriers(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    from app.models import UserRole as _UR
+    if current_user.role != _UR.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == False))
     return [profile_to_dict(p) for p in result.scalars().all()]
@@ -530,7 +532,8 @@ async def approve_courier(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    from app.models import UserRole as _UR
+    if current_user.role != _UR.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
     profile = result.scalar_one_or_none()
@@ -547,7 +550,8 @@ async def reject_courier(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    from app.models import UserRole as _UR
+    if current_user.role != _UR.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
     profile = result.scalar_one_or_none()

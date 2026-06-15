@@ -36,7 +36,11 @@ function dispatch() {
   const yulchiMatch = path.match(/^\/yulchi\/([^/]+)$/);
   if (yulchiMatch) {
     if (!Auth.isLoggedIn()) { navigate('/login'); return; }
-    if (typeof renderYulchiProfile === 'function') renderYulchiProfile(yulchiMatch[1]);
+    if (typeof renderYulchiProfile === 'function') {
+      renderYulchiProfile(yulchiMatch[1]);
+    } else if (typeof renderDelivery === 'function') {
+      renderDelivery();
+    }
     afterRender();
     return;
   }

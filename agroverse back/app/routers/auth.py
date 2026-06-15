@@ -146,7 +146,7 @@ async def verify_otp_code(otp_data: OTPVerify, db: AsyncSession = Depends(get_db
             name=otp_data.phone,
             phone=otp_data.phone,
             password_hash=get_password_hash("temporary"),
-            role="xaridor"
+            role=UserRole.XARIDOR
         )
         db.add(new_user)
         await db.commit()
