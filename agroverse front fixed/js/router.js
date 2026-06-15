@@ -17,6 +17,7 @@ const ROUTES = {
   // Доставка
   '/delivery':    { render: renderDelivery,         auth: true },
   '/yulchi':      { render: renderDelivery, auth: true },
+  '/courier':     { render: renderDelivery, auth: true },
 };
 
 function getPath() {

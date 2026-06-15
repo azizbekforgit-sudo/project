@@ -1,6 +1,6 @@
 // Auto-detect: локально = localhost:8000, в проде = Railway бэк
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-// ВАЖНО: укажи актуальный URL своего Railway бэкенда здесь:
+// FIX: обновлён актуальный URL Railway бэкенда
 const BASE_URL = IS_LOCAL
   ? `http://localhost:8000`
   : 'https://graceful-harmony-production-6336.up.railway.app';
@@ -59,7 +59,6 @@ async function request(method, path, { body, formData, params } = {}) {
       ? await res.json()
       : await res.text();
 
-    // Аккаунт заблокирован
     if (res.status === 403 && data && typeof data === 'object'
         && data.detail && typeof data.detail === 'object' && data.detail.blocked) {
       const reason = data.detail.reason || t('blocked_reason_default');
@@ -129,7 +128,7 @@ const API = {
   createProduct: (data) => {
     if (data instanceof FormData) return request('POST', '/api/products/', { formData: data });
     return request('POST', '/api/products/', { body: data });
-},
+  },
   deleteProduct: (id)       => request('DELETE', `/api/products/${id}`),
 
   // Orders
@@ -153,7 +152,6 @@ const API = {
   adminRevenueReport:   () => request('GET', '/api/admin/reports/revenue'),
 };
 
-// Expose raw request for delivery module
 API.request = request;
 
 window.API = API;

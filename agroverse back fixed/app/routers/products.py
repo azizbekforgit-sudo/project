@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_, and_, func
 from typing import Optional, List
 import os
 import shutil
@@ -20,18 +20,14 @@ except ImportError:
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
-# Вспомогательная функция сохранения фото
 async def save_photo(file: UploadFile, product_id: int) -> str:
     product_dir = os.path.join(settings.upload_dir, "products", str(product_id))
     os.makedirs(product_dir, exist_ok=True)
-
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{timestamp}_{file.filename}"
     filepath = os.path.join(product_dir, filename)
-
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-
     return f"/uploads/products/{product_id}/{filename}"
 
 @router.get("/", response_model=ProductListResponse)
@@ -45,36 +41,38 @@ async def get_products(
     limit: int = 50,
     db: AsyncSession = Depends(get_db)
 ):
-    query = select(Product).where(
+    base_query = select(Product).where(
         Product.status.in_([ProductStatus.ACTIVE, ProductStatus.PENDING])
     )
     if fermer_id:
-        query = query.where(Product.fermer_id == fermer_id)
+        base_query = base_query.where(Product.fermer_id == fermer_id)
     if category:
-        query = query.where(Product.category == category)
+        base_query = base_query.where(Product.category == category)
     if min_price:
-        query = query.where(Product.price_per_unit >= min_price)
+        base_query = base_query.where(Product.price_per_unit >= min_price)
     if max_price:
-        query = query.where(Product.price_per_unit <= max_price)
+        base_query = base_query.where(Product.price_per_unit <= max_price)
     if search:
-        query = query.where(
+        base_query = base_query.where(
             or_(
                 Product.title.ilike(f"%{search}%"),
                 Product.description.ilike(f"%{search}%")
             )
         )
 
-    offset = (page - 1) * limit
-    query = query.offset(offset).limit(limit)
+    # FIX: считаем реальный total отдельным запросом
+    count_result = await db.execute(select(func.count()).select_from(base_query.subquery()))
+    total = count_result.scalar_one()
 
-    result = await db.execute(query)
+    offset = (page - 1) * limit
+    paged_query = base_query.offset(offset).limit(limit)
+    result = await db.execute(paged_query)
     products = result.scalars().all()
 
     product_responses = []
     for product in products:
         fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
         fermer = fermer_result.scalar_one()
-
         product_responses.append(ProductResponse(
             id=product.id,
             fermer_id=product.fermer_id,
@@ -93,7 +91,7 @@ async def get_products(
         ))
 
     return ProductListResponse(
-        total=len(products),
+        total=total,
         page=page,
         limit=limit,
         products=product_responses
@@ -103,13 +101,10 @@ async def get_products(
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
-
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-
     fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
     fermer = fermer_result.scalar_one()
-
     return ProductResponse(
         id=product.id,
         fermer_id=product.fermer_id,
@@ -144,7 +139,9 @@ async def create_product(
         "normal": 30,
         "premium": 999999
     }
-    max_products = tariff_limits.get(current_user.tariff, 5)
+    # FIX: используем .value чтобы получить строку из Enum
+    tariff_key = current_user.tariff.value if hasattr(current_user.tariff, 'value') else str(current_user.tariff)
+    max_products = tariff_limits.get(tariff_key, 5)
 
     result = await db.execute(
         select(Product).where(
@@ -157,7 +154,7 @@ async def create_product(
     if len(active_products) >= max_products:
         raise HTTPException(
             status_code=403,
-            detail=f"Превышен лимит товаров для тарифа {current_user.tariff}. Максимум: {max_products}"
+            detail=f"Превышен лимит товаров для тарифа {tariff_key}. Максимум: {max_products}"
         )
 
     new_product = Product(
@@ -221,22 +218,16 @@ async def update_product(
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
-
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-
     if product.fermer_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
-
     for field, value in product_data.model_dump(exclude_unset=True).items():
         setattr(product, field, value)
-
     await db.commit()
     await db.refresh(product)
-
     fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
     fermer = fermer_result.scalar_one()
-
     return ProductResponse(
         id=product.id,
         fermer_id=product.fermer_id,
@@ -262,16 +253,12 @@ async def delete_product(
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
-
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-
     if product.fermer_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
-
     await db.delete(product)
     await db.commit()
-
     return {"message": "Product deleted successfully"}
 
 @router.post("/{product_id}/photos")
@@ -283,16 +270,12 @@ async def upload_product_photos(
 ):
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
-
     if not product or product.fermer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-
     photo_urls = product.photos or []
     for photo in photos[:10]:
         url = await save_photo(photo, product_id)
         photo_urls.append(url)
-
     product.photos = photo_urls
     await db.commit()
-
     return {"photos": photo_urls}
