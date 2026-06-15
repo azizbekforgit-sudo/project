@@ -226,5 +226,3 @@ window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
 window.getNavItems = getNavItems;
-
-window.getCartCount = getCartCount;

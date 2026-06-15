@@ -98,6 +98,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     safe_errors = _safe_serialize(errors)
     return JSONResponse(
         status_code=422,
+        headers={"Access-Control-Allow-Origin": "*"},
         content={"detail": safe_errors},
     )
 

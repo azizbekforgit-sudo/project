@@ -21,11 +21,7 @@ async def get_all_users(
     query = select(User)
     
     if role:
-        from app.models import UserRole as _UR
-        try:
-            query = query.where(User.role == _UR(role))
-        except ValueError:
-            pass  # неизвестная роль — не фильтруем
+        query = query.where(User.role == role)
     
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
