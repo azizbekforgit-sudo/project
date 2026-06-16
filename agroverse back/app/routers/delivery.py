@@ -1,7 +1,7 @@
 """
 delivery.py — Модуль доставки AgroVerse (БД версия)
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database import AsyncSessionLocal

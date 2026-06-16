@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Depends, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Header, Depends, Form, File, UploadFile, Body
 from typing import Optional, List
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -145,15 +145,6 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-
-# Форсированный CORS для всех ответов (включая ошибки)
-@app.middleware("http")
-async def add_cors_header(request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
 
 # ─── AUTH ─────────────────────────────────────────────────────
 @app.post("/api/auth/register")
@@ -381,6 +372,9 @@ class CourierProfile(Base):
     work_hours       = Column(String(30), default="08:00-20:00")
     vehicle_number   = Column(String(50), default="")
     bio              = Column(Text, default="")
+    license_info     = Column(String(200), default="")
+    documents        = Column(Text, default="[]") # Store as JSON string for simplicity in monolith
+    rejection_reason = Column(Text, nullable=True)
     admin_approved   = Column(String(5), default="false")
     rating           = Column(Float, default=5.0)
     balance          = Column(Float, default=0.0)
@@ -611,23 +605,24 @@ async def admin_get_couriers(admin: User = Depends(get_admin_user), db: AsyncSes
     profiles = result.scalars().all()
     return {"couriers": [{c.name: getattr(p, c.name) for c in p.__table__.columns} for p in profiles]}
 
-@app.patch("/api/admin/couriers/{profile_id}/approve")
-async def admin_approve_courier(profile_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(CourierProfile).where(CourierProfile.id == profile_id))
-    profile = result.scalar_one_or_none()
-    if not profile:
-        raise HTTPException(status_code=404, detail="Not found")
-    profile.admin_approved = "true"
-    await db.commit()
-    return {"ok": True}
-
-@app.patch("/api/admin/couriers/{profile_id}/reject")
-async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(CourierProfile).where(CourierProfile.id == profile_id))
+@app.post("/api/admin/couriers/{user_id}/reject")
+async def admin_reject_courier(user_id: int, body: dict = Body(...), admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == user_id))
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(status_code=404, detail="Not found")
     profile.admin_approved = "false"
+    profile.rejection_reason = body.get("reason", "")
+    await db.commit()
+    return {"ok": True}
+
+@app.post("/api/admin/couriers/{user_id}/approve")
+async def admin_approve_courier(user_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == user_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Not found")
+    profile.admin_approved = "true"
     await db.commit()
     return {"ok": True}
 
