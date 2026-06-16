@@ -91,7 +91,7 @@ async function renderDelivery() {
 // FIND COURIER PAGE (для не-курьеров: покупатели, фермеры)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function _renderFindCourier() {
+async function _renderFindCourier() {
   const app = document.getElementById('app');
 
   // Inject styles if needed
