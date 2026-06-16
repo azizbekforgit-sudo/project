@@ -146,6 +146,15 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+# Форсированный CORS для всех ответов (включая ошибки)
+@app.middleware("http")
+async def add_cors_header(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
 # ─── AUTH ─────────────────────────────────────────────────────
 @app.post("/api/auth/register")
 async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
@@ -353,9 +362,6 @@ async def admin_orders_report(admin: User = Depends(get_admin_user), db: AsyncSe
 async def admin_revenue_report(admin: User = Depends(get_admin_user)):
     return {"total_revenue": 0, "currency": "UZS"}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
 # ─── COURIER MODEL ────────────────────────────────────────────
 from sqlalchemy import Boolean
 
@@ -624,3 +630,7 @@ async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_
     profile.admin_approved = "false"
     await db.commit()
     return {"ok": True}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
