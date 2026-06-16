@@ -142,9 +142,12 @@ class CourierProfile(Base):
     work_mode        = Column(String(30), default="flexible")
     work_hours       = Column(String(30), default="08:00-20:00")
     vehicle_number   = Column(String(50), default="")
+    license_info     = Column(String(200), default="")
     bio              = Column(Text, default="")
     photo_url        = Column(String(500), nullable=True)
+    documents        = Column(JSON, default=list) # List of document URLs or info
     admin_approved   = Column(Boolean, default=False)
+    rejection_reason = Column(Text, nullable=True)
     rating           = Column(Float, default=5.0)
     balance          = Column(Float, default=0.0)
     status           = Column(String(20), default="offline")

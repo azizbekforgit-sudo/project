@@ -33,8 +33,10 @@ class CourierProfileSetup(BaseModel):
     full_name:        str
     phone:            str
     vehicle_number:   Optional[str] = None
+    license_info:     Optional[str] = None
     bio:              Optional[str] = None
     photo_url:        Optional[str] = None
+    documents:        Optional[list] = []
 
 class CourierStatusUpdate(BaseModel):
     status: str
@@ -110,9 +112,12 @@ def profile_to_dict(p: CourierProfile) -> dict:
         "work_mode": p.work_mode,
         "work_hours": p.work_hours,
         "vehicle_number": p.vehicle_number,
+        "license_info": p.license_info,
         "bio": p.bio,
         "photo_url": p.photo_url,
+        "documents": p.documents,
         "admin_approved": p.admin_approved,
+        "rejection_reason": p.rejection_reason,
         "rating": p.rating,
         "balance": p.balance,
         "status": p.status,
@@ -163,8 +168,12 @@ async def setup_courier_profile(
         profile.full_name        = data.full_name
         profile.phone            = data.phone
         profile.vehicle_number   = data.vehicle_number or ""
+        profile.license_info     = data.license_info or ""
         profile.bio              = data.bio or ""
         profile.photo_url        = data.photo_url
+        profile.documents        = data.documents or []
+        profile.admin_approved   = False
+        profile.rejection_reason = None
     else:
         profile = CourierProfile(
             user_id=current_user.id,
@@ -179,9 +188,12 @@ async def setup_courier_profile(
             full_name=data.full_name,
             phone=data.phone,
             vehicle_number=data.vehicle_number or "",
+            license_info=data.license_info or "",
             bio=data.bio or "",
             photo_url=data.photo_url,
+            documents=data.documents or [],
             admin_approved=False,
+            rejection_reason=None,
         )
         db.add(profile)
 
@@ -544,6 +556,7 @@ async def approve_courier(
 @router.post("/admin/couriers/{courier_id}/reject")
 async def reject_courier(
     courier_id: int,
+    reason: str = Body(..., embed=True),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -554,5 +567,6 @@ async def reject_courier(
     if not profile:
         raise HTTPException(404, "Курьер не найден")
     profile.admin_approved = False
+    profile.rejection_reason = reason
     await db.commit()
     return {"ok": True}

@@ -46,6 +46,8 @@ let _deliveryState = {
     full_name: '',
     phone: '',
     vehicle_number: '',
+    license_info: '',
+    documents: [],
     bio: '',
   },
   mapInstance: null,
@@ -1021,6 +1023,16 @@ function _renderOnboardStep() {
                  oninput="_deliveryState.onboarding.vehicle_number = this.value">
         </div>
         <div class="ob-field">
+          <label class="ob-label">Данные водительского удостоверения</label>
+          <input type="text" class="ob-input" id="ob-license" value="${s.license_info || ''}" placeholder="AA 1234567"
+                 oninput="_deliveryState.onboarding.license_info = this.value">
+        </div>
+        <div class="ob-field">
+          <label class="ob-label">Документы (паспорт, техпаспорт - ссылки)</label>
+          <textarea class="ob-input" id="ob-docs" placeholder="https://example.com/doc1.jpg, ..."
+                    oninput="_deliveryState.onboarding.documents = this.value.split(',').map(v=>v.trim()).filter(Boolean)">${(s.documents || []).join(', ')}</textarea>
+        </div>
+        <div class="ob-field">
           <label class="ob-label">О себе (необязательно)</label>
           <textarea class="ob-input ob-textarea" id="ob-bio" placeholder="Опыт, маршруты..."
                     oninput="_deliveryState.onboarding.bio = this.value">${s.bio}</textarea>
@@ -1085,6 +1097,8 @@ async function _obSubmit() {
       full_name:        s.full_name,
       phone:            s.phone,
       vehicle_number:   s.vehicle_number,
+      license_info:     s.license_info,
+      documents:        s.documents,
       bio:              s.bio,
     });
     showToast('Заявка отправлена! Ожидайте одобрения администратора', 'success');
@@ -1128,8 +1142,8 @@ function _renderDashboard() {
         <div class="ds-footer">
           <div class="ds-courier-info">
             <div class="ds-courier-name">${profile.full_name || 'Курьер'}</div>
-            <div class="ds-courier-status ${approved ? 'status-active' : 'status-pending'}">
-              ${approved ? '🟢 Активен' : '🟡 На проверке'}
+            <div class="ds-courier-status ${approved ? 'status-active' : (profile.rejection_reason ? 'status-rejected' : 'status-pending')}">
+              ${approved ? '🟢 Активен' : (profile.rejection_reason ? '🔴 Отклонен' : '🟡 На проверке')}
             </div>
           </div>
         </div>
@@ -1182,19 +1196,30 @@ async function _sectionHome(main) {
       </div>
 
       ${!approved ? `
-        <div class="pending-banner">
-          <div class="pb-icon">⏳</div>
-          <div class="pb-body">
-            <div class="pb-title">Заявка на проверке</div>
-            <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
-            <div class="pb-progress">
-              <div class="pb-bar">
-                <div class="pb-fill" style="width: 60%"></div>
-              </div>
-              <div class="pb-bar-label">Проверка данных...</div>
+        ${profile.rejection_reason ? `
+          <div class="pending-banner rejection-banner">
+            <div class="pb-icon">❌</div>
+            <div class="pb-body">
+              <div class="pb-title">Заявка отклонена</div>
+              <div class="pb-text">Причина: <b>${profile.rejection_reason}</b></div>
+              <button class="btn btn-sm btn-ghost" onclick="_deliveryState.profile=null; _renderOnboarding()" style="margin-top:10px; color:#b91c1c; border-color:#fca5a5;">Исправить данные</button>
             </div>
           </div>
-        </div>
+        ` : `
+          <div class="pending-banner">
+            <div class="pb-icon">⏳</div>
+            <div class="pb-body">
+              <div class="pb-title">Заявка на проверке</div>
+              <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
+              <div class="pb-progress">
+                <div class="pb-bar">
+                  <div class="pb-fill" style="width: 60%"></div>
+                </div>
+                <div class="pb-bar-label">Проверка данных...</div>
+              </div>
+            </div>
+          </div>
+        `}
       ` : ''}
 
       <!-- Stats row -->

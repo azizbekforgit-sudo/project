@@ -104,7 +104,7 @@ async function adminSwitchTab(tab) {
   } else if (tab === 'couriers') {
     // ── Йўлчи заявки ──────────────────────────────────────────────────────────
     try {
-      const couriers = await _adminGetPendingCouriers();
+      const couriers = await API.adminGetPendingCouriers();
       if (!couriers || couriers.length === 0) {
         box.innerHTML = `
           <div class="empty-state">
@@ -136,12 +136,18 @@ async function adminSwitchTab(tab) {
                   ⚖️ ${c.max_weight ? c.max_weight + ' кг' : '—'} &nbsp;·&nbsp;
                   ${c.experience_years ? c.experience_years + ' лет опыта' : 'Нет опыта'}
                 </div>
-                ${c.vehicle_number ? `<div class="ar-vehicle">🔢 ${c.vehicle_number}</div>` : ''}
+                ${c.vehicle_number ? `<div class="ar-vehicle">🔢 Авто: ${c.vehicle_number}</div>` : ''}
+                ${c.license_info ? `<div class="ar-license">🪪 Права: ${c.license_info}</div>` : ''}
+                ${c.documents && c.documents.length ? `
+                  <div class="ar-docs">
+                    📂 Документы: ${c.documents.map((d, i) => `<a href="${d}" target="_blank" class="doc-link">Файл ${i+1}</a>`).join(', ')}
+                  </div>
+                ` : ''}
                 ${c.bio ? `<div class="ar-bio">📝 ${c.bio}</div>` : ''}
               </div>
               <div class="ar-actions">
-                <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.id})">✓ Одобрить</button>
-                <button class="btn-sm btn-reject"  onclick="adminRejectCourier(${c.id})">✕ Отклонить</button>
+                <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.user_id})">✓ Одобрить</button>
+                <button class="btn-sm btn-reject"  onclick="adminRejectCourier(${c.user_id})">✕ Отклонить</button>
               </div>
             </div>`;
           }).join('')}
@@ -227,65 +233,50 @@ async function adminReject(id) {
 
 // ─── Courier approval ─────────────────────────────────────────────────────────
 
-async function _adminGetPendingCouriers() {
-  const token = localStorage.getItem('token');
-  const base = (window.API && window.API._base)
-    ? window.API._base
-    : (window.location.hostname.includes('localhost')
-        ? 'http://127.0.0.1:8000'
-        : 'https://fearless-learning-production-00ca.up.railway.app');
-  const res = await fetch(base + '/api/admin/couriers/pending', {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || res.statusText);
-  }
-  return res.json();
-}
-
 async function adminApproveCourier(id) {
-  const token = localStorage.getItem('token');
-  const base = (window.API && window.API._base)
-    ? window.API._base
-    : (window.location.hostname.includes('localhost')
-        ? 'http://127.0.0.1:8000'
-        : 'https://fearless-learning-production-00ca.up.railway.app');
   try {
-    const res = await fetch(base + `/api/admin/couriers/${id}/approve`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || res.statusText);
-    }
+    await API.adminApproveCourier(id);
     document.getElementById(`crow-${id}`)?.remove();
-    showToast(`Курьер #${id} одобрен ✅`, 'success');
+    showToast(`Курьер одобрен ✅`, 'success');
     loadAdminStats();
+    adminSwitchTab('couriers');
   } catch (e) { showToast(e.message, 'error'); }
 }
 
 async function adminRejectCourier(id) {
-  const token = localStorage.getItem('token');
-  const base = (window.API && window.API._base)
-    ? window.API._base
-    : (window.location.hostname.includes('localhost')
-        ? 'http://127.0.0.1:8000'
-        : 'https://fearless-learning-production-00ca.up.railway.app');
-  try {
-    const res = await fetch(base + `/api/admin/couriers/${id}/reject`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || res.statusText);
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-ic">✕</div>
+      <h3 class="modal-title">Отклонить заявку</h3>
+      <p class="modal-desc">Укажите причину отклонения, чтобы курьер мог её исправить.</p>
+      <textarea id="reject-reason" class="modal-textarea" placeholder="Например: Нечёткое фото документов или неверный номер авто"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="reject-cancel">Отмена</button>
+        <button class="btn btn-danger" id="reject-confirm">✕ Отклонить</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('#reject-cancel').addEventListener('click', close);
+  overlay.querySelector('#reject-confirm').addEventListener('click', async () => {
+    const reason = overlay.querySelector('#reject-reason').value.trim();
+    if (!reason) { showToast('Укажите причину', 'warn'); return; }
+    const btn = overlay.querySelector('#reject-confirm');
+    btn.disabled = true; btn.textContent = 'Отклонение...';
+    try {
+      await API.adminRejectCourier(id, reason);
+      close();
+      showToast('Заявка отклонена', 'info');
+      adminSwitchTab('couriers');
+      loadAdminStats();
+    } catch (e) {
+      btn.disabled = false; btn.textContent = '✕ Отклонить';
+      showToast(e.message, 'error');
     }
-    document.getElementById(`crow-${id}`)?.remove();
-    showToast(`Курьер #${id} отклонён`, 'info');
-    loadAdminStats();
-  } catch (e) { showToast(e.message, 'error'); }
+  });
 }
 
 // ─── Extra styles for courier rows ────────────────────────────────────────────
@@ -295,8 +286,11 @@ async function adminRejectCourier(id) {
   const style = document.createElement('style');
   style.id = 'admin-courier-styles';
   style.textContent = `
-    .ar-vehicle { font-size: 12px; color: #475569; margin-top: 4px; }
+    .ar-vehicle, .ar-license, .ar-docs { font-size: 12px; color: #475569; margin-top: 4px; }
     .ar-bio     { font-size: 12px; color: #64748b; margin-top: 3px; font-style: italic; }
+    .doc-link { color: #16a34a; text-decoration: underline; }
+    .status-rejected { color: #b91c1c; }
+    .rejection-banner { background: #fef2f2; border: 1px solid #fecaca; }
   `;
   document.head.appendChild(style);
 })();
