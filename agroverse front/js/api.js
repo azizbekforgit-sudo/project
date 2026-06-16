@@ -3,7 +3,7 @@ const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127
 // FIX: обновлён актуальный URL Railway бэкенда
 const BASE_URL = IS_LOCAL
   ? `http://localhost:8000`
-  : 'https://graceful-harmony-production-6336.up.railway.app';
+  : 'https://fearless-learning-production-00ca.up.railway.app';
 
 
 function getToken() {
