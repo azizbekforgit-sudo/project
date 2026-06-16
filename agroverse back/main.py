@@ -6,6 +6,7 @@ from datetime import datetime
 import uuid
 import os
 import bcrypt
+import json
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -62,14 +63,18 @@ class Order(Base):
 # ─── App ──────────────────────────────────────────────────────
 app = FastAPI(title="AgroVerse API", version="3.0")
 
+# Максимально жесткий CORS для Railway
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        "https://agroverse-production-4c57.up.railway.app",
+        "https://fearless-learning-production-00ca.up.railway.app"
+    ],
+    allow_origin_regex="https://.*\.railway\.app",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
     expose_headers=["*"],
-    max_age=600,
 )
 
 # ─── Pydantic schemas ─────────────────────────────────────────
@@ -354,8 +359,6 @@ async def admin_revenue_report(admin: User = Depends(get_admin_user)):
     return {"total_revenue": 0, "currency": "UZS"}
 
 # ─── COURIER MODEL ────────────────────────────────────────────
-from sqlalchemy import Boolean
-
 class CourierProfile(Base):
     __tablename__ = "courier_profiles"
     id               = Column(Integer, primary_key=True, index=True)
@@ -371,9 +374,9 @@ class CourierProfile(Base):
     work_mode        = Column(String(30), default="flexible")
     work_hours       = Column(String(30), default="08:00-20:00")
     vehicle_number   = Column(String(50), default="")
-    bio              = Column(Text, default="")
     license_info     = Column(String(200), default="")
-    documents        = Column(Text, default="[]") # Store as JSON string for simplicity in monolith
+    documents        = Column(Text, default="[]")
+    bio              = Column(Text, default="")
     rejection_reason = Column(Text, nullable=True)
     admin_approved   = Column(String(5), default="false")
     rating           = Column(Float, default=5.0)
@@ -423,6 +426,8 @@ class CourierProfileSetup(BaseModel):
     full_name:        str = ""
     phone:            str = ""
     vehicle_number:   str = ""
+    license_info:     Optional[str] = ""
+    documents:        Optional[list] = []
     bio:              str = ""
 
 class CourierStatusUpdate(BaseModel):
@@ -445,6 +450,11 @@ async def get_courier_profile(current_user: User = Depends(get_current_user), db
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
+    
+    docs = []
+    try: docs = json.loads(profile.documents)
+    except: docs = []
+
     return {
         "id": profile.id,
         "user_id": profile.user_id,
@@ -459,7 +469,10 @@ async def get_courier_profile(current_user: User = Depends(get_current_user), db
         "work_mode": profile.work_mode,
         "work_hours": profile.work_hours,
         "vehicle_number": profile.vehicle_number,
+        "license_info": profile.license_info,
+        "documents": docs,
         "bio": profile.bio,
+        "rejection_reason": profile.rejection_reason,
         "admin_approved": profile.admin_approved == "true",
         "rating": profile.rating,
         "balance": profile.balance,
@@ -470,6 +483,9 @@ async def get_courier_profile(current_user: User = Depends(get_current_user), db
 async def setup_courier_profile(data: CourierProfileSetup, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == current_user.id))
     profile = result.scalar_one_or_none()
+    
+    doc_str = json.dumps(data.documents or [])
+
     if profile:
         profile.transport_type   = data.transport_type
         profile.max_weight       = data.max_weight
@@ -482,7 +498,11 @@ async def setup_courier_profile(data: CourierProfileSetup, current_user: User = 
         profile.full_name        = data.full_name
         profile.phone            = data.phone
         profile.vehicle_number   = data.vehicle_number
+        profile.license_info     = data.license_info or ""
+        profile.documents        = doc_str
         profile.bio              = data.bio
+        profile.admin_approved   = "false"
+        profile.rejection_reason = None
     else:
         profile = CourierProfile(
             user_id=current_user.id,
@@ -497,6 +517,8 @@ async def setup_courier_profile(data: CourierProfileSetup, current_user: User = 
             full_name=data.full_name,
             phone=data.phone,
             vehicle_number=data.vehicle_number,
+            license_info=data.license_info or "",
+            documents=doc_str,
             bio=data.bio,
             admin_approved="false",
         )
@@ -550,6 +572,27 @@ async def update_delivery_order_status(order_id: int, body: dict, current_user: 
     await db.commit()
     return {"ok": True}
 
+@app.get("/api/delivery/couriers/nearby")
+async def couriers_nearby(lat: float, lng: float, radius: float = 10.0, db: AsyncSession = Depends(get_db)):
+    # Заглушка для поиска курьеров
+    result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == "true"))
+    profiles = result.scalars().all()
+    out = []
+    for p in profiles:
+        out.append({
+            "id": p.id,
+            "user_id": p.user_id,
+            "full_name": p.full_name,
+            "transport_type": p.transport_type,
+            "max_weight": p.max_weight,
+            "rating": p.rating,
+            "lat": p.lat,
+            "lng": p.lng,
+            "distance_km": 5.0, # Условное расстояние
+            "est_price": 15000,
+        })
+    return out
+
 @app.get("/api/delivery/calculate")
 async def calculate_delivery_price(transport: str, distance_km: float, weight_kg: float, current_user: User = Depends(get_current_user)):
     price = 5000 + distance_km * 500 + weight_kg * 10
@@ -599,22 +642,30 @@ async def courier_ai_chat(data: AIChatRequest, current_user: User = Depends(get_
 
 # ─── ADMIN COURIER ENDPOINTS ──────────────────────────────────
 
-@app.get("/api/admin/couriers")
-async def admin_get_couriers(admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(CourierProfile))
+@app.get("/api/admin/couriers/pending")
+async def admin_get_pending_couriers(admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == "false"))
     profiles = result.scalars().all()
-    return {"couriers": [{c.name: getattr(p, c.name) for c in p.__table__.columns} for p in profiles]}
-
-@app.post("/api/admin/couriers/{user_id}/reject")
-async def admin_reject_courier(user_id: int, body: dict = Body(...), admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == user_id))
-    profile = result.scalar_one_or_none()
-    if not profile:
-        raise HTTPException(status_code=404, detail="Not found")
-    profile.admin_approved = "false"
-    profile.rejection_reason = body.get("reason", "")
-    await db.commit()
-    return {"ok": True}
+    out = []
+    for p in profiles:
+        docs = []
+        try: docs = json.loads(p.documents)
+        except: docs = []
+        out.append({
+            "id": p.id,
+            "user_id": p.user_id,
+            "full_name": p.full_name,
+            "phone": p.phone,
+            "transport_type": p.transport_type,
+            "max_weight": p.max_weight,
+            "city": p.city,
+            "experience_years": p.experience_years,
+            "vehicle_number": p.vehicle_number,
+            "license_info": p.license_info,
+            "documents": docs,
+            "bio": p.bio
+        })
+    return out
 
 @app.post("/api/admin/couriers/{user_id}/approve")
 async def admin_approve_courier(user_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
@@ -623,6 +674,17 @@ async def admin_approve_courier(user_id: int, admin: User = Depends(get_admin_us
     if not profile:
         raise HTTPException(status_code=404, detail="Not found")
     profile.admin_approved = "true"
+    await db.commit()
+    return {"ok": True}
+
+@app.post("/api/admin/couriers/{user_id}/reject")
+async def admin_reject_courier(user_id: int, body: dict = Body(...), admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == user_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Not found")
+    profile.admin_approved = "false"
+    profile.rejection_reason = body.get("reason", "Данные не прошли проверку")
     await db.commit()
     return {"ok": True}
 
