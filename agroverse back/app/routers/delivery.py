@@ -1,5 +1,5 @@
 """
-delivery.py — Модуль доставки AgroVerse (БД версия)
+delivery.py — Модуль доставки AgroVerse (Полная исправленная версия)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +8,7 @@ from app.database import AsyncSessionLocal
 from app.dependencies import get_current_user
 from app.models import User, CourierProfile, CourierOrder, CourierTransaction, CourierRatingEntry
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import math
 import httpx
 import os
@@ -69,19 +69,20 @@ class WalletWithdraw(BaseModel):
 class AIChatMessage(BaseModel):
     message: str
 
-# ─── Utils ────────────────────────────────────────────────────
+# ─── Твои Тарифы (Фикс из "исправленного" варианта) ────────────────────────────────
 
 TARIFFS = {
-    "moto":  {"base": 8000,  "per_km": 900,  "extra_weight": 1000},
-    "car":   {"base": 12000, "per_km": 1200, "extra_weight": 2000},
-    "truck": {"base": 25000, "per_km": 2000, "extra_weight": 0},
-    # Грузовые типы из фронтенда
-    "fura":      {"base": 30000, "per_km": 2500, "extra_weight": 0},
-    "refrig":    {"base": 28000, "per_km": 2200, "extra_weight": 0},
-    "tentovan":  {"base": 27000, "per_km": 2100, "extra_weight": 0},
-    "samosval":  {"base": 32000, "per_km": 2800, "extra_weight": 0},
-    "bortovoy":  {"base": 22000, "per_km": 1800, "extra_weight": 0},
+    "moto":      {"base": 8000,  "per_km": 900,  "extra_weight": 1000},
+    "car":       {"base": 12000, "per_km": 1200, "extra_weight": 2000},
+    "truck":     {"base": 25000, "per_km": 2000, "extra_weight": 0},
+    "fura":      {"base": 40000, "per_km": 3000, "extra_weight": 0},
+    "refrig":    {"base": 35000, "per_km": 2800, "extra_weight": 0},
+    "tentovan":  {"base": 30000, "per_km": 2500, "extra_weight": 0},
+    "samosval":  {"base": 38000, "per_km": 3200, "extra_weight": 0},
+    "bortovoy":  {"base": 25000, "per_km": 2000, "extra_weight": 0},
 }
+
+# ─── Utils ────────────────────────────────────────────────────
 
 def haversine(lat1, lng1, lat2, lng2):
     R = 6371
@@ -197,7 +198,6 @@ async def setup_courier_profile(
         )
         db.add(profile)
 
-    # Меняем роль на courier
     current_user.role = "courier"
     await db.commit()
     return {"ok": True, "message": "Профиль курьера сохранён, ожидайте одобрения администратора"}

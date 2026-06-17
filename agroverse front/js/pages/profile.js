@@ -1,144 +1,163 @@
-/* pages/profile.js — профиль. Фермер: мои товары + редактирование. Покупатель: редактирование. */
-
 async function renderProfile() {
-  const app  = document.getElementById('app');
-  const isFarmer = Auth.isFarmer();
+  const app = document.getElementById('app');
   const user = Auth.getUser();
 
+  // Если это Йўлчи (Курьер), запускаем особую логику
+  if (user?.role === 'courier') {
+    return renderCourierProfileManager(app);
+  }
+
+  // Для фермеров и покупателей - стандартная страница
   app.innerHTML = pageShell(`
-    <div class="page-head">
-      <h1 class="page-title">👤 ${t('profile_title')}</h1>
-      <p class="page-desc">${isFarmer ? t('profile_farmer_desc') : t('profile_buyer_desc')}</p>
+    <div class="card profile-card" style="max-width: 600px; margin: 0 auto;">
+      <h2>👤 Личный кабинет</h2>
+      <div class="meta-row"><span>Имя:</span> <b>${user.name}</b></div>
+      <div class="meta-row"><span>Телефон:</span> <b>${user.phone}</b></div>
+      <div class="meta-row"><span>Роль:</span> <b>${user.role}</b></div>
+      <br>
+      <button class="btn btn-ghost btn-full" onclick="Auth.logout()">Выйти из аккаунта</button>
     </div>
-
-    <div class="profile-grid">
-      <div class="card profile-card">
-        <div class="profile-avatar">${isFarmer ? '🌱' : '🛍️'}</div>
-        <div class="profile-name" id="pf-name-display">${user?.name || ''}</div>
-        <div class="profile-role">${isFarmer ? t('farmer_role') : t('buyer_role')}</div>
-        <div class="profile-meta" id="pf-meta"><div class="spinner"></div></div>
-      </div>
-
-      <div class="card edit-card">
-        <h3 class="card-title">✏️ ${t('edit_profile')}</h3>
-        <div class="form-group">
-          <label>${t('name')}</label>
-          <input type="text" id="pf-name" value="${user?.name || ''}" />
-        </div>
-        <div class="form-group">
-          <label>${t('email')}</label>
-          <input type="email" id="pf-email" placeholder="email@example.com" value="${user?.email || ''}" />
-        </div>
-        <div class="form-group">
-          <label>${t('phone')}</label>
-          <input type="text" value="${user?.phone || ''}" disabled />
-          <small class="hint">${t('phone_locked')}</small>
-        </div>
-        <div id="pf-error" class="form-error hidden"></div>
-        <button class="btn btn-primary" id="pf-save">${t('save_changes')}</button>
-      </div>
-    </div>
-
-    ${isFarmer ? `
-      <div class="section">
-        <div class="section-head">
-          <h2>📦 ${t('my_products')}</h2>
-          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')">➕ ${t('add_btn')}</button>
-        </div>
-        <div id="my-products" class="products-grid"><div class="spinner"></div></div>
-      </div>
-    ` : ''}
   `);
+}
 
-  API.getMe().then(me => {
-    Auth.setUser({ ...user, ...me });
-    document.getElementById('pf-name-display').textContent = me.name || '';
-    document.getElementById('pf-name').value = me.name || '';
-    if (document.getElementById('pf-email')) document.getElementById('pf-email').value = me.email || '';
-    document.getElementById('pf-meta').innerHTML = `
-      <div class="meta-row"><span>💰 ${t('wallet_label')}</span><b>${Number(me.wallet_balance || 0).toLocaleString('ru')} ${t('currency')}</b></div>
-      <div class="meta-row"><span>🏅 ${t('bonus_label')}</span><b>${me.bonus_points || 0}</b></div>
-      <div class="meta-row"><span>📊 ${t('tariff_label')}</span><b>${(me.tariff || 'standart').toUpperCase()}</b></div>
-    `;
-  }).catch((e) => {
-    if (e && e.message === 'BLOCKED') return;
-    const el = document.getElementById('pf-meta');
-    if (el) el.innerHTML = '<p style="color:var(--clr-muted)">—</p>';
-  });
-
-  document.getElementById('pf-save')?.addEventListener('click', async () => {
-    const name  = document.getElementById('pf-name').value.trim();
-    const email = document.getElementById('pf-email').value.trim();
-    const err   = document.getElementById('pf-error');
-    const btn   = document.getElementById('pf-save');
-    if (!name || name.length < 2) {
-      err.textContent = t('name') + ' — min 2'; err.classList.remove('hidden'); return;
-    }
-    err.classList.add('hidden');
-    btn.disabled = true; btn.textContent = t('saving');
+async function renderCourierProfileManager(app) {
+    app.innerHTML = '<div class="spinner-center"><div class="spinner"></div> Загрузка профиля Йўлчи...</div>';
+    
     try {
-      const updated = await API.updateProfile({ name, email });
-      Auth.setUser({ ...Auth.getUser(), name: updated.name, email: updated.email });
-      document.getElementById('pf-name-display').textContent = updated.name;
-      showToast(t('profile_updated'));
+        const profile = await API.getCourierProfile();
+        
+        // Кейс 1: Профиль пустой или еще не был заполнен (проверяем по ФИО)
+        if (!profile || !profile.full_name) {
+            renderCourierSetupForm(app);
+            return;
+        }
+
+        // Кейс 2: Профиль отправлен, но админ еще не подтвердил
+        if (!profile.admin_approved) {
+            app.innerHTML = pageShell(`
+                <div class="card" style="max-width:600px; margin:20px auto; text-align:center;">
+                    <div style="font-size:3rem;">⏳</div>
+                    <h3>Ваша анкета на проверке</h3>
+                    <p>Администратор проверяет ваши данные водителя. До одобрения вы не можете брать заказы.</p>
+                    ${profile.rejection_reason ? `<div class="form-error"><b>Причина отказа:</b> ${profile.rejection_reason}</div>` : ''}
+                    <hr>
+                    <p>Нужно изменить данные?</p>
+                    <button class="btn btn-ghost" onclick="renderCourierSetupForm(document.getElementById('app'))">Отредактировать анкету</button>
+                    <button class="btn btn-link btn-full" onclick="Auth.logout()">Выйти</button>
+                </div>
+            `);
+            return;
+        }
+
+        // Кейс 3: Всё ок, профиль подтвержден. Показываем Дашборд курьера.
+        renderCourierDashboard(app, profile);
+
     } catch (e) {
-      if (e.message === 'BLOCKED') return;
-      err.textContent = e.message; err.classList.remove('hidden');
-    } finally {
-      btn.disabled = false; btn.textContent = t('save_changes');
+        // Если API вернуло ошибку или 404
+        renderCourierSetupForm(app);
     }
-  });
-
-  if (isFarmer) loadMyProducts();
 }
 
-async function loadMyProducts() {
-  const me  = Auth.getUser();
-  const wrap = document.getElementById('my-products');
-  if (!wrap) return;
-  try {
-    const products = await API.getProducts({ fermer_id: me?.id });
-    if (!products?.length) {
-      wrap.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🌱</div><p>${t('no_my_products')}</p><button class="btn btn-primary btn-sm" onclick="router.go('/product/new')">➕ ${t('nav_add_product')}</button></div>`;
-      return;
-    }
-    wrap.innerHTML = products.map(p => `
-      <div class="product-card">
-        <div class="pc-media">
-          ${p.images?.length ? `<img class="pc-img" src="${p.images[0]}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pc-img ph',textContent:'${CAT_EMOJI[p.category]||'🥬'}'}))" />` : `<div class="pc-img ph">${CAT_EMOJI[p.category]||'🥬'}</div>`}
-          ${p.status === 'pending' ? `<span class="pc-badge">${t('pending_tag')}</span>` : `<span class="pc-badge ok">${t('active_tag')}</span>`}
+function renderCourierSetupForm(app) {
+    app.innerHTML = pageShell(`
+        <div class="card" style="max-width: 500px; margin: 20px auto;">
+            <h2 style="text-align:center">🚚 Анкета водителя (Йўлчи)</h2>
+            <p style="color:var(--clr-muted); font-size:0.9rem; text-align:center">Заполните данные вашего автомобиля, чтобы начать зарабатывать</p>
+            <div id="setup-error" class="form-error hidden"></div>
+            
+            <div class="form-group">
+                <label>ФИО полностью *</label>
+                <input type="text" id="cp-full-name" placeholder="Напр: Рахимов Абдулла" required>
+            </div>
+
+            <div class="form-group">
+                <label>Тип транспорта *</label>
+                <select id="cp-transport">
+                    <option value="truck">Грузовой (до 5т)</option>
+                    <option value="fura">Фура (20т+)</option>
+                    <option value="refrig">Рефрижератор</option>
+                    <option value="car">Легковая</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Номер автомобиля *</label>
+                <input type="text" id="cp-plate" placeholder="01 A 777 BA">
+            </div>
+
+            <div class="form-group">
+                <label>Ваш город *</label>
+                <input type="text" id="cp-city" placeholder="Напр: Ташкент">
+            </div>
+
+            <button class="btn btn-primary btn-full" id="setup-save-btn">Отправить админу</button>
         </div>
-        <div class="pc-body">
-          <div class="pc-name">${p.name}</div>
-          <div class="pc-price">${Number(p.price).toLocaleString('ru')} <small>${t('currency')}/${p.unit||'кг'}</small></div>
-          <div class="pc-farmer">📦 ${t('in_stock_label')}: ${p.quantity} ${p.unit||'кг'}</div>
-          <div class="pc-actions">
-            <button class="btn btn-ghost btn-sm" onclick="router.go('/product/${p.id}')">${t('open_btn')}</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteMyProduct(${p.id})">${t('delete')}</button>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  } catch (e) {
-    if (e.message === 'BLOCKED') return;
-    wrap.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>⚠️ ${e.message}</p></div>`;
-  }
+    `);
+
+    document.getElementById('setup-save-btn').onclick = async () => {
+        const btn = document.getElementById('setup-save-btn');
+        const err = document.getElementById('setup-error');
+
+        const payload = {
+            full_name: document.getElementById('cp-full-name').value.trim(),
+            transport_type: document.getElementById('cp-transport').value,
+            vehicle_number: document.getElementById('cp-plate').value.trim(),
+            city: document.getElementById('cp-city').value.trim(),
+            phone: Auth.getUser().phone,
+            max_weight: 5000, 
+            city: document.getElementById('cp-city').value.trim()
+        };
+
+        if (!payload.full_name || !payload.vehicle_number || !payload.city) {
+            err.textContent = "Заполните обязательные поля";
+            err.classList.remove('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        try {
+            await API.setupCourierProfile(payload);
+            showToast('Анкета отправлена на проверку!', 'success');
+            localStorage.removeItem('courier_needs_setup_alert');
+            renderProfile(); // Релоад профиля, чтобы увидеть "⏳"
+        } catch (e) {
+            err.textContent = e.message;
+            err.classList.remove('hidden');
+            btn.disabled = false;
+        }
+    };
 }
 
-async function deleteMyProduct(id) {
-  if (!confirm(t('delete_confirm'))) return;
-  try {
-    await API.deleteProduct(id);
-    showToast(t('product_deleted'));
-    loadMyProducts();
-  } catch (e) {
-    if (e.message !== 'BLOCKED') {
-      const msg = e.message.includes('fetch') ? t('err_no_connection') : e.message;
-      showToast(msg, 'error');
-    }
-  }
+function renderCourierDashboard(app, profile) {
+    app.innerHTML = pageShell(`
+        <div class="page-head">
+            <h1>🚛 Кабинет Йўлчи</h1>
+            <div class="pc-badge ok">Подтвержденный водитель</div>
+        </div>
+        
+        <div class="profile-grid">
+            <div class="card">
+                <h3>💰 Мой кошелек</h3>
+                <div style="font-size:1.5rem; font-weight:bold; color:var(--clr-primary)">
+                    ${profile.balance || 0} сум
+                </div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="router.go('/wallet')">История</button>
+            </div>
+            
+            <div class="card">
+                <h3>⭐ Мой рейтинг</h3>
+                <div style="font-size:1.5rem; font-weight:bold">${profile.rating || '5.0'} / 5</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3>🚜 Автомобиль</h3>
+            <p><b>Модель/Тип:</b> ${profile.transport_type}</p>
+            <p><b>Гос. номер:</b> ${profile.vehicle_number}</p>
+            <hr>
+            <button class="btn btn-link btn-full" onclick="Auth.logout()">Выйти из профиля</button>
+        </div>
+    `);
 }
 
 window.renderProfile = renderProfile;
-window.loadMyProducts = loadMyProducts;
-window.deleteMyProduct = deleteMyProduct;

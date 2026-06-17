@@ -1,4 +1,4 @@
-/* pages/home.js — hero + scroll animations + button effects */
+/* pages/home.js — hero + scroll animations + button effects + Courier Remainder */
 
 const HOME_CATEGORIES = [
   { value: 'Овощи',    icon: '🥦', key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
@@ -374,6 +374,28 @@ function injectStyles() {
     .promo .btn-primary:hover {
       animation: none;
     }
+
+    /* ── Reminder banner for courier ── */
+    .remind-banner {
+      background: #fff9db;
+      border: 1px solid #fbd38d;
+      color: #744210;
+      padding: 1.25rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      animation: slideInUp 0.6s ease-out;
+    }
+    .rb-content { flex: 1; }
+    .rb-title { font-weight: 800; margin-bottom: 4px; display: block; font-size: 1.1rem; }
+    .rb-text { font-size: 0.95rem; line-height: 1.4; opacity: 0.9; }
+    .rb-actions { display: flex; gap: 10px; }
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -583,6 +605,9 @@ async function renderHome() {
   const app      = document.getElementById('app');
   const user     = Auth.getUser();
   const isFarmer = Auth.isFarmer();
+  const isCourier = user?.role === 'courier';
+  const showCourierAlert = localStorage.getItem('courier_needs_setup_alert') === 'true';
+
   const firstName = (user?.name || '').split(' ')[0] || (isFarmer ? t('farmer_word') : t('friend_word'));
 
   const heroCta = isFarmer
@@ -638,11 +663,10 @@ async function renderHome() {
         <div class="hero-dashboard">
           <div class="dash-card">
             <div class="dash-top">
-              <div class="dash-url">
-                <div class="dash-dot" style="background:#ff5f57;"></div>
-                <div class="dash-dot" style="background:#febc2e;"></div>
-                <div class="dash-dot" style="background:#28c840;"></div>
-                <span style="margin-left:6px;">agroverse.uz/dashboard</span>
+              <div class="dash-dot" style="background:#ff5f57;"></div>
+              <div class="dash-dot" style="background:#febc2e;"></div>
+              <div class="dash-dot" style="background:#28c840;"></div>
+              <span style="margin-left:6px;">agroverse.uz/dashboard</span>
               </div>
               <div class="dash-live">Live</div>
             </div>
@@ -688,6 +712,9 @@ async function renderHome() {
         <div class="scroll-arrow" style="border-color:rgba(16,185,129,0.5);"></div>
       </div>
     </section>
+
+    <!-- Dynamic alert container (for courier reminder) -->
+    <div class="container" id="home-dynamic-alerts"></div>
 
     <section class="section">
       <div class="section-head">
@@ -759,6 +786,24 @@ async function renderHome() {
       </div>
     </section>`}
   `);
+
+  // Insert courier reminder banner if needed
+  if (isCourier && showCourierAlert) {
+    const alertContainer = document.getElementById('home-dynamic-alerts');
+    alertContainer.innerHTML = `
+      <div class="remind-banner scroll-reveal revealed">
+        <div style="font-size: 2rem;">🚛</div>
+        <div class="rb-content">
+          <span class="rb-title">Вы зарегистрированы как Йўлчи!</span>
+          <span class="rb-text">Чтобы начать принимать заказы и зарабатывать, вам необходимо заполнить профиль перевозчика и дождаться одобрения админа.</span>
+        </div>
+        <div class="rb-actions">
+           <button class="btn btn-primary" onclick="router.go('/profile')">Заполнить сейчас</button>
+           <button class="btn btn-ghost" onclick="this.closest('.remind-banner').remove(); localStorage.removeItem('courier_needs_setup_alert');">✖</button>
+        </div>
+      </div>
+    `;
+  }
 
   // Split h1 words and trigger hero animations
   splitHeroH1();
