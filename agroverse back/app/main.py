@@ -14,7 +14,6 @@ from app.routers import auth, products, orders, payment, bonus, admin, ai, deliv
 ADMIN_PHONE = "+998000000000"
 ADMIN_PASSWORD = "admin123"
 
-
 async def seed_admin():
     from sqlalchemy import select
     from app.models import User, UserRole, UserTariff
@@ -37,7 +36,6 @@ async def seed_admin():
         await db.commit()
         print(f"👑 Админ создан — логин: {ADMIN_PHONE}, пароль: {ADMIN_PASSWORD}")
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -52,19 +50,27 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
-
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
+
+# --- ИСПРАВЛЕННЫЙ БЛОК CORS ---
+origins = [
+    "https://agroverse-production-4c57.up.railway.app", # Твой фронтенд на Railway
+    "http://localhost:5500",                          # Для локального Live Server
+    "http://127.0.0.1:5500",
+    "http://localhost:3000",
+    "http://localhost:5173",                          # На всякий случай для Vite
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,            # Разрешаем конкретные домены
+    allow_credentials=True,           # РАЗРЕШАЕМ передачу токенов/кук (было False)
+    allow_methods=["*"],              # Разрешаем все методы (GET, POST и т.д.)
+    allow_headers=["*"],              # Разрешаем все заголовки (Authorization и т.д.)
     expose_headers=["*"],
     max_age=600,
 )
-
+# ------------------------------
 
 def _safe_serialize(obj):
     """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
@@ -76,7 +82,6 @@ def _safe_serialize(obj):
         return [_safe_serialize(i) for i in obj]
     return obj
 
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -86,14 +91,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "msg": str(e.get("msg", "Validation error")),
             "type": str(e.get("type", "")),
         })
-    # _safe_serialize убирает бинарные байты из input, чтобы не было UnicodeDecodeError
     safe_errors = _safe_serialize(errors)
     return JSONResponse(
         status_code=422,
-        headers={"Access-Control-Allow-Origin": "*"},
         content={"detail": safe_errors},
     )
-
 
 os.makedirs(settings.upload_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
@@ -107,16 +109,13 @@ app.include_router(admin.router)
 app.include_router(ai.router)
 app.include_router(delivery.router)
 
-
 @app.get("/")
 async def root():
     return {"message": "🌾 AgroVerse API", "version": "2.0", "status": "running"}
 
-
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
