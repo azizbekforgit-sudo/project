@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Header, Depends, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Header, Depends, Form, File, UploadFile, Request
 from typing import Optional, List
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
@@ -9,7 +10,7 @@ import bcrypt
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select, Boolean
 
 # ─── Database setup ───────────────────────────────────────────
 DATABASE_URL = os.getenv(
@@ -22,52 +23,93 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 Base = declarative_base()
 
 # ─── Models ───────────────────────────────────────────────────
-# ... (User, Product, Order definitions)
+class User(Base):
+    __tablename__ = "users"
+    id           = Column(Integer, primary_key=True, index=True)
+    name         = Column(String(100))
+    phone        = Column(String(20), unique=True, index=True)
+    email        = Column(String(100))
+    password     = Column(String(200))
+    role         = Column(String(20), default="xaridor")
+    token        = Column(String(100))
+    is_blocked   = Column(String(5), default="false")
+    block_reason = Column(Text, default="")
+    created_at   = Column(DateTime, default=datetime.utcnow)
 
-# ─── App ──────────────────────────────────────────────────────
-app = FastAPI(title="AgroVerse API", version="3.0")
+class Product(Base):
+    __tablename__ = "products"
+    id                 = Column(Integer, primary_key=True, index=True)
+    fermer_id          = Column(Integer)
+    fermer_name        = Column(String(100))
+    title              = Column(String(200))
+    description        = Column(Text)
+    category           = Column(String(100))
+    price_per_unit     = Column(Float)
+    unit               = Column(String(20))
+    quantity_available = Column(Integer)
+    status             = Column(String(20), default="pending")
+    rating             = Column(Float, default=0)
+    created_at         = Column(DateTime, default=datetime.utcnow)
 
-# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
-@app.middleware("http")
-async def manual_cors_middleware(request, call_next):
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        response = Response()
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        response.headers["Access-Control-Max-Age"] = "86400"
-        return response
-    
-    try:
-        response = await call_next(request)
-    except Exception as e:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "msg": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-            }
-        )
-        
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
+class Order(Base):
+    __tablename__ = "orders"
+    id         = Column(Integer, primary_key=True, index=True)
+    buyer_id   = Column(Integer)
+    product_id = Column(Integer)
+    quantity   = Column(Integer)
+    status     = Column(String(20), default="created")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,
-)
+class CourierProfile(Base):
+    __tablename__ = "courier_profiles"
+    id               = Column(Integer, primary_key=True, index=True)
+    user_id          = Column(Integer, unique=True, index=True)
+    full_name        = Column(String(200), default="")
+    phone            = Column(String(30), default="")
+    transport_type   = Column(String(50), default="")
+    max_weight       = Column(Integer, default=5000)
+    has_thermo_bag   = Column(String(5), default="false")
+    experience_years = Column(Integer, default=0)
+    city             = Column(String(100), default="")
+    radius_km        = Column(Integer, default=50)
+    work_mode        = Column(String(30), default="flexible")
+    work_hours       = Column(String(30), default="08:00-20:00")
+    vehicle_number   = Column(String(50), default="")
+    bio              = Column(Text, default="")
+    admin_approved   = Column(String(5), default="false")
+    rating           = Column(Float, default=5.0)
+    balance          = Column(Float, default=0.0)
+    status           = Column(String(20), default="offline")
+    lat              = Column(Float, default=0.0)
+    lng              = Column(Float, default=0.0)
+    created_at       = Column(DateTime, default=datetime.utcnow)
 
+class CourierOrder(Base):
+    __tablename__ = "courier_orders"
+    id                = Column(Integer, primary_key=True, index=True)
+    courier_id        = Column(Integer, index=True, default=0)
+    cargo             = Column(String(200), default="")
+    cargo_description = Column(Text, default="")
+    pickup_address    = Column(String(300), default="")
+    delivery_address  = Column(String(300), default="")
+    distance_km       = Column(Float, default=0)
+    weight_kg         = Column(Float, default=0)
+    price             = Column(Float, default=0)
+    status            = Column(String(30), default="available")
+    pickup_lat        = Column(Float, default=0)
+    pickup_lng        = Column(Float, default=0)
+    created_at        = Column(DateTime, default=datetime.utcnow)
+
+class CourierTransaction(Base):
+    __tablename__ = "courier_transactions"
+    id         = Column(Integer, primary_key=True, index=True)
+    courier_id = Column(Integer, index=True)
+    amount     = Column(Float, default=0)
+    type       = Column(String(20), default="income")
+    desc       = Column(String(200), default="")
+    method     = Column(String(50), default="")
+    status     = Column(String(30), default="completed")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 # ─── Pydantic schemas ─────────────────────────────────────────
 class LoginRequest(BaseModel):
@@ -95,6 +137,75 @@ class CreateOrderRequest(BaseModel):
 
 class BlockRequest(BaseModel):
     reason: str = ""
+
+class CourierProfileSetup(BaseModel):
+    transport_type:   str
+    max_weight:       int = 5000
+    has_thermo_bag:   bool = False
+    experience_years: int = 0
+    city:             str = ""
+    radius_km:        int = 50
+    work_mode:        str = "flexible"
+    work_hours:       str = "08:00-20:00"
+    full_name:        str = ""
+    phone:            str = ""
+    vehicle_number:   str = ""
+    bio:              str = ""
+
+class CourierStatusUpdate(BaseModel):
+    status: str
+    lat: float = 0.0
+    lng: float = 0.0
+
+class WithdrawRequest(BaseModel):
+    amount: float
+    method: str = "click"
+
+class AIChatRequest(BaseModel):
+    message: str
+
+# ─── App ──────────────────────────────────────────────────────
+app = FastAPI(title="AgroVerse API", version="3.0")
+
+# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
+@app.middleware("http")
+async def manual_cors_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        from fastapi.responses import Response
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Max-Age"] = "86400"
+        return response
+    
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error", "msg": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+        
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
+)
 
 # ─── DB session ───────────────────────────────────────────────
 async def get_db():
@@ -350,90 +461,6 @@ async def admin_orders_report(admin: User = Depends(get_admin_user), db: AsyncSe
 async def admin_revenue_report(admin: User = Depends(get_admin_user)):
     return {"total_revenue": 0, "currency": "UZS"}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
-# ─── COURIER MODEL ────────────────────────────────────────────
-from sqlalchemy import Boolean
-
-class CourierProfile(Base):
-    __tablename__ = "courier_profiles"
-    id               = Column(Integer, primary_key=True, index=True)
-    user_id          = Column(Integer, unique=True, index=True)
-    full_name        = Column(String(200), default="")
-    phone            = Column(String(30), default="")
-    transport_type   = Column(String(50), default="")
-    max_weight       = Column(Integer, default=5000)
-    has_thermo_bag   = Column(String(5), default="false")
-    experience_years = Column(Integer, default=0)
-    city             = Column(String(100), default="")
-    radius_km        = Column(Integer, default=50)
-    work_mode        = Column(String(30), default="flexible")
-    work_hours       = Column(String(30), default="08:00-20:00")
-    vehicle_number   = Column(String(50), default="")
-    bio              = Column(Text, default="")
-    admin_approved   = Column(String(5), default="false")
-    rating           = Column(Float, default=5.0)
-    balance          = Column(Float, default=0.0)
-    status           = Column(String(20), default="offline")
-    lat              = Column(Float, default=0.0)
-    lng              = Column(Float, default=0.0)
-    created_at       = Column(DateTime, default=datetime.utcnow)
-
-class CourierOrder(Base):
-    __tablename__ = "courier_orders"
-    id                = Column(Integer, primary_key=True, index=True)
-    courier_id        = Column(Integer, index=True, default=0)
-    cargo             = Column(String(200), default="")
-    cargo_description = Column(Text, default="")
-    pickup_address    = Column(String(300), default="")
-    delivery_address  = Column(String(300), default="")
-    distance_km       = Column(Float, default=0)
-    weight_kg         = Column(Float, default=0)
-    price             = Column(Float, default=0)
-    status            = Column(String(30), default="available")
-    pickup_lat        = Column(Float, default=0)
-    pickup_lng        = Column(Float, default=0)
-    created_at        = Column(DateTime, default=datetime.utcnow)
-
-class CourierTransaction(Base):
-    __tablename__ = "courier_transactions"
-    id         = Column(Integer, primary_key=True, index=True)
-    courier_id = Column(Integer, index=True)
-    amount     = Column(Float, default=0)
-    type       = Column(String(20), default="income")
-    desc       = Column(String(200), default="")
-    method     = Column(String(50), default="")
-    status     = Column(String(30), default="completed")
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-# ─── COURIER SCHEMAS ──────────────────────────────────────────
-class CourierProfileSetup(BaseModel):
-    transport_type:   str
-    max_weight:       int = 5000
-    has_thermo_bag:   bool = False
-    experience_years: int = 0
-    city:             str = ""
-    radius_km:        int = 50
-    work_mode:        str = "flexible"
-    work_hours:       str = "08:00-20:00"
-    full_name:        str = ""
-    phone:            str = ""
-    vehicle_number:   str = ""
-    bio:              str = ""
-
-class CourierStatusUpdate(BaseModel):
-    status: str
-    lat: float = 0.0
-    lng: float = 0.0
-
-class WithdrawRequest(BaseModel):
-    amount: float
-    method: str = "click"
-
-class AIChatRequest(BaseModel):
-    message: str
-
 # ─── COURIER ENDPOINTS ────────────────────────────────────────
 
 @app.get("/api/courier/profile")
@@ -621,3 +648,7 @@ async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_
     profile.admin_approved = "false"
     await db.commit()
     return {"ok": True}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
