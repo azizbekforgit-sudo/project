@@ -52,17 +52,24 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
-# --- ИСПРАВЛЕННЫЙ БЛОК CORS ---
+# --- ИСПРАВЛЕННЫЙ БЛОК CORS (Версия для Railway) ---
+origins = [
+    "https://agroverse-production-4c57.up.railway.app",
+    "https://fearless-learning-production-00ca.up.railway.app",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],            # Разрешаем все домены для фикса CORS
-    allow_credentials=False,         # При "*" credentials должны быть False
-    allow_methods=["*"],              # Разрешаем все методы
-    allow_headers=["*"],              # Разрешаем все заголовки
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
     expose_headers=["*"],
     max_age=600,
 )
-# ------------------------------
+# -------------------------------------------------
 
 def _safe_serialize(obj):
     """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
