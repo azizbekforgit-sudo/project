@@ -59,15 +59,32 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
-# --- МАКСИМАЛЬНО ОТКРЫТЫЙ CORS ---
+# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
+@app.middleware("http")
+async def manual_cors_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        from fastapi.responses import Response
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Max-Age"] = "600"
+        return response
+    
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+# Стандартный тоже оставим на всякий случай
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False, # При "*" должно быть False
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
-    max_age=600,
 )
 # ---------------------------------
 
@@ -77,21 +94,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error", "msg": str(exc)},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-        }
+        headers={"Access-Control-Allow-Origin": "*"}
     )
-
-
-def _safe_serialize(obj):
-    """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
-    if isinstance(obj, bytes):
-        return f"<binary {len(obj)} bytes>"
-    if isinstance(obj, dict):
-        return {k: _safe_serialize(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_safe_serialize(i) for i in obj]
-    return obj
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -106,7 +110,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content={"detail": safe_errors},
+        headers={"Access-Control-Allow-Origin": "*"}
     )
+
 
 os.makedirs(settings.upload_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
