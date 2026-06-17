@@ -69,6 +69,7 @@ const NAV_FARMER = [
   { path: '/market',      icon: 'fi fi-rr-shop',         key: 'nav_market' },
   { path: '/product/new', icon: 'fi fi-rr-add',          key: 'nav_add_product' },
   { path: '/delivery',    icon: 'fi fi-rr-truck-side',   key: 'nav_delivery' },
+  { path: '/tariffs',     icon: 'fi fi-rr-star',         key: 'nav_tariffs' },
   { path: '/wallet',      icon: 'fi fi-rr-wallet',       key: 'nav_wallet' },
   { path: '/profile',     icon: 'fi fi-rr-user',         key: 'nav_profile' },
 ];
@@ -79,6 +80,7 @@ const NAV_BUYER = [
   { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
   { path: '/delivery', icon: 'fi fi-rr-truck-side',      key: 'nav_delivery' },
   { path: '/cart',     icon: 'fi fi-rr-shopping-cart',   key: 'nav_cart' },
+  { path: '/tariffs',  icon: 'fi fi-rr-star',            key: 'nav_tariffs' },
   { path: '/wallet',   icon: 'fi fi-rr-wallet',          key: 'nav_wallet' },
   { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
 ];
