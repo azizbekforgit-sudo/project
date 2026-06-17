@@ -1,9 +1,8 @@
 // Auto-detect: локально = localhost:8000, в проде = Railway бэк
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-// FIX: обновлён актуальный URL Railway бэкенда
 const BASE_URL = IS_LOCAL
-  ? `http://localhost:8000`
-  : 'https://fearless-learning-production-00ca.up.railway.app';
+  ? 'http://localhost:8000'
+  : 'https://graceful-harmony-production-6336.up.railway.app';
 
 
 function getToken() {
@@ -150,23 +149,6 @@ const API = {
   adminRejectProduct:   (id) => request('PATCH', `/api/admin/products/${id}/reject`),
   adminOrdersReport:    () => request('GET', '/api/admin/reports/orders'),
   adminRevenueReport:   () => request('GET', '/api/admin/reports/revenue'),
-
-  // Delivery
-  setupCourierProfile: (body) => request('POST', '/api/courier/profile/setup', { body }),
-  getCourierProfile:   ()     => request('GET', '/api/courier/profile'),
-  updateCourierStatus: (body) => request('PUT', '/api/courier/status', { body }),
-  getAvailableOrders:  ()     => request('GET', '/api/delivery/available-orders'),
-  getCourierOrders:    ()     => request('GET', '/api/courier/orders'),
-  acceptDeliveryOrder: (id)   => request('POST', `/api/delivery/orders/${id}/accept`),
-  updateDeliveryStatus: (id, status) => request('PUT', `/api/delivery/orders/${id}/status`, { body: { status } }),
-  getCourierWallet:    ()     => request('GET', '/api/courier/wallet'),
-  withdrawCourierWallet: (body) => request('POST', '/api/courier/wallet/withdraw', { body }),
-  courierAiChat:       (message) => request('POST', '/api/courier/ai/chat', { body: { message } }),
-
-  // Admin - Couriers
-  adminGetPendingCouriers: () => request('GET', '/api/admin/couriers/pending'),
-  adminApproveCourier:     (id) => request('POST', `/api/admin/couriers/${id}/approve`),
-  adminRejectCourier:      (id, reason) => request('POST', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
 };
 
 API.request = request;

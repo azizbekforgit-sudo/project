@@ -14,6 +14,7 @@ from app.routers import auth, products, orders, payment, bonus, admin, ai, deliv
 ADMIN_PHONE = "+998000000000"
 ADMIN_PASSWORD = "admin123"
 
+
 async def seed_admin():
     from sqlalchemy import select
     from app.models import User, UserRole, UserTariff
@@ -36,79 +37,53 @@ async def seed_admin():
         await db.commit()
         print(f"👑 Админ создан — логин: {ADMIN_PHONE}, пароль: {ADMIN_PASSWORD}")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Запуск приложения...")
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-            from sqlalchemy import text
-            try:
-                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
-            except Exception as e:
-                print(f"⚠️ Ошибка при ALTER TABLE: {e}")
-        await seed_admin()
-        print("✅ База данных готова")
-    except Exception as e:
-        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА ПРИ ЗАПУСКЕ: {e}")
-        # Не даем приложению упасть совсем, чтобы оно могло показать ошибку
-    
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
+        except Exception:
+            pass
+    await seed_admin()
     print("🌾 AgroVerse API запущен")
     yield
     await engine.dispose()
 
+
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
-# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
-@app.middleware("http")
-async def manual_cors_middleware(request: Request, call_next):
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        response = Response()
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        response.headers["Access-Control-Max-Age"] = "86400"
-        return response
-    
-    try:
-        response = await call_next(request)
-    except Exception as e:
-        print(f"Middleware Error: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "msg": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-            }
-        )
-        
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
+ALLOWED_ORIGINS = [
+    "https://agroverse-production-4c57.up.railway.app",
+    "https://graceful-harmony-production-6336.up.railway.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5500",
+]
 
-# Стандартный тоже оставим на всякий случай
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
     expose_headers=["*"],
+    max_age=600,
 )
-# ---------------------------------
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    print(f"🔥 Global Error: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal Server Error", "msg": str(exc)},
-        headers={"Access-Control-Allow-Origin": "*"}
-    )
+
+def _safe_serialize(obj):
+    """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
+    if isinstance(obj, bytes):
+        return f"<binary {len(obj)} bytes>"
+    if isinstance(obj, dict):
+        return {k: _safe_serialize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_safe_serialize(i) for i in obj]
+    return obj
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -119,11 +94,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "msg": str(e.get("msg", "Validation error")),
             "type": str(e.get("type", "")),
         })
+    # _safe_serialize убирает бинарные байты из input, чтобы не было UnicodeDecodeError
     safe_errors = _safe_serialize(errors)
     return JSONResponse(
         status_code=422,
+        headers={"Access-Control-Allow-Origin": "*"},
         content={"detail": safe_errors},
-        headers={"Access-Control-Allow-Origin": "*"}
     )
 
 
@@ -139,13 +115,16 @@ app.include_router(admin.router)
 app.include_router(ai.router)
 app.include_router(delivery.router)
 
+
 @app.get("/")
 async def root():
     return {"message": "🌾 AgroVerse API", "version": "2.0", "status": "running"}
 
+
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
