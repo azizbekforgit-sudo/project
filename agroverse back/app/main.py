@@ -38,38 +38,50 @@ async def seed_admin():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        from sqlalchemy import text
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
-        except Exception:
-            pass
-    await seed_admin()
+    print("🚀 Запуск приложения...")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            from sqlalchemy import text
+            try:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
+            except Exception as e:
+                print(f"⚠️ Ошибка при ALTER TABLE: {e}")
+        await seed_admin()
+        print("✅ База данных готова")
+    except Exception as e:
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА ПРИ ЗАПУСКЕ: {e}")
+        # Не даем приложению упасть совсем, чтобы оно могло показать ошибку
+    
     print("🌾 AgroVerse API запущен")
     yield
     await engine.dispose()
 
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
-# --- ИСПРАВЛЕННЫЙ БЛОК CORS (Версия для Railway) ---
-origins = [
-    "https://agroverse-production-4c57.up.railway.app",
-    "https://fearless-learning-production-00ca.up.railway.app",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-]
-
+# --- МАКСИМАЛЬНО ОТКРЫТЫЙ CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False, # При "*" должно быть False
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
     max_age=600,
 )
-# -------------------------------------------------
+# ---------------------------------
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"🔥 Global Error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "msg": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+        }
+    )
+
 
 def _safe_serialize(obj):
     """Рекурсивно сериализуем объект, заменяя бинарные данные на строку-заглушку."""
