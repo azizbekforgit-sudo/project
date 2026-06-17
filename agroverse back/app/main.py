@@ -53,20 +53,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
 # --- ИСПРАВЛЕННЫЙ БЛОК CORS ---
-origins = [
-    "https://agroverse-production-4c57.up.railway.app", # Твой фронтенд на Railway
-    "http://localhost:5500",                          # Для локального Live Server
-    "http://127.0.0.1:5500",
-    "http://localhost:3000",
-    "http://localhost:5173",                          # На всякий случай для Vite
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,            # Разрешаем конкретные домены
-    allow_credentials=True,           # РАЗРЕШАЕМ передачу токенов/кук (было False)
-    allow_methods=["*"],              # Разрешаем все методы (GET, POST и т.д.)
-    allow_headers=["*"],              # Разрешаем все заголовки (Authorization и т.д.)
+    allow_origins=["*"],            # Разрешаем все домены для фикса CORS
+    allow_credentials=False,         # При "*" credentials должны быть False
+    allow_methods=["*"],              # Разрешаем все методы
+    allow_headers=["*"],              # Разрешаем все заголовки
     expose_headers=["*"],
     max_age=600,
 )

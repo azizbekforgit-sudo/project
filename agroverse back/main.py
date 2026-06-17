@@ -66,14 +66,10 @@ app = FastAPI(title="AgroVerse API", version="3.0")
 # Максимально жесткий CORS для Railway
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://agroverse-production-4c57.up.railway.app",
-        "https://fearless-learning-production-00ca.up.railway.app"
-    ],
-    allow_origin_regex="https://.*\.railway\.app",
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
     expose_headers=["*"],
 )
 
