@@ -14,7 +14,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select
 # ─── Database setup ───────────────────────────────────────────
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:lRrjQszvnZZlqeQirdiiKzyXfteFgoIM@postgres.railway.internal:5432/railway"
+    "postgresql+asyncpg://postgres:cQJbYjzEfcZnvkCzoeNjGoqEsBZXuMKi@postgres.railway.internal:5432/railway"
 ).replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -22,60 +22,52 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 Base = declarative_base()
 
 # ─── Models ───────────────────────────────────────────────────
-class User(Base):
-    __tablename__ = "users"
-    id           = Column(Integer, primary_key=True, index=True)
-    name         = Column(String(100))
-    phone        = Column(String(20), unique=True, index=True)
-    email        = Column(String(100))
-    password     = Column(String(200))
-    role         = Column(String(20), default="xaridor")
-    token        = Column(String(100))
-    is_blocked   = Column(String(5), default="false")
-    block_reason = Column(Text, default="")
-    created_at   = Column(DateTime, default=datetime.utcnow)
-
-class Product(Base):
-    __tablename__ = "products"
-    id                 = Column(Integer, primary_key=True, index=True)
-    fermer_id          = Column(Integer)
-    fermer_name        = Column(String(100))
-    title              = Column(String(200))
-    description        = Column(Text)
-    category           = Column(String(100))
-    price_per_unit     = Column(Float)
-    unit               = Column(String(20))
-    quantity_available = Column(Integer)
-    status             = Column(String(20), default="pending")
-    rating             = Column(Float, default=0)
-    created_at         = Column(DateTime, default=datetime.utcnow)
-
-class Order(Base):
-    __tablename__ = "orders"
-    id         = Column(Integer, primary_key=True, index=True)
-    buyer_id   = Column(Integer)
-    product_id = Column(Integer)
-    quantity   = Column(Integer)
-    status     = Column(String(20), default="created")
-    created_at = Column(DateTime, default=datetime.utcnow)
+# ... (User, Product, Order definitions)
 
 # ─── App ──────────────────────────────────────────────────────
 app = FastAPI(title="AgroVerse API", version="3.0")
 
+# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
+@app.middleware("http")
+async def manual_cors_middleware(request, call_next):
+    if request.method == "OPTIONS":
+        from fastapi.responses import Response
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Max-Age"] = "86400"
+        return response
+    
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error", "msg": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+        
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://agroverse-production-4c57.up.railway.app",
-        "http://localhost:3000",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
     max_age=600,
 )
+
 
 # ─── Pydantic schemas ─────────────────────────────────────────
 class LoginRequest(BaseModel):
