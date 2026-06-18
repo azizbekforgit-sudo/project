@@ -4,12 +4,12 @@ function aiSuggestions(isFarmer) {
   const lang = I18nManager.current;
   const F = {
     uz: ["Bu bahorda nima ekish foydali?", "Pomidorga qancha narx qo\u2019yay?", "Mahsulotlarim sotuvini qanday oshiraman?"],
-    ru: ['\u0427\u0442\u043e \u0432\u044b\u0433\u043e\u0434\u043d\u043e \u0441\u0430\u0436\u0430\u0442\u044c \u044d\u0442\u043e\u0439 \u0432\u0435\u0441\u043d\u043e\u0439?', '\u041a\u0430\u043a\u0443\u044e \u0446\u0435\u043d\u0443 \u043f\u043e\u0441\u0442\u0430\u0432\u0438\u0442\u044c \u043d\u0430 \u043f\u043e\u043c\u0438\u0434\u043e\u0440\u044b?', '\u041a\u0430\u043a \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0442\u044c \u043f\u0440\u043e\u0434\u0430\u0436\u0438 \u043c\u043e\u0438\u0445 \u0442\u043e\u0432\u0430\u0440\u043e\u0432?'],
+    ru: ['Что выгодно сажать этой весной?', 'Какую цену поставить на помидоры?', 'Как увеличить продажи моих товаров?'],
     en: ['What is profitable to plant this spring?', 'What price to set for tomatoes?', 'How to increase my product sales?'],
   };
   const B = {
     uz: ["Mavsumiy yangi sabzavotlarni tavsiya qil", "Fermer mahsulotidan nima tayyorlash mumkin?", "Bir haftaga savatcha tuzib ber"],
-    ru: ['\u041f\u043e\u0441\u043e\u0432\u0435\u0442\u0443\u0439 \u0441\u0432\u0435\u0436\u0438\u0435 \u0441\u0435\u0437\u043e\u043d\u043d\u044b\u0435 \u043e\u0432\u043e\u0449\u0438', '\u0427\u0442\u043e \u043f\u0440\u0438\u0433\u043e\u0442\u043e\u0432\u0438\u0442\u044c \u0438\u0437 \u0444\u0435\u0440\u043c\u0435\u0440\u0441\u043a\u0438\u0445 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u043e\u0432?', '\u0421\u043e\u0431\u0435\u0440\u0438 \u043a\u043e\u0440\u0437\u0438\u043d\u0443 \u043d\u0430 \u043d\u0435\u0434\u0435\u043b\u044e'],
+    ru: ['Посоветуй свежие сезонные овощи', 'Что приготовить из фермерских продуктов?', 'Собери корзину на неделю'],
     en: ['Suggest fresh seasonal vegetables', 'What to cook from farm products?', 'Build a cart for a week'],
   };
   return (isFarmer ? F : B)[lang] || (isFarmer ? F.uz : B.uz);
@@ -56,10 +56,29 @@ function renderAI() {
 }
 
 /* ============================================================
+   AI BACKEND CONFIG
+   Ключ Grok/xAI хранится ТОЛЬКО на backend (переменная окружения
+   GROK_API_KEY в Railway). Фронт обращается к нашему собственному
+   эндпоинту /api/ai/chat, который проксирует запрос к xAI.
+   ============================================================ */
+function _aiBackendBase() {
+  if (window.API && window.API._base) return window.API._base;
+  return window.location.hostname.includes('localhost')
+    ? 'http://127.0.0.1:8000'
+    : 'https://graceful-harmony-production-6336.up.railway.app';
+}
+function _aiChatUrl() {
+  return _aiBackendBase() + '/api/ai/chat';
+}
+
+// Chat history per context
+if (!window._aiHistory) window._aiHistory = { page: [], fab: [], modal: [] };
+
+/* ============================================================
    SHARED SEND LOGIC
    ============================================================ */
-function aiSend(text, context) {
-  // context: 'page' | 'fab' | 'modal' (default: auto-detect)
+async function aiSend(text, context) {
+  // context: 'page' | 'fab' | 'modal'
   const chatId   = context === 'page'  ? 'ai-page-chat'    : context === 'fab' ? 'ai-fab-chat-msgs' : 'ai-modal-chat';
   const inputId  = context === 'page'  ? 'ai-page-input'   : context === 'fab' ? 'ai-fab-input'     : 'ai-modal-input';
   const suggestId= context === 'page'  ? 'ai-page-suggest' : context === 'fab' ? 'ai-fab-suggest'   : 'ai-modal-suggest';
@@ -72,11 +91,17 @@ function aiSend(text, context) {
   if (input) input.value = '';
   document.getElementById(suggestId)?.classList.add('hidden');
 
+  // Show user message
   chat.insertAdjacentHTML('beforeend', `
     <div class="ai-msg user"><div class="ai-bubble">${msg}</div></div>
   `);
   chat.scrollTop = chat.scrollHeight;
 
+  // Save to history
+  if (!window._aiHistory[context]) window._aiHistory[context] = [];
+  window._aiHistory[context].push({ role: 'user', content: msg });
+
+  // Show typing indicator
   const typingId = 'ai-typing-' + (context || 'x');
   chat.insertAdjacentHTML('beforeend', `
     <div class="ai-msg bot" id="${typingId}">
@@ -86,16 +111,49 @@ function aiSend(text, context) {
   `);
   chat.scrollTop = chat.scrollHeight;
 
-  setTimeout(() => {
+  try {
+    const lang = (typeof I18nManager !== 'undefined' && I18nManager.current) || 'ru';
+    const token = localStorage.getItem('access_token');
+
+    const res = await fetch(_aiChatUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        messages: window._aiHistory[context].slice(-10), // last 10 messages for context
+        lang
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    const reply = data.reply || '...';
+
+    // Save AI reply to history
+    window._aiHistory[context].push({ role: 'assistant', content: reply });
+
     document.getElementById(typingId)?.remove();
     chat.insertAdjacentHTML('beforeend', `
       <div class="ai-msg bot">
         <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
-        <div class="ai-bubble">${t('ai_stub_answer')}</div>
+        <div class="ai-bubble">${reply.replace(/\n/g, '<br>')}</div>
       </div>
     `);
-    chat.scrollTop = chat.scrollHeight;
-  }, 1100);
+  } catch (err) {
+    document.getElementById(typingId)?.remove();
+    const errMsg = typeof t === 'function' ? (t('ai_error') || 'Xatolik yuz berdi. Qayta urinib ko\'ring.') : 'Ошибка. Попробуйте ещё раз.';
+    chat.insertAdjacentHTML('beforeend', `
+      <div class="ai-msg bot">
+        <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+        <div class="ai-bubble" style="color:#e74c3c">${errMsg}</div>
+      </div>
+    `);
+    console.error('AI chat error:', err);
+  }
+
+  chat.scrollTop = chat.scrollHeight;
 }
 
 /* ============================================================

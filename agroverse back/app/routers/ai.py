@@ -1,9 +1,77 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.dependencies import get_current_fermer
+from pydantic import BaseModel, Field
+from app.dependencies import get_current_fermer, get_current_user
 from app.models import User
+from app.config import settings
 import random
+import httpx
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+
+GROK_API_URL = "https://api.x.ai/v1/chat/completions"
+GROK_MODEL = "grok-3-mini"
+
+
+class AIChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class AIChatRequest(BaseModel):
+    messages: list[AIChatMessage] = Field(..., max_length=20)
+    lang: str = "ru"
+
+
+_SYSTEM_PROMPTS = {
+    "uz": "Sen AgroVerse agromaydon platformasining AI yordamchisissan. Foydalanuvchilarga qishloq xo'jaligi mahsulotlarini sotish va sotib olish, narx belgilash, mavsumiy maslahatlar va platformadan foydalanish bo'yicha yordam berasan. Qisqa va foydali javoblar ber.",
+    "ru": "Ты AI-ассистент платформы AgroVerse — агромаркетплейс для фермеров и покупателей. Помогаешь с вопросами о сельскохозяйственных товарах, ценах, сезонных советах, покупке и продаже, использовании платформы. Отвечай кратко и по делу.",
+    "en": "You are the AI assistant of AgroVerse — an agricultural marketplace for farmers and buyers. Help with questions about farm products, pricing, seasonal tips, buying and selling, and using the platform. Be concise and helpful.",
+}
+
+
+@router.post("/chat")
+async def ai_chat(
+    data: AIChatRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Проксирует чат к Grok (xAI). Ключ хранится только на сервере."""
+    if not settings.grok_api_key:
+        raise HTTPException(500, "AI сервис временно не настроен")
+
+    # Игнорируем любой 'system' от клиента — промпт задаётся только сервером
+    history = [m for m in data.messages if m.role in ("user", "assistant")][-10:]
+    system_prompt = _SYSTEM_PROMPTS.get(data.lang, _SYSTEM_PROMPTS["ru"])
+
+    payload = {
+        "model": GROK_MODEL,
+        "messages": [{"role": "system", "content": system_prompt}] + [m.model_dump() for m in history],
+        "temperature": 0.7,
+        "max_tokens": 512,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                GROK_API_URL,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {settings.grok_api_key}",
+                },
+                json=payload,
+            )
+    except httpx.RequestError:
+        raise HTTPException(502, "Не удалось связаться с AI сервисом")
+
+    if resp.status_code != 200:
+        raise HTTPException(502, "AI сервис вернул ошибку")
+
+    result = resp.json()
+    reply = (
+        result.get("choices", [{}])[0]
+        .get("message", {})
+        .get("content", "")
+    )
+    return {"reply": reply}
 
 @router.get("/demand-forecast")
 async def demand_forecast(

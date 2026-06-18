@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 43200 # 30 days default
     refresh_token_expire_days: int = 30
     upload_dir: str = "uploads"
-    
+    grok_api_key: str = ""
+
     @field_validator("database_url", mode="before")
     @classmethod
     def fix_db_url(cls, v: str) -> str:
