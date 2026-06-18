@@ -7,6 +7,7 @@ from datetime import datetime
 import uuid
 import os
 import bcrypt
+import httpx
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -163,6 +164,14 @@ class WithdrawRequest(BaseModel):
 
 class AIChatRequest(BaseModel):
     message: str
+
+class GrokChatMessage(BaseModel):
+    role: str
+    content: str
+
+class GrokChatRequest(BaseModel):
+    messages: list[GrokChatMessage]
+    lang: str = "ru"
 
 # ─── App ──────────────────────────────────────────────────────
 app = FastAPI(title="AgroVerse API", version="3.0")
@@ -648,6 +657,43 @@ async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_
     profile.admin_approved = "false"
     await db.commit()
     return {"ok": True}
+
+# ─── AI CHAT (Grok proxy) ─────────────────────────────────────
+GROK_API_URL = "https://api.x.ai/v1/chat/completions"
+GROK_MODEL   = "grok-3-mini"
+GROK_API_KEY = os.getenv("GROK_API_KEY", "REMOVED")
+
+_AI_SYSTEM_PROMPTS = {
+    "uz": "Sen AgroVerse agromaydon platformasining AI yordamchisissan. Foydalanuvchilarga qishloq xo'jaligi mahsulotlarini sotish va sotib olish, narx belgilash, mavsumiy maslahatlar va platformadan foydalanish bo'yicha yordam berasan. Qisqa va foydali javoblar ber.",
+    "ru": "Ты AI-ассистент платформы AgroVerse — агромаркетплейс для фермеров и покупателей. Помогаешь с вопросами о сельскохозяйственных товарах, ценах, сезонных советах, покупке и продаже, использовании платформы. Отвечай кратко и по делу.",
+    "en": "You are the AI assistant of AgroVerse — an agricultural marketplace for farmers and buyers. Help with questions about farm products, pricing, seasonal tips, buying and selling, and using the platform. Be concise and helpful.",
+}
+
+@app.post("/api/ai/chat")
+async def ai_chat(data: GrokChatRequest, current_user: User = Depends(get_current_user)):
+    history = [m for m in data.messages if m.role in ("user", "assistant")][-10:]
+    system_prompt = _AI_SYSTEM_PROMPTS.get(data.lang, _AI_SYSTEM_PROMPTS["ru"])
+    payload = {
+        "model": GROK_MODEL,
+        "messages": [{"role": "system", "content": system_prompt}] + [m.model_dump() for m in history],
+        "temperature": 0.7,
+        "max_tokens": 512,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                GROK_API_URL,
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {GROK_API_KEY}"},
+                json=payload,
+            )
+    except httpx.RequestError:
+        raise HTTPException(502, "Не удалось связаться с AI сервисом")
+    if resp.status_code != 200:
+        raise HTTPException(502, f"AI error: {resp.status_code}")
+    result = resp.json()
+    reply = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+    return {"reply": reply}
+
 
 if __name__ == "__main__":
     import uvicorn
