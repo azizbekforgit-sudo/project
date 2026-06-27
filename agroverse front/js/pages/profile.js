@@ -73,9 +73,12 @@ function renderCourierSetupForm(app) {
             <div class="form-group">
                 <label>Тип транспорта *</label>
                 <select id="cp-transport">
-                    <option value="truck">Грузовой (до 5т)</option>
                     <option value="fura">Фура (20т+)</option>
                     <option value="refrig">Рефрижератор</option>
+                    <option value="tentovan">Тентованный</option>
+                    <option value="samosval">Самосвал</option>
+                    <option value="bortovoy">Бортовой</option>
+                    <option value="truck">Грузовой (до 5т)</option>
                     <option value="car">Легковая</option>
                 </select>
             </div>
@@ -103,9 +106,8 @@ function renderCourierSetupForm(app) {
             transport_type: document.getElementById('cp-transport').value,
             vehicle_number: document.getElementById('cp-plate').value.trim(),
             city: document.getElementById('cp-city').value.trim(),
-            phone: Auth.getUser().phone,
-            max_weight: 5000, 
-            city: document.getElementById('cp-city').value.trim()
+            phone: Auth.getUser().phone || '',
+            max_weight: 5000,
         };
 
         if (!payload.full_name || !payload.vehicle_number || !payload.city) {

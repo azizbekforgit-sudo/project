@@ -149,6 +149,14 @@ const API = {
   adminRejectProduct:   (id) => request('PATCH', `/api/admin/products/${id}/reject`),
   adminOrdersReport:    () => request('GET', '/api/admin/reports/orders'),
   adminRevenueReport:   () => request('GET', '/api/admin/reports/revenue'),
+
+  // Admin — Courier management
+  adminGetPendingCouriers: ()        => request('GET', '/api/admin/couriers/pending'),
+  adminApproveCourier:     (id)      => request('POST', `/api/admin/couriers/${id}/approve`),
+  adminRejectCourier:      (id, reason) => request('POST', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
+
+  // Payment
+  depositWallet: (amount) => request('POST', '/api/payment/deposit', { body: { amount } }),
 };
 
 API.request = request;

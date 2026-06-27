@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database import AsyncSessionLocal
 from app.dependencies import get_current_user
-from app.models import User, CourierProfile, CourierOrder, CourierTransaction, CourierRatingEntry
+from app.models import User, CourierProfile, CourierOrder, CourierTransaction, CourierRatingEntry, UserRole
 from pydantic import BaseModel
 from typing import Optional, List
 import math
@@ -530,7 +530,7 @@ async def get_pending_couriers(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == False))
     return [profile_to_dict(p) for p in result.scalars().all()]
@@ -542,7 +542,7 @@ async def approve_courier(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
     profile = result.scalar_one_or_none()
@@ -560,7 +560,7 @@ async def reject_courier(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if str(current_user.role) not in ("admin", "UserRole.ADMIN"):
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(403, "Только для администраторов")
     result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
     profile = result.scalar_one_or_none()

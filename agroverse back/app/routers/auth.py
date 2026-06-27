@@ -80,6 +80,7 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "id": user.id,
             "name": user.name,
             "phone": user.phone,
+            "email": user.email,
             "role": user.role.value if user.role else "xaridor"
         }
     }

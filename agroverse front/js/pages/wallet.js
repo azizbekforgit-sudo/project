@@ -481,14 +481,16 @@ async function confirmPayment() {
   btn.disabled = true;
   btn.innerHTML = `<span style="display:inline-block;animation:spin 1s linear infinite">⟳</span> ${wt('processing')}`;
 
-  // Симуляция (2 сек) — заменить на реальный API
-  await new Promise(r => setTimeout(r, 2200));
-
-  showToast(wt('pay_success'), 'success');
-  window._topupAmount = null;
-
-  // Возврат на кошелёк
-  setTimeout(() => renderWallet(), 500);
+  try {
+    await API.depositWallet(window._topupAmount || parseFloat(document.getElementById('topup-amount')?.value || '0'));
+    showToast(wt('pay_success'), 'success');
+    window._topupAmount = null;
+    setTimeout(() => renderWallet(), 500);
+  } catch (e) {
+    showToast(e.message || 'Ошибка оплаты', 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<span>✓</span> ${wt('pay_btn')} — ${(window._topupAmount || 0).toLocaleString('ru')} ${wt('currency')}`;
+  }
 }
 
 /* ─────────────────────────────────────────

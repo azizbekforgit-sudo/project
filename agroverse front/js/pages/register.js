@@ -75,11 +75,6 @@ function renderRegister() {
       if (data.access_token) {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('av_user', JSON.stringify(data.user));
-        
-        // ФЛАГ ДЛЯ КУРЬЕРА: показать напоминание на главной
-        if (role === 'courier') {
-            localStorage.setItem('courier_needs_setup_alert', 'true');
-        }
 
         showToast('Регистрация успешна!', 'success');
         setTimeout(() => window.location.hash = '#/home', 800);

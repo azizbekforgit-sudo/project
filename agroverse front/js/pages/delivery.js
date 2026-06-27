@@ -732,8 +732,8 @@ window._fcSearch = async function() {
 
   try {
     const base = window.location.hostname.includes('localhost')
-      ? 'http://127.0.0.1:8000'
-      : 'https://fearless-learning-production-00ca.up.railway.app';
+      ? 'http://localhost:8000'
+      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://graceful-harmony-production-6336.up.railway.app');
     const token = localStorage.getItem('access_token');
     const res = await fetch(`${base}/api/delivery/couriers/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -1772,11 +1772,11 @@ async function _sectionMarket(main) {
     list.innerHTML = `<div class="market-grid">
       ${products.slice(0, 20).map(p => `
         <div class="market-card">
-          ${p.image_url ? `<img src="${p.image_url}" class="mc-img" alt="${p.title}">` : `<div class="mc-img-placeholder">🌾</div>`}
+          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder">🌾</div>`}
           <div class="mc-body">
-            <div class="mc-title">${p.title || p.name}</div>
+            <div class="mc-title">${p.name || 'Без названия'}</div>
             <div class="mc-farmer">🌱 ${p.fermer_name || 'Фермер'}</div>
-            <div class="mc-price">${Number(p.price_per_unit ?? p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
+            <div class="mc-price">${Number(p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
           </div>
         </div>
       `).join('')}
@@ -1872,7 +1872,9 @@ function _editProfile() {
     full_name: p.full_name || '',
     phone: p.phone || '',
     vehicle_number: p.vehicle_number || '',
+    license_info: p.license_info || '',
     bio: p.bio || '',
+    documents: p.documents || [],
   };
   _renderOnboarding();
 }
@@ -2330,8 +2332,8 @@ function _editProfile() {
 
   const base = window.API._base || (
     window.API._base = window.location.hostname.includes('localhost')
-      ? 'http://127.0.0.1:8000'
-      : 'https://fearless-learning-production-00ca.up.railway.app'
+      ? 'http://localhost:8000'
+      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://graceful-harmony-production-6336.up.railway.app')
   );
 
   const authGet  = (url, params) => {

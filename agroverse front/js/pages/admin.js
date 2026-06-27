@@ -41,7 +41,7 @@ async function loadAdminStats() {
       API.adminPendingProducts().catch(() => null),
       API.adminOrdersReport().catch(() => null),
       API.getProducts({}).catch(() => []),
-      _adminGetPendingCouriers().catch(() => []),
+      API.adminGetPendingCouriers().catch(() => []),
     ]);
 
     const elU = document.getElementById('st-users');
