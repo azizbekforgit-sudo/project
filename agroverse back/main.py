@@ -661,7 +661,7 @@ async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_
 # ─── AI CHAT (Grok proxy) ─────────────────────────────────────
 GROK_API_URL = "https://api.x.ai/v1/chat/completions"
 GROK_MODEL   = "grok-3-mini"
-GROK_API_KEY = os.getenv("GROK_API_KEY", "REMOVED")
+GROK_API_KEY = os.getenv("GROK_API_KEY")
 
 _AI_SYSTEM_PROMPTS = {
     "uz": "Sen AgroVerse agromaydon platformasining AI yordamchisissan. Foydalanuvchilarga qishloq xo'jaligi mahsulotlarini sotish va sotib olish, narx belgilash, mavsumiy maslahatlar va platformadan foydalanish bo'yicha yordam berasan. Qisqa va foydali javoblar ber.",
