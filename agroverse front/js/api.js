@@ -157,6 +157,10 @@ const API = {
 
   // Payment
   depositWallet: (amount) => request('POST', '/api/payment/deposit', { body: { amount } }),
+
+  // Courier profile
+  getCourierProfile:   ()     => request('GET', '/api/courier/profile'),
+  setupCourierProfile: (body) => request('POST', '/api/courier/profile/setup', { body }),
 };
 
 API.request = request;
