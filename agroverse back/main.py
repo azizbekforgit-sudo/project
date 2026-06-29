@@ -16,7 +16,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select, B
 # ─── Database setup ───────────────────────────────────────────
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:cQJbYjzEfcZnvkCzoeNjGoqEsBZXuMKi@postgres.railway.internal:5432/railway"
+    "postgresql+asyncpg://postgres:nHTkcxWKFDVNFxtHnWqCrrlCxAONLvhc@postgres.railway.internal:5432/railway"
 ).replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -78,6 +78,7 @@ class CourierProfile(Base):
     vehicle_number   = Column(String(50), default="")
     bio              = Column(Text, default="")
     admin_approved   = Column(String(5), default="false")
+    rejection_reason = Column(Text, default="")
     rating           = Column(Float, default=5.0)
     balance          = Column(Float, default=0.0)
     status           = Column(String(20), default="offline")
@@ -244,6 +245,11 @@ async def get_admin_user(current_user: User = Depends(get_current_user)):
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE courier_profiles ADD COLUMN IF NOT EXISTS rejection_reason TEXT DEFAULT ''"))
+        except Exception:
+            pass
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).where(User.phone == "+998000000000"))
         if not result.scalar_one_or_none():
@@ -516,6 +522,8 @@ async def setup_courier_profile(data: CourierProfileSetup, current_user: User = 
         profile.phone            = data.phone
         profile.vehicle_number   = data.vehicle_number
         profile.bio              = data.bio
+        profile.admin_approved   = "false"
+        profile.rejection_reason = ""
     else:
         profile = CourierProfile(
             user_id=current_user.id,
@@ -632,6 +640,15 @@ async def courier_ai_chat(data: AIChatRequest, current_user: User = Depends(get_
 
 # ─── ADMIN COURIER ENDPOINTS ──────────────────────────────────
 
+@app.get("/api/admin/couriers/pending")
+async def admin_pending_couriers(admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(CourierProfile).where(CourierProfile.admin_approved == "false"))
+    profiles = result.scalars().all()
+    return [{"id": p.id, "user_id": p.user_id, "full_name": p.full_name, "phone": p.phone,
+             "transport_type": p.transport_type, "max_weight": p.max_weight,
+             "city": p.city, "vehicle_number": p.vehicle_number, "bio": p.bio,
+             "rejection_reason": p.rejection_reason, "admin_approved": p.admin_approved} for p in profiles]
+
 @app.get("/api/admin/couriers")
 async def admin_get_couriers(admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(CourierProfile))
@@ -645,16 +662,18 @@ async def admin_approve_courier(profile_id: int, admin: User = Depends(get_admin
     if not profile:
         raise HTTPException(status_code=404, detail="Not found")
     profile.admin_approved = "true"
+    profile.rejection_reason = ""
     await db.commit()
     return {"ok": True}
 
 @app.patch("/api/admin/couriers/{profile_id}/reject")
-async def admin_reject_courier(profile_id: int, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
+async def admin_reject_courier(profile_id: int, body: dict, admin: User = Depends(get_admin_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(CourierProfile).where(CourierProfile.id == profile_id))
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(status_code=404, detail="Not found")
     profile.admin_approved = "false"
+    profile.rejection_reason = body.get("reason", "")
     await db.commit()
     return {"ok": True}
 

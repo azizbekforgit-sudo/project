@@ -33,7 +33,7 @@ async function renderCourierProfileManager(app) {
         }
 
         // Кейс 2: Профиль отправлен, но админ еще не подтвердил
-        if (!profile.admin_approved) {
+        if (profile.admin_approved !== true && profile.admin_approved !== "true") {
             app.innerHTML = pageShell(`
                 <div class="card" style="max-width:600px; margin:20px auto; text-align:center;">
                     <div style="font-size:3rem;">⏳</div>

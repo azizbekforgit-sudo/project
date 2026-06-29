@@ -56,8 +56,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
 ALLOWED_ORIGINS = [
-    "https://agroverse-production-4c57.up.railway.app",
-    "https://graceful-harmony-production-6336.up.railway.app",
+    "https://project-production-7a95.up.railway.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5500",

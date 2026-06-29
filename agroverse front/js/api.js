@@ -2,7 +2,7 @@
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 const BASE_URL = IS_LOCAL
   ? 'http://localhost:8000'
-  : 'https://graceful-harmony-production-6336.up.railway.app';
+  : 'https://project-production-7a95.up.railway.app';
 
 
 function getToken() {
@@ -152,8 +152,8 @@ const API = {
 
   // Admin — Courier management
   adminGetPendingCouriers: ()        => request('GET', '/api/admin/couriers/pending'),
-  adminApproveCourier:     (id)      => request('POST', `/api/admin/couriers/${id}/approve`),
-  adminRejectCourier:      (id, reason) => request('POST', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
+  adminApproveCourier:     (id)      => request('PATCH', `/api/admin/couriers/${id}/approve`),
+  adminRejectCourier:      (id, reason) => request('PATCH', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
 
   // Payment
   depositWallet: (amount) => request('POST', '/api/payment/deposit', { body: { amount } }),

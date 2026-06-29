@@ -146,8 +146,8 @@ async function adminSwitchTab(tab) {
                 ${c.bio ? `<div class="ar-bio">📝 ${c.bio}</div>` : ''}
               </div>
               <div class="ar-actions">
-                <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.user_id})">✓ Одобрить</button>
-                <button class="btn-sm btn-reject"  onclick="adminRejectCourier(${c.user_id})">✕ Отклонить</button>
+                <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.id})">✓ Одобрить</button>
+                <button class="btn-sm btn-reject"  onclick="adminRejectCourier(${c.id})">✕ Отклонить</button>
               </div>
             </div>`;
           }).join('')}

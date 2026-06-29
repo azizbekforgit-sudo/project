@@ -65,7 +65,7 @@ function _aiBackendBase() {
   if (window.API && window.API._base) return window.API._base;
   return window.location.hostname.includes('localhost')
     ? 'http://127.0.0.1:8000'
-    : 'https://graceful-harmony-production-6336.up.railway.app';
+    : 'https://project-production-7a95.up.railway.app';
 }
 function _aiChatUrl() {
   return _aiBackendBase() + '/api/ai/chat';

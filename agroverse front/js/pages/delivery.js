@@ -733,7 +733,7 @@ window._fcSearch = async function() {
   try {
     const base = window.location.hostname.includes('localhost')
       ? 'http://localhost:8000'
-      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://graceful-harmony-production-6336.up.railway.app');
+      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://project-production-7a95.up.railway.app');
     const token = localStorage.getItem('access_token');
     const res = await fetch(`${base}/api/delivery/couriers/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -1119,7 +1119,7 @@ async function _obSubmit() {
 function _renderDashboard() {
   const app = document.getElementById('app');
   const profile = _deliveryState.profile || {};
-  const approved = profile.admin_approved === true;
+  const approved = profile.admin_approved === true || profile.admin_approved === "true";
 
   app.innerHTML = `
     <div class="delivery-layout">
@@ -1186,7 +1186,7 @@ function _deliverySection(id) {
 
 async function _sectionHome(main) {
   const profile = _deliveryState.profile || {};
-  const approved = profile.admin_approved === true;
+  const approved = profile.admin_approved === true || profile.admin_approved === "true";
 
   main.innerHTML = `
     <div class="section-home">
@@ -1792,7 +1792,7 @@ async function _sectionMarket(main) {
 function _sectionProfile(main) {
   const p = _deliveryState.profile || {};
   const tt = TRUCK_TYPES.find(t => t.id === p.transport_type);
-  const approved = p.admin_approved === true;
+  const approved = p.admin_approved === true || p.admin_approved === "true";
 
   main.innerHTML = `
     <div class="section-profile">
@@ -2333,7 +2333,7 @@ function _editProfile() {
   const base = window.API._base || (
     window.API._base = window.location.hostname.includes('localhost')
       ? 'http://localhost:8000'
-      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://graceful-harmony-production-6336.up.railway.app')
+      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://project-production-7a95.up.railway.app')
   );
 
   const authGet  = (url, params) => {
