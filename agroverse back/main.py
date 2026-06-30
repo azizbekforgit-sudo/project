@@ -19,7 +19,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError(
         "DATABASE_URL is not set. In Railway: Service → Variables → "
-        "DATABASE_URL = ${{Postgres.DATABASE_URL}}"
+        "DATABASE_URL = ${{postgresql://postgres:nHTkcxWKFDVNFxtHnWqCrrlCxAONLvhc@postgres.railway.internal:5432/railway}}"
     )
 DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
 
