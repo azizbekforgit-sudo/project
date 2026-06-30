@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import uuid
 import os
+import secrets
 import bcrypt
 import httpx
 
@@ -14,10 +15,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select, Boolean
 
 # ─── Database setup ───────────────────────────────────────────
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:nHTkcxWKFDVNFxtHnWqCrrlCxAONLvhc@postgres.railway.internal:5432/railway"
-).replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set. In Railway: Service → Variables → "
+        "DATABASE_URL = ${{Postgres.DATABASE_URL}}"
+    )
+DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -251,13 +255,22 @@ async def startup():
         except Exception:
             pass
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(User).where(User.phone == "+998000000000"))
+        admin_phone = os.getenv("ADMIN_PHONE", "+998000000000")
+        result = await db.execute(select(User).where(User.phone == admin_phone))
         if not result.scalar_one_or_none():
-            hashed = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
-            db.add(User(name="Admin", phone="+998000000000", email="admin@agroverse.uz",
+            admin_password = os.getenv("ADMIN_PASSWORD")
+            generated = False
+            if not admin_password:
+                admin_password = secrets.token_urlsafe(9)
+                generated = True
+            hashed = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
+            db.add(User(name="Admin", phone=admin_phone, email="admin@agroverse.uz",
                         password=hashed, role="admin", token=str(uuid.uuid4())))
             await db.commit()
-            print("✅ Admin: +998000000000 / admin123")
+            if generated:
+                print(f"✅ Admin created: {admin_phone} / {admin_password}  (set ADMIN_PASSWORD env var to control this)")
+            else:
+                print(f"✅ Admin created: {admin_phone}")
     print("🌾 AgroVerse API v3.0 — PostgreSQL connected")
 
 # ─── Root ─────────────────────────────────────────────────────
