@@ -134,8 +134,19 @@ async function renderProfile() {
 async function loadProfileStats(user) {
   try {
     if (user.role === 'fermer') {
-      const allProducts = await API.getProducts({});
-      const myProducts = allProducts.filter(p => p.fermer_id === user.id);
+      // Пробуем /api/my/products (если задеплоен), иначе — getProducts + фильтр
+      let myProducts = [];
+      try {
+        const data = await API.getMyProducts?.() || null;
+        if (data && data.products) {
+          myProducts = data.products;
+        } else {
+          throw new Error('fallback');
+        }
+      } catch {
+        const all = await API.getProducts({});
+        myProducts = all.filter(p => p.fermer_id === user.id);
+      }
       const el1 = document.getElementById('pr-stat-products');
       const el2 = document.getElementById('pr-stat-active');
       if (el1) el1.textContent = myProducts.length;
@@ -164,8 +175,19 @@ async function loadFarmerProducts() {
 
   try {
     const user = Auth.getUser();
-    const allProducts = await API.getProducts({});
-    const products = allProducts.filter(p => p.fermer_id === user.id);
+    // Пробуем /api/my/products, иначе — getProducts + фильтр
+    let products = [];
+    try {
+      const data = await API.getMyProducts?.() || null;
+      if (data && data.products) {
+        products = data.products;
+      } else {
+        throw new Error('fallback');
+      }
+    } catch {
+      const all = await API.getProducts({});
+      products = all.filter(p => p.fermer_id === user.id);
+    }
 
     if (!products.length) {
       list.innerHTML = `

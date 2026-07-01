@@ -96,649 +96,89 @@ async function renderDelivery() {
 async function _renderFindCourier() {
   const app = document.getElementById('app');
 
-  // Inject styles if needed
-  if (!document.getElementById('fc-styles')) {
-    const s = document.createElement('style');
-    s.id = 'fc-styles';
-    s.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-      .fc-page {
-        min-height: 100vh;
-        background: #f0f4f8;
-        font-family: 'Inter', sans-serif;
-      }
-
-      /* ── Top nav ── */
-      .fc-nav {
-        background: #fff;
-        border-bottom: 1px solid #e8ecf0;
-        padding: 14px 28px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 1px 8px rgba(0,0,0,0.05);
-      }
-      .fc-nav-logo {
-        font-size: 22px;
-        font-weight: 800;
-        color: #16a34a;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .fc-nav-logo img {
-        width: 32px; height: 32px; border-radius: 8px;
-      }
-      .fc-nav-back {
-        margin-left: auto;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        color: #16a34a;
-        border-radius: 8px;
-        padding: 7px 14px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.18s;
-      }
-      .fc-nav-back:hover { background: #dcfce7; }
-
-      /* ── Layout ── */
-      .fc-layout {
-        display: flex;
-        height: calc(100vh - 57px);
-        overflow: hidden;
-      }
-
-      /* ── Sidebar ── */
-      .fc-sidebar {
-        width: 320px;
-        min-width: 320px;
-        background: #fff;
-        border-right: 1px solid #e8ecf0;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        box-shadow: 2px 0 12px rgba(0,0,0,0.04);
-        z-index: 2;
-      }
-      .fc-sidebar-header {
-        padding: 22px 20px 16px;
-        border-bottom: 1px solid #f1f5f9;
-      }
-      .fc-sidebar-title {
-        font-size: 20px;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 0 0 4px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .fc-sidebar-sub {
-        font-size: 13px;
-        color: #64748b;
-        margin: 0;
-      }
-
-      /* ── Search form ── */
-      .fc-search-form {
-        padding: 16px 20px;
-        border-bottom: 1px solid #f1f5f9;
-      }
-      .fc-field {
-        margin-bottom: 14px;
-      }
-      .fc-label {
-        display: block;
-        font-size: 11px;
-        font-weight: 700;
-        color: #64748b;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-      }
-      .fc-input-wrap {
-        position: relative;
-      }
-      .fc-input {
-        width: 100%;
-        padding: 10px 14px 10px 38px;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
-        font-size: 14px;
-        color: #1e293b;
-        background: #f8fafc;
-        outline: none;
-        transition: all 0.18s;
-        font-family: inherit;
-        box-sizing: border-box;
-      }
-      .fc-input:focus {
-        border-color: #16a34a;
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
-      }
-      .fc-input-icon {
-        position: absolute;
-        left: 11px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 16px;
-        pointer-events: none;
-      }
-      .fc-location-btn {
-        position: absolute;
-        right: 8px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #16a34a;
-        border: none;
-        border-radius: 7px;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.18s;
-        color: #fff;
-        font-size: 14px;
-      }
-      .fc-location-btn:hover { background: #15803d; }
-
-      .fc-radius-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-      }
-      .fc-radius-val {
-        font-size: 13px;
-        font-weight: 700;
-        color: #16a34a;
-        background: #f0fdf4;
-        padding: 2px 8px;
-        border-radius: 6px;
-      }
-      .fc-range {
-        width: 100%;
-        accent-color: #16a34a;
-        height: 4px;
-        cursor: pointer;
-      }
-      .fc-range-labels {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #94a3b8;
-        margin-top: 4px;
-      }
-
-      .fc-search-btn {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #16a34a, #15803d);
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.2s;
-        box-shadow: 0 4px 14px rgba(22,163,74,0.3);
-        font-family: inherit;
-        margin-top: 4px;
-      }
-      .fc-search-btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(22,163,74,0.4);
-      }
-      .fc-search-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
-
-      /* ── Results ── */
-      .fc-results {
-        flex: 1;
-        overflow-y: auto;
-        padding: 12px 0;
-      }
-      .fc-results-header {
-        padding: 8px 20px 12px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-      }
-      .fc-empty {
-        text-align: center;
-        padding: 30px 20px;
-        color: #94a3b8;
-        font-size: 13px;
-      }
-      .fc-empty-icon { font-size: 36px; margin-bottom: 10px; }
-
-      /* ── Courier card ── */
-      .fc-courier-card {
-        margin: 0 12px 10px;
-        background: #fff;
-        border: 1.5px solid #e8ecf0;
-        border-radius: 14px;
-        padding: 14px;
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-        overflow: hidden;
-      }
-      .fc-courier-card:hover {
-        border-color: #16a34a;
-        box-shadow: 0 4px 16px rgba(22,163,74,0.12);
-        transform: translateY(-1px);
-      }
-      .fc-courier-card.selected {
-        border-color: #16a34a;
-        background: #f0fdf4;
-      }
-      .fc-card-top {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-      .fc-avatar {
-        width: 46px;
-        height: 46px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #16a34a, #059669);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-        color: #fff;
-      }
-      .fc-card-info { flex: 1; min-width: 0; }
-      .fc-card-name {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1e293b;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-bottom: 2px;
-      }
-      .fc-card-transport {
-        font-size: 12px;
-        color: #64748b;
-        margin-bottom: 4px;
-      }
-      .fc-card-rating {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: #f59e0b;
-        font-weight: 600;
-      }
-      .fc-card-badge {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        color: #16a34a;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        white-space: nowrap;
-      }
-      .fc-card-stats {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      .fc-stat {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: #64748b;
-        background: #f8fafc;
-        padding: 3px 8px;
-        border-radius: 6px;
-      }
-      .fc-card-price {
-        font-size: 13px;
-        font-weight: 700;
-        color: #16a34a;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      /* ── Map ── */
-      .fc-map-wrap {
-        flex: 1;
-        position: relative;
-      }
-      #fc-map {
-        width: 100%;
-        height: 100%;
-      }
-
-      /* ── Courier modal ── */
-      .fc-modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 9999;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        padding: 0;
-        animation: fcOverlayIn 0.25s ease;
-      }
-      @keyframes fcOverlayIn { from { opacity: 0; } to { opacity: 1; } }
-      .fc-modal {
-        background: #fff;
-        border-radius: 24px 24px 0 0;
-        width: 100%;
-        max-width: 520px;
-        padding: 28px 24px 36px;
-        animation: fcModalUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-      @keyframes fcModalUp {
-        from { transform: translateY(60px); opacity: 0; }
-        to   { transform: translateY(0); opacity: 1; }
-      }
-      .fc-modal-handle {
-        width: 40px;
-        height: 4px;
-        background: #e2e8f0;
-        border-radius: 2px;
-        margin: 0 auto 20px;
-      }
-      .fc-modal-head {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 18px;
-      }
-      .fc-modal-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #16a34a, #059669);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 30px;
-        color: #fff;
-        flex-shrink: 0;
-      }
-      .fc-modal-name {
-        font-size: 20px;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 0 0 3px;
-      }
-      .fc-modal-transport {
-        font-size: 14px;
-        color: #64748b;
-        margin: 0;
-      }
-      .fc-modal-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 18px;
-      }
-      .fc-mstat {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 12px;
-        text-align: center;
-      }
-      .fc-mstat-val {
-        font-size: 20px;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 3px;
-      }
-      .fc-mstat-label {
-        font-size: 11px;
-        color: #64748b;
-      }
-      .fc-modal-details {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-      .fc-mdetail {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 13px;
-        color: #374151;
-        padding: 10px 12px;
-        background: #f8fafc;
-        border-radius: 10px;
-      }
-      .fc-mdetail-icon { font-size: 18px; }
-      .fc-mdetail strong { color: #1e293b; margin-right: 4px; }
-      .fc-modal-bio {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 10px;
-        padding: 12px;
-        font-size: 13px;
-        color: #374151;
-        margin-bottom: 18px;
-        line-height: 1.5;
-      }
-      .fc-modal-actions {
-        display: flex;
-        gap: 10px;
-      }
-      .fc-contact-btn {
-        flex: 1;
-        padding: 13px;
-        background: linear-gradient(135deg, #16a34a, #15803d);
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.2s;
-        font-family: inherit;
-        box-shadow: 0 4px 14px rgba(22,163,74,0.3);
-      }
-      .fc-contact-btn:hover { transform: translateY(-1px); }
-      .fc-close-btn {
-        padding: 13px 18px;
-        background: #f1f5f9;
-        color: #64748b;
-        border: none;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-family: inherit;
-      }
-      .fc-close-btn:hover { background: #e2e8f0; }
-
-      /* spinner */
-      .fc-spin {
-        display: inline-block;
-        animation: spin 0.8s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-
-      @media (max-width: 700px) {
-        .fc-layout { flex-direction: column; height: auto; }
-        .fc-sidebar { width: 100%; min-width: unset; height: auto; border-right: none; border-bottom: 1px solid #e8ecf0; }
-        .fc-map-wrap { height: 350px; }
-      }
-    `;
-    document.head.appendChild(s);
-  }
-
-  app.innerHTML = `
-    <div class="fc-page">
-      <div class="fc-nav">
-        <div class="fc-nav-logo">
-          <span>🌾</span> AgroVerse · Доставка
-        </div>
-        <button class="fc-nav-back" onclick="router.go('/home')">← Главная</button>
+  app.innerHTML = pageShell(`
+    <div style="max-width:800px;margin:0 auto;">
+      <div class="page-head" style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:3rem;margin-bottom:12px;">🚚</div>
+        <h1 class="page-title">Доставка</h1>
+        <p class="page-desc">Заказывайте доставку грузов у проверенных курьеров</p>
       </div>
-      <div class="fc-layout">
-        <!-- Sidebar -->
-        <div class="fc-sidebar">
-          <div class="fc-sidebar-header">
-            <div class="fc-sidebar-title">
-              <img src="https://cdn-icons-png.flaticon.com/512/4290/4290854.png" onerror="this.style.display='none'" alt="">
-              Найти курьера
-            </div>
-            <p class="fc-sidebar-sub">Выберите точку отправки и радиус поиска</p>
+
+      <div class="card" style="padding:28px;margin-bottom:24px;">
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Найти курьера</h3>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:13px;font-weight:600;color:var(--txt-2);margin-bottom:6px;display:block;">Адрес доставки</label>
+            <input type="text" id="fc-address" class="form-group input" style="width:100%;padding:12px 16px;border:1px solid var(--line);border-radius:12px;font-size:14px;background:#fff;" placeholder="Введите адрес..." />
           </div>
-
-          <div class="fc-search-form">
-            <div class="fc-field">
-              <label class="fc-label">Адрес отправки</label>
-              <div class="fc-input-wrap">
-                <span class="fc-input-icon">📍</span>
-                <input type="text" id="fc-address" class="fc-input" placeholder="Введите адрес или кликните на карте"
-                       style="padding-right: 42px;">
-                <button class="fc-location-btn" onclick="_fcGetMyLocation()" title="Моё местоположение">📡</button>
-              </div>
-            </div>
-
-            <div class="fc-field">
-              <div class="fc-radius-row">
-                <label class="fc-label" style="margin-bottom:0">Радиус поиска</label>
-                <span class="fc-radius-val" id="fc-radius-val">10 км</span>
-              </div>
-              <input type="range" class="fc-range" id="fc-radius" min="1" max="100" value="10"
-                     oninput="document.getElementById('fc-radius-val').textContent = this.value + ' км'">
-              <div class="fc-range-labels"><span>1 км</span><span>100 км</span></div>
-            </div>
-
-            <button class="fc-search-btn" id="fc-search-btn" onclick="_fcSearch()">
-              🔍 Найти курьеров
-            </button>
-          </div>
-
-          <!-- Results -->
-          <div class="fc-results" id="fc-results">
-            <div class="fc-empty">
-              <div class="fc-empty-icon">🗺️</div>
-              Введите адрес и нажмите «Найти»
-            </div>
-          </div>
+          <button class="btn btn-primary" onclick="_fcSimpleSearch()" style="white-space:nowrap;">🔍 Найти</button>
         </div>
+      </div>
 
-        <!-- Map -->
-        <div class="fc-map-wrap">
-          <div id="fc-map"></div>
+      <div id="fc-results" style="margin-bottom:24px;"></div>
+
+      <div class="card" style="padding:28px;">
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Как это работает?</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+          <div style="text-align:center;padding:16px;">
+            <div style="font-size:2rem;margin-bottom:8px;">📍</div>
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Укажите адрес</div>
+            <div style="font-size:13px;color:var(--txt-3);">Откуда забирать груз</div>
+          </div>
+          <div style="text-align:center;padding:16px;">
+            <div style="font-size:2rem;margin-bottom:8px;">🚛</div>
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Выберите курьера</div>
+            <div style="font-size:13px;color:var(--txt-3);">Сравните цены и рейтинг</div>
+          </div>
+          <div style="text-align:center;padding:16px;">
+            <div style="font-size:2rem;margin-bottom:8px;">✅</div>
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Доставка</div>
+            <div style="font-size:13px;color:var(--txt-3);">Быстро и надёжно</div>
+          </div>
         </div>
       </div>
     </div>
-  `;
-
-  // Init map
-  await _loadLeaflet();
-  const map = L.map('fc-map').setView([41.2995, 69.2401], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  window._fcMap = map;
-  window._fcMarkers = [];
-  window._fcUserMarker = null;
-  window._fcUserLat = null;
-  window._fcUserLng = null;
-
-  // Click on map = set address
-  map.on('click', async function(e) {
-    const { lat, lng } = e.latlng;
-    window._fcUserLat = lat;
-    window._fcUserLng = lng;
-    if (window._fcUserMarker) window._fcUserMarker.remove();
-    window._fcUserMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: '',
-        html: `<div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">📍</div>`,
-        iconSize: [32, 32], iconAnchor: [16, 32]
-      })
-    }).addTo(map).bindPopup('Точка отправки').openPopup();
-    document.getElementById('fc-address').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  });
+  `);
 }
 
-window._fcGetMyLocation = function() {
-  if (!navigator.geolocation) { showToast('Геолокация недоступна', 'error'); return; }
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lng } = pos.coords;
-    window._fcUserLat = lat;
-    window._fcUserLng = lng;
-    const map = window._fcMap;
-    if (!map) return;
-    map.setView([lat, lng], 13);
-    if (window._fcUserMarker) window._fcUserMarker.remove();
-    window._fcUserMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: '',
-        html: `<div style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">📍</div>`,
-        iconSize: [32, 32], iconAnchor: [16, 32]
-      })
-    }).addTo(map).bindPopup('Вы здесь').openPopup();
-    document.getElementById('fc-address').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    showToast('📍 Местоположение определено!', 'success');
-  }, () => showToast('Не удалось определить местоположение', 'error'));
-};
-
-window._fcSearch = async function() {
-  const lat = window._fcUserLat;
-  const lng = window._fcUserLng;
-  const radius = +document.getElementById('fc-radius').value || 10;
-  const btn = document.getElementById('fc-search-btn');
+window._fcSimpleSearch = async function() {
+  const address = document.getElementById('fc-address')?.value?.trim();
   const results = document.getElementById('fc-results');
+  if (!results) return;
 
-  if (!lat || !lng) {
-    showToast('Кликните на карте или нажмите 📡 чтобы определить адрес', 'warn');
+  if (!address) {
+    showToast('Введите адрес доставки', 'warn');
     return;
   }
 
-  btn.disabled = true;
-  btn.innerHTML = `<span class="fc-spin">⟳</span> Поиск...`;
-  results.innerHTML = `<div class="fc-empty"><div class="fc-spin" style="font-size:28px;">⟳</div><br>Ищем курьеров...</div>`;
-
-  // Clear old markers
-  (window._fcMarkers || []).forEach(m => m.remove());
-  window._fcMarkers = [];
+  results.innerHTML = '<div class="spinner"></div>';
 
   try {
-    const base = window.location.hostname.includes('localhost')
-      ? 'http://localhost:8000'
-      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://project-production-7a95.up.railway.app');
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`${base}/api/delivery/couriers/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const couriers = res.ok ? await res.json() : [];
+    // Попробовать найти курьеров через API
+    const res = await API.getAvailableOrders?.().catch(() => null);
+    // Пока показываем заглушку — сервис поиска курьеров в разработке
+    results.innerHTML = `
+      <div class="card" style="padding:28px;text-align:center;border:1px dashed var(--line-2);">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🚛</div>
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Поиск курьеров</h3>
+        <p style="color:var(--txt-2);font-size:14px;margin-bottom:16px;">
+          Адрес: <b>${address}</b>
+        </p>
+        <p style="color:var(--txt-3);font-size:13px;">
+          Сервис поиска курьеров в вашем районе находится в разработке.<br>
+          Скоро вы сможете найти курьера прямо здесь!
+        </p>
+        <div style="margin-top:16px;padding:14px;background:rgba(74,222,128,0.06);border-radius:12px;border:1px solid var(--line-2);">
+          <p style="color:var(--clr-primary);font-size:13px;font-weight:600;margin:0;">
+            💡 Пока что вы можете связаться с курьером напрямую через раздел «Йўлчи» в навбаре
+          </p>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    results.innerHTML = `<div class="form-error">${e.message}</div>`;
+  }
+};
 
     if (!couriers.length) {
       results.innerHTML = `
