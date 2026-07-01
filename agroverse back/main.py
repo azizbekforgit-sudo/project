@@ -342,7 +342,7 @@ async def create_product(
         price_per_unit=price_per_unit,
         unit=unit,
         quantity_available=int(quantity_available),
-        status="pending" if current_user.role == "fermer" else "active"
+        status="active"
     )
     db.add(product)
     await db.commit()

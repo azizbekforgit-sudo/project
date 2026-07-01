@@ -134,17 +134,16 @@ async function renderProfile() {
 async function loadProfileStats(user) {
   try {
     if (user.role === 'fermer') {
-      const myProducts = await API.getMyProducts();
-      const products = myProducts.products || [];
+      const allProducts = await API.getProducts({});
+      const myProducts = allProducts.filter(p => p.fermer_id === user.id);
       const el1 = document.getElementById('pr-stat-products');
       const el2 = document.getElementById('pr-stat-active');
-      if (el1) el1.textContent = products.length;
-      if (el2) el2.textContent = products.filter(p => p.status === 'active').length;
+      if (el1) el1.textContent = myProducts.length;
+      if (el2) el2.textContent = myProducts.filter(p => p.status === 'active').length;
     } else {
       const cartEl = document.getElementById('pr-stat-cart');
       if (cartEl) cartEl.textContent = getCartCount();
     }
-    // Try to load orders count
     try {
       const ordersData = await API.getMyOrders();
       const orders = ordersData.orders || [];
@@ -164,8 +163,9 @@ async function loadFarmerProducts() {
   if (!list) return;
 
   try {
-    const data = await API.getMyProducts();
-    const products = data.products || [];
+    const user = Auth.getUser();
+    const allProducts = await API.getProducts({});
+    const products = allProducts.filter(p => p.fermer_id === user.id);
 
     if (!products.length) {
       list.innerHTML = `
