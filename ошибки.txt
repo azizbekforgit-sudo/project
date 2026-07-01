@@ -1,0 +1,68 @@
+api.js:38  GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+request @ api.js:38
+getMyProducts @ api.js:133
+loadFarmerProducts @ profile.js:167
+renderProfile @ profile.js:131
+dispatch @ router.js:97
+(anonymous) @ router.js:113
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async loadFarmerProducts (profile.js:167:18)
+request @ api.js:83
+await in request
+getMyProducts @ api.js:133
+loadFarmerProducts @ profile.js:167
+renderProfile @ profile.js:131
+dispatch @ router.js:97
+(anonymous) @ router.js:113
+api.js:38  GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+request @ api.js:38
+getMyProducts @ api.js:133
+loadProfileStats @ profile.js:137
+renderProfile @ profile.js:128
+dispatch @ router.js:97
+(anonymous) @ router.js:113
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async loadProfileStats (profile.js:137:26)
+request @ api.js:83
+await in request
+getMyProducts @ api.js:133
+loadProfileStats @ profile.js:137
+renderProfile @ profile.js:128
+dispatch @ router.js:97
+(anonymous) @ router.js:113
+/#/profile:1 <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
+api.js:38  GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+request @ api.js:38
+getMyProducts @ api.js:133
+loadProfileStats @ profile.js:137
+renderProfile @ profile.js:128
+dispatch @ router.js:97
+hashchange
+navigate @ router.js:29
+(anonymous) @ product-new.js:542
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async loadProfileStats (profile.js:137:26)
+request @ api.js:83
+await in request
+getMyProducts @ api.js:133
+loadProfileStats @ profile.js:137
+renderProfile @ profile.js:128
+dispatch @ router.js:97
+hashchange
+navigate @ router.js:29
+(anonymous) @ product-new.js:542
+api.js:38  GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+request @ api.js:38
+getMyProducts @ api.js:133
+loadFarmerProducts @ profile.js:167
+renderProfile @ profile.js:131
+dispatch @ router.js:97
+hashchange
+navigate @ router.js:29
+(anonymous) @ product-new.js:542
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async loadFarmerProducts (profile.js:167:18)

@@ -130,7 +130,7 @@ const API = {
   },
   updateProduct: (id, body) => request('PATCH', `/api/products/${id}`, { body }),
   deleteProduct: (id)       => request('DELETE', `/api/products/${id}`),
-  getMyProducts: ()         => request('GET', '/api/products/my'),
+  getMyProducts: ()         => request('GET', '/api/my/products'),
 
   // Orders
   getMyOrders:   () => request('GET', '/api/orders/my'),

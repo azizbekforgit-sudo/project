@@ -303,7 +303,7 @@ async def get_products(db: AsyncSession = Depends(get_db)):
         return d
     return {"total": len(products), "page": 1, "limit": 100, "products": [fmt(p) for p in products]}
 
-@app.get("/api/products/my")
+@app.get("/api/my/products")
 async def get_my_products(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
     products = result.scalars().all()
