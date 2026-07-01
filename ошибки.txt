@@ -1,0 +1,9 @@
+Access to fetch at 'https://project-production-7a95.up.railway.app/api/auth/register' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api.js:38  POST https://project-production-7a95.up.railway.app/api/auth/register net::ERR_FAILED
+request @ api.js:38
+register @ api.js:113
+(anonymous) @ register.js:74
+api.js:83 API Error: TypeError: Failed to fetch
+    at request (api.js:38:23)
+    at Object.register (api.js:113:28)
+    at HTMLButtonElement.<anonymous> (register.js:74:30)

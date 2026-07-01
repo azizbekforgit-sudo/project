@@ -181,44 +181,13 @@ class GrokChatRequest(BaseModel):
 # ─── App ──────────────────────────────────────────────────────
 app = FastAPI(title="AgroVerse API", version="3.0")
 
-# --- "ЯДЕРНЫЙ" CORS (Manual Fix) ---
-@app.middleware("http")
-async def manual_cors_middleware(request: Request, call_next):
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        response = Response()
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        response.headers["Access-Control-Max-Age"] = "86400"
-        return response
-    
-    try:
-        response = await call_next(request)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "msg": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-            }
-        )
-        
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,
+    max_age=86400,
 )
 
 # ─── DB session ───────────────────────────────────────────────
