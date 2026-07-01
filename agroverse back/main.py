@@ -349,6 +349,32 @@ async def delete_product(product_id: int, current_user: User = Depends(get_curre
     await db.commit()
     return {"ok": True}
 
+# ─── FARMER PRODUCTS ──────────────────────────────────────────
+@app.get("/api/products/my")
+async def get_my_products(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
+    products = result.scalars().all()
+    def fmt(p):
+        d = {c.name: getattr(p, c.name) for c in p.__table__.columns}
+        d.pop("_sa_instance_state", None)
+        return d
+    return {"total": len(products), "products": [fmt(p) for p in products]}
+
+@app.patch("/api/products/{product_id}")
+async def update_product(product_id: int, body: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product.fermer_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not your product")
+    for field in ["title", "description", "category", "price_per_unit", "unit", "quantity_available", "status"]:
+        if field in body:
+            setattr(product, field, body[field])
+    await db.commit()
+    await db.refresh(product)
+    return {c.name: getattr(product, c.name) for c in product.__table__.columns}
+
 # ─── ORDERS ───────────────────────────────────────────────────
 @app.get("/api/orders/my")
 async def get_my_orders(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
