@@ -303,6 +303,16 @@ async def get_products(db: AsyncSession = Depends(get_db)):
         return d
     return {"total": len(products), "page": 1, "limit": 100, "products": [fmt(p) for p in products]}
 
+@app.get("/api/products/my")
+async def get_my_products(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
+    products = result.scalars().all()
+    def fmt(p):
+        d = {c.name: getattr(p, c.name) for c in p.__table__.columns}
+        d.pop("_sa_instance_state", None)
+        return d
+    return {"total": len(products), "products": [fmt(p) for p in products]}
+
 @app.get("/api/products/{product_id}")
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.id == product_id))
@@ -349,17 +359,7 @@ async def delete_product(product_id: int, current_user: User = Depends(get_curre
     await db.commit()
     return {"ok": True}
 
-# ─── FARMER PRODUCTS ──────────────────────────────────────────
-@app.get("/api/products/my")
-async def get_my_products(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
-    products = result.scalars().all()
-    def fmt(p):
-        d = {c.name: getattr(p, c.name) for c in p.__table__.columns}
-        d.pop("_sa_instance_state", None)
-        return d
-    return {"total": len(products), "products": [fmt(p) for p in products]}
-
+# ─── PRODUCT UPDATE ───────────────────────────────────────────
 @app.patch("/api/products/{product_id}")
 async def update_product(product_id: int, body: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.id == product_id))
