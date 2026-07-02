@@ -97,6 +97,43 @@ async def get_products(
         products=product_responses
     )
 
+@router.get("/my", response_model=ProductListResponse)
+async def get_my_products(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Product).where(Product.fermer_id == current_user.id)
+    )
+    products = result.scalars().all()
+
+    product_responses = []
+    for product in products:
+        product_responses.append(ProductResponse(
+            id=product.id,
+            fermer_id=product.fermer_id,
+            fermer_name=current_user.name,
+            fermer_rating=current_user.bonus_points,
+            title=product.title,
+            description=product.description,
+            category=product.category,
+            price_per_unit=float(product.price_per_unit),
+            unit=product.unit,
+            quantity_available=float(product.quantity_available),
+            photos=product.photos or [],
+            rating=product.rating,
+            status=product.status,
+            created_at=product.created_at
+        ))
+
+    return ProductListResponse(
+        total=len(products),
+        page=1,
+        limit=len(products),
+        products=product_responses
+    )
+
+
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.id == product_id))

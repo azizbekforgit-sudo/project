@@ -2,7 +2,7 @@
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 const BASE_URL = IS_LOCAL
   ? 'http://localhost:8000'
-  : 'https://project-production-5501.up.railway.app';
+  : 'https://project-production-7a95.up.railway.app';
 
 
 function getToken() {
@@ -123,6 +123,11 @@ const API = {
   async getProduct(id) {
     const res = await request('GET', `/api/products/${id}`);
     return normalizeProduct(res);
+  },
+  async getMyProducts() {
+    const res = await request('GET', '/api/products/my');
+    const list = Array.isArray(res) ? res : (res?.products || []);
+    return list.map(normalizeProduct);
   },
   createProduct: (data) => {
     if (data instanceof FormData) return request('POST', '/api/products/', { formData: data });
