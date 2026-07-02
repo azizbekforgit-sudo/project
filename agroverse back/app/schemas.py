@@ -1,34 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
-from enum import Enum
-
-
-class UserRole(str, Enum):
-    FERMER = "fermer"
-    XARIDOR = "xaridor"
-    ADMIN = "admin"
-    COURIER = "courier"
-
-
-class UserTariff(str, Enum):
-    STANDART = "standart"
-    NORMAL = "normal"
-    PREMIUM = "premium"
-
-
-class ProductStatus(str, Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    PENDING = "pending"
-
-
-class OrderStatus(str, Enum):
-    CREATED = "created"
-    PAID = "paid"
-    READY_FOR_PICKUP = "ready_for_pickup"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+from app.models import UserRole, UserTariff, ProductStatus, OrderStatus
 
 
 # ── Auth schemas ──────────────────────────────────────────────────────────────

@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select
 from app.database import get_db
 from app.models import User, Product, Order, UserRole, ProductStatus, OrderStatus
-from app.schemas import ProductResponse
 from app.dependencies import get_current_admin
-from datetime import datetime, timedelta
+from datetime import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -98,17 +97,23 @@ async def get_pending_products(
         select(Product).where(Product.status == ProductStatus.PENDING)
     )
     products = result.scalars().all()
-    
+
+    # FIX: batch-load farmers to avoid N+1 queries
+    fermer_ids = list({p.fermer_id for p in products})
+    fermers_result = await db.execute(select(User).where(User.id.in_(fermer_ids)))
+    fermers_map = {u.id: u for u in fermers_result.scalars().all()}
+
     products_response = []
     for product in products:
-        fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
-        fermer = fermer_result.scalar_one()
-        
+        fermer = fermers_map.get(product.fermer_id)
+        fermer_name = fermer.name if fermer else "Unknown"
+        fermer_phone = fermer.phone if fermer else ""
+
         products_response.append({
             "id": product.id,
             "title": product.title,
-            "fermer_name": fermer.name,
-            "fermer_phone": fermer.phone,
+            "fermer_name": fermer_name,
+            "fermer_phone": fermer_phone,
             "category": product.category,
             "price": float(product.price_per_unit),
             "photos": product.photos,
@@ -138,7 +143,7 @@ async def approve_product(
 @router.patch("/products/{product_id}/reject")
 async def reject_product(
     product_id: int,
-    reason: str = Query(None),
+    reason: str = Body("", embed=True),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):

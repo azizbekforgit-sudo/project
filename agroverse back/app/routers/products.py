@@ -69,15 +69,21 @@ async def get_products(
     result = await db.execute(paged_query)
     products = result.scalars().all()
 
+    # FIX: batch-load farmers to avoid N+1 queries
+    fermer_ids = list({p.fermer_id for p in products})
+    fermers_result = await db.execute(select(User).where(User.id.in_(fermer_ids)))
+    fermers_map = {u.id: u for u in fermers_result.scalars().all()}
+
     product_responses = []
     for product in products:
-        fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
-        fermer = fermer_result.scalar_one()
+        fermer = fermers_map.get(product.fermer_id)
+        fermer_name = fermer.name if fermer else "Unknown"
+        fermer_rating = float(fermer.bonus_points) if fermer else 0
         product_responses.append(ProductResponse(
             id=product.id,
             fermer_id=product.fermer_id,
-            fermer_name=fermer.name,
-            fermer_rating=float(fermer.bonus_points),
+            fermer_name=fermer_name,
+            fermer_rating=fermer_rating,
             title=product.title,
             description=product.description,
             category=product.category,

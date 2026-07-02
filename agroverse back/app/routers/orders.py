@@ -80,17 +80,26 @@ async def get_my_orders(
     else:
         query = select(Order)
 
-    # FIX: добавлена сортировка по дате
     query = query.order_by(Order.created_at.desc())
     result = await db.execute(query)
     orders = result.scalars().all()
 
+    # FIX: batch-load products and farmers to avoid N+1 queries
+    product_ids = list({o.product_id for o in orders})
+    fermer_ids = list({o.fermer_id for o in orders})
+
+    products_result = await db.execute(select(Product).where(Product.id.in_(product_ids)))
+    products_map = {p.id: p for p in products_result.scalars().all()}
+
+    fermers_result = await db.execute(select(User).where(User.id.in_(fermer_ids)))
+    fermers_map = {u.id: u for u in fermers_result.scalars().all()}
+
     orders_response = []
     for order in orders:
-        product_result = await db.execute(select(Product).where(Product.id == order.product_id))
-        product = product_result.scalar_one()
-        fermer_result = await db.execute(select(User).where(User.id == order.fermer_id))
-        fermer = fermer_result.scalar_one()
+        product = products_map.get(order.product_id)
+        fermer = fermers_map.get(order.fermer_id)
+        if not product or not fermer:
+            continue
         orders_response.append(OrderResponse(
             id=order.id,
             product_id=product.id,

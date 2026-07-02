@@ -4,7 +4,7 @@ delivery.py — Модуль доставки AgroVerse (Полная испра
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from app.database import AsyncSessionLocal
+from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import User, CourierProfile, CourierOrder, CourierTransaction, CourierRatingEntry, UserRole
 from pydantic import BaseModel
@@ -14,10 +14,6 @@ import httpx
 import os
 
 router = APIRouter(prefix="/api", tags=["delivery"])
-
-async def get_db():
-    async with AsyncSessionLocal() as s:
-        yield s
 
 # ─── Schemas ──────────────────────────────────────────────────
 

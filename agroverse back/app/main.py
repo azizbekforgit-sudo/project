@@ -15,8 +15,8 @@ from app.models import User, Product
 from app.schemas import ProductResponse, ProductListResponse
 from app.dependencies import get_current_user
 
-ADMIN_PHONE = "+998000000000"
-ADMIN_PASSWORD = "admin123"
+ADMIN_PHONE = settings.admin_phone or "+998000000000"
+ADMIN_PASSWORD = settings.admin_password or "admin123"
 
 
 async def seed_admin():
@@ -39,7 +39,7 @@ async def seed_admin():
         )
         db.add(admin)
         await db.commit()
-        print(f"👑 Админ создан — логин: {ADMIN_PHONE}, пароль: {ADMIN_PASSWORD}")
+        print(f"Админ создан — логин: {ADMIN_PHONE}")
 
 
 @asynccontextmanager
