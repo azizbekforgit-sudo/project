@@ -167,6 +167,9 @@ const API = {
   // Courier profile
   getCourierProfile:   ()     => request('GET', '/api/courier/profile'),
   setupCourierProfile: (body) => request('POST', '/api/courier/profile/setup', { body }),
+
+  // Courier search
+  findNearbyCouriers:  (params) => request('GET', '/api/delivery/couriers/nearby', { params }),
 };
 
 API.request = request;

@@ -77,7 +77,7 @@ async def get_products(
             id=product.id,
             fermer_id=product.fermer_id,
             fermer_name=fermer.name,
-            fermer_rating=fermer.rating,
+            fermer_rating=float(fermer.bonus_points),
             title=product.title,
             description=product.description,
             category=product.category,

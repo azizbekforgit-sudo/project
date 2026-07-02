@@ -121,7 +121,7 @@ class ProductListResponse(BaseModel):
 class OrderCreate(BaseModel):
     product_id: int
     quantity: float = Field(..., gt=0)
-    pickup_method: str = Field(..., pattern="^(self|farmer|external)$")
+    pickup_method: str = Field(default="self", pattern="^(self|farmer|external)$")
 
 
 class OrderResponse(BaseModel):

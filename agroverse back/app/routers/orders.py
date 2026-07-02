@@ -40,7 +40,7 @@ async def create_order(
         quantity=order_data.quantity,
         total_price=total_price,
         commission=commission,
-        pickup_method=order_data.pickup_method,
+        pickup_method=PickupMethod(order_data.pickup_method),
         status=OrderStatus.CREATED
     )
 

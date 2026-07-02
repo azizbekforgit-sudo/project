@@ -120,7 +120,8 @@ function orderCardHtml(o) {
 
 function API_PHOTO(u) {
   if (!u) return '';
-  return u.startsWith('http') ? u : (`http://${location.hostname}:8000` + u);
+  if (u.startsWith('http')) return u;
+  return (typeof BASE_URL !== 'undefined' ? BASE_URL : `http://${location.hostname}:8000`) + u;
 }
 
 async function cancelOrder(id) {

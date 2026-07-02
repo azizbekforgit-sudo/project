@@ -154,24 +154,47 @@ window._fcSimpleSearch = async function() {
   results.innerHTML = '<div class="spinner"></div>';
 
   try {
-    // Попробовать найти курьеров через API
-    const res = await API.getAvailableOrders?.().catch(() => null);
-    // Пока показываем заглушку — сервис поиска курьеров в разработке
-    results.innerHTML = `
-      <div class="card" style="padding:28px;text-align:center;border:1px dashed var(--line-2);">
-        <div style="font-size:2.5rem;margin-bottom:12px;">🚛</div>
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Поиск курьеров</h3>
-        <p style="color:var(--txt-2);font-size:14px;margin-bottom:16px;">
-          Адрес: <b>${address}</b>
-        </p>
-        <p style="color:var(--txt-3);font-size:13px;">
-          Сервис поиска курьеров в вашем районе находится в разработке.<br>
-          Скоро вы сможете найти курьера прямо здесь!
-        </p>
-        <div style="margin-top:16px;padding:14px;background:rgba(74,222,128,0.06);border-radius:12px;border:1px solid var(--line-2);">
-          <p style="color:var(--clr-primary);font-size:13px;font-weight:600;margin:0;">
-            💡 Пока что вы можете связаться с курьером напрямую через раздел «Йўлчи» в навбаре
+    let couriers = [];
+    try {
+      const data = await API.findNearbyCouriers?.({ city: address });
+      couriers = Array.isArray(data) ? data : (data?.couriers || []);
+    } catch (_) {}
+
+    if (!couriers.length) {
+      results.innerHTML = `
+        <div class="card" style="padding:28px;text-align:center;border:1px dashed var(--line-2);">
+          <div style="font-size:2.5rem;margin-bottom:12px;">🚛</div>
+          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Поиск курьеров</h3>
+          <p style="color:var(--txt-2);font-size:14px;margin-bottom:16px;">
+            Адрес: <b>${address}</b>
           </p>
+          <p style="color:var(--txt-3);font-size:13px;">
+            Курьеры в вашем районе пока не найдены.<br>
+            Попробуйте другой адрес или свяжитесь с курьером напрямую.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    results.innerHTML = `
+      <div class="card" style="padding:20px;margin-bottom:16px;">
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Найдено курьеров: ${couriers.length}</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          ${couriers.map(c => `
+            <div style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg-card,#f9fafb);border:1px solid var(--line,rgba(0,0,0,0.08));border-radius:14px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;">🚛</div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:15px;">${c.full_name || 'Курьер'}</div>
+                <div style="font-size:13px;color:var(--txt-2,#6B7280);">${c.transport_type || ''} ${c.city ? '· ' + c.city : ''}</div>
+                <div style="font-size:12px;color:var(--txt-3,#9CA3AF);margin-top:2px;">Рейтинг: ${c.rating || 5.0} ⭐ · До ${c.max_weight || 5000} кг</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:700;color:var(--clr-primary,#10B981);font-size:14px;">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</div>
+                <div style="font-size:12px;color:var(--txt-3,#9CA3AF);">${c.status === 'online' ? '🟢 В сети' : '⚪ Оффлайн'}</div>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
     `;
@@ -1830,7 +1853,7 @@ function _editProfile() {
   const base = window.API._base || (
     window.API._base = window.location.hostname.includes('localhost')
       ? 'http://localhost:8000'
-      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://project-production-7a95.up.railway.app')
+      : (typeof BASE_URL !== 'undefined' ? BASE_URL : 'https://project-production-5501.up.railway.app')
   );
 
   const authGet  = (url, params) => {

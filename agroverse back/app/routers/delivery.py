@@ -198,7 +198,7 @@ async def setup_courier_profile(
         )
         db.add(profile)
 
-    current_user.role = "courier"
+    current_user.role = UserRole.COURIER
     await db.commit()
     return {"ok": True, "message": "Профиль курьера сохранён, ожидайте одобрения администратора"}
 
@@ -238,24 +238,30 @@ async def update_courier_status(
 
 @router.get("/delivery/couriers/nearby")
 async def couriers_nearby(
-    lat: float = Query(...),
-    lng: float = Query(...),
-    radius: float = Query(10),
+    lat: float = Query(None),
+    lng: float = Query(None),
+    radius: float = Query(50),
+    city: str = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(CourierProfile).where(
-            CourierProfile.admin_approved == True,
-            CourierProfile.status != "offline"
-        )
+    query = select(CourierProfile).where(
+        CourierProfile.admin_approved == True,
+        CourierProfile.status != "offline"
     )
+    if city:
+        query = query.where(CourierProfile.city.ilike(f"%{city}%"))
+
+    result = await db.execute(query)
     profiles = result.scalars().all()
     out = []
     for p in profiles:
-        dist = haversine(lat, lng, p.lat or 0, p.lng or 0) if (p.lat and p.lng) else 0
-        if dist > radius:
-            continue
-        t = TARIFFS.get(p.transport_type, TARIFFS["car"])
+        if lat is not None and lng is not None and p.lat and p.lng:
+            dist = haversine(lat, lng, p.lat, p.lng)
+            if dist > radius:
+                continue
+        else:
+            dist = 0
+        t = TARIFFS.get(p.transport_type, TARIFFS.get("car", {"base": 5000, "per_km": 500}))
         out.append({
             **profile_to_dict(p),
             "distance_km": round(dist, 1),
@@ -536,7 +542,18 @@ async def get_pending_couriers(
     return [profile_to_dict(p) for p in result.scalars().all()]
 
 
-@router.post("/admin/couriers/{courier_id}/approve")
+@router.get("/admin/couriers")
+async def get_all_couriers(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(403, "Только для администраторов")
+    result = await db.execute(select(CourierProfile))
+    return [profile_to_dict(p) for p in result.scalars().all()]
+
+
+@router.patch("/admin/couriers/{courier_id}/approve")
 async def approve_courier(
     courier_id: int,
     current_user: User = Depends(get_current_user),
@@ -544,29 +561,30 @@ async def approve_courier(
 ):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(403, "Только для администраторов")
-    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
+    result = await db.execute(select(CourierProfile).where(CourierProfile.id == courier_id))
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(404, "Курьер не найден")
     profile.admin_approved = True
+    profile.rejection_reason = ""
     await db.commit()
     return {"ok": True}
 
 
-@router.post("/admin/couriers/{courier_id}/reject")
+@router.patch("/admin/couriers/{courier_id}/reject")
 async def reject_courier(
     courier_id: int,
-    reason: str = Body(..., embed=True),
+    reason: str = Body("", embed=True),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(403, "Только для администраторов")
-    result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == courier_id))
+    result = await db.execute(select(CourierProfile).where(CourierProfile.id == courier_id))
     profile = result.scalar_one_or_none()
     if not profile:
         raise HTTPException(404, "Курьер не найден")
     profile.admin_approved = False
-    profile.rejection_reason = reason
+    profile.rejection_reason = reason or ""
     await db.commit()
     return {"ok": True}
