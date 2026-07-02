@@ -1,15 +1,19 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
+from sqlalchemy import select
 import os
 import uvicorn
 
-from app.database import engine, Base, AsyncSessionLocal
+from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.config import settings
 from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery
+from app.models import User, Product
+from app.schemas import ProductResponse, ProductListResponse
+from app.dependencies import get_current_user
 
 ADMIN_PHONE = "+998000000000"
 ADMIN_PASSWORD = "admin123"
@@ -115,6 +119,27 @@ app.include_router(bonus.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
 app.include_router(delivery.router)
+
+
+@app.get("/api/my/products")
+async def my_products_compat(
+    current_user: User = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
+    products = result.scalars().all()
+    product_responses = []
+    for product in products:
+        product_responses.append(ProductResponse(
+            id=product.id, fermer_id=product.fermer_id, fermer_name=current_user.name,
+            fermer_rating=current_user.bonus_points, title=product.title,
+            description=product.description, category=product.category,
+            price_per_unit=float(product.price_per_unit), unit=product.unit,
+            quantity_available=float(product.quantity_available),
+            photos=product.photos or [], rating=product.rating,
+            status=product.status, created_at=product.created_at,
+        ))
+    return ProductListResponse(total=len(products), page=1, limit=len(products), products=product_responses)
 
 
 @app.get("/")

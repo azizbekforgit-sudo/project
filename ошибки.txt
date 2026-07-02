@@ -1,90 +1,22 @@
-Access to fetch at 'https://project-production-7a95.up.railway.app/api/products/my' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-7a95.up.railway.app/api/products/my:1  Failed to load resource: net::ERR_FAILED
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getMyProducts (api.js:128:23)
-    at loadFarmerProducts (profile.js:181:45)
-    at Object.renderProfile [as render] (profile.js:131:31)
-    at dispatch (router.js:97:9)
-    at router.js:113:1
-request @ api.js:83
-/#/profile:1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/products/my' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-7a95.up.railway.app/api/products/my:1  Failed to load resource: net::ERR_FAILED
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getMyProducts (api.js:128:23)
-    at loadProfileStats (profile.js:140:47)
-    at Object.renderProfile [as render] (profile.js:128:3)
-    at dispatch (router.js:97:9)
-    at router.js:113:1
-request @ api.js:83
-/#/profile:1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/products/' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-7a95.up.railway.app/api/products/:1  Failed to load resource: net::ERR_FAILED
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getProducts (api.js:119:23)
-    at loadFarmerProducts (profile.js:188:29)
-request @ api.js:83
-/#/profile:1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/products/' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-7a95.up.railway.app/api/products/:1  Failed to load resource: net::ERR_FAILED
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getProducts (api.js:119:23)
-    at loadProfileStats (profile.js:147:31)
-request @ api.js:83
-/#/profile:1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/auth/me' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-7a95.up.railway.app/api/auth/me:1  Failed to load resource: net::ERR_FAILED
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getMe (api.js:114:28)
-    at auth.js:211:9
-request @ api.js:83
-/#/profile:1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/auth/me' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-api.js:38  GET https://project-production-7a95.up.railway.app/api/auth/me net::ERR_FAILED
-request @ api.js:38
-getMe @ api.js:114
-(anonymous) @ auth.js:211
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getMe (api.js:114:28)
-    at auth.js:211:9
-request @ api.js:83
-await in request
-getMe @ api.js:114
-(anonymous) @ auth.js:211
-(index):1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/auth/me' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-api.js:38  GET https://project-production-7a95.up.railway.app/api/auth/me net::ERR_FAILED
-request @ api.js:38
-getMe @ api.js:114
-(anonymous) @ auth.js:211
-setInterval
-startBlockHeartbeat @ auth.js:208
-afterRender @ router.js:106
-dispatch @ router.js:98
-hashchange
-navigate @ router.js:29
-onclick @ VM34 profile:1
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.getMe (api.js:114:28)
-    at auth.js:211:9
-request @ api.js:83
-await in request
-getMe @ api.js:114
-(anonymous) @ auth.js:211
-setInterval
-startBlockHeartbeat @ auth.js:208
-afterRender @ router.js:106
-dispatch @ router.js:98
-hashchange
-navigate @ router.js:29
-onclick @ VM34 profile:1
-(index):1 Access to fetch at 'https://project-production-7a95.up.railway.app/api/products/' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-api.js:38  POST https://project-production-7a95.up.railway.app/api/products/ net::ERR_FAILED
-request @ api.js:38
-createProduct @ api.js:133
-(anonymous) @ product-new.js:540
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.createProduct (api.js:133:42)
-    at HTMLButtonElement.<anonymous> (product-new.js:540:17)
+api.js:38 
+ GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async Object.getMyProducts (api.js:128:17)
+    at async loadProfileStats (profile.js:140:22)
+api.js:38 
+ GET https://project-production-5501.up.railway.app/api/products/my 422 (Unprocessable Content)
+api.js:83 API Error: Error: Input should be a valid integer, unable to parse string as an integer
+    at request (api.js:78:13)
+    at async Object.getMyProducts (api.js:128:17)
+    at async loadFarmerProducts (profile.js:181:20)
+request	@	api.js:83
+await in request		
+getMyProducts	@	api.js:128
+loadFarmerProducts	@	profile.js:181
+renderProfile	@	profile.js:131
+dispatch	@	router.js:97
+hashchange		
+navigate	@	router.js:29
+(anonymous)	@	product-new.js:542
