@@ -25,17 +25,6 @@ const SECTIONS = [
   { id: 'profile', icon: '👤', label: 'Профиль' },
 ];
 
-const SECTIONS = [
-  { id: 'home',    icon: '🏠', label: 'Главная' },
-  { id: 'orders',  icon: '📦', label: 'Заказы' },
-  { id: 'map',     icon: '🗺️', label: 'Карта' },
-  { id: 'tariffs', icon: '💳', label: 'Тарифы' },
-  { id: 'ai',      icon: '🤖', label: 'ИИ' },
-  { id: 'wallet',  icon: '💰', label: 'Кошелёк' },
-  { id: 'market',  icon: '🛒', label: 'Рынок' },
-  { id: 'profile', icon: '👤', label: 'Профиль' },
-];
-
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let _deliveryState = {

@@ -1,20 +1,3 @@
-Fluent Emoji (Microsoft) — https://github.com/microsoft/fluentui-emoji — самый модный 3D/flat стиль, то что сейчас в тренде
-Twemoji (Twitter/X) — https://github.com/twitter/twemoji — плоский чистый стиль, легко подключается через CDN
-OpenMoji — https://openmoji.org — open-source, много стилей (цветной/чёрно-белый)
-Noto Emoji (Google) — https://github.com/googlefonts/noto-emoji
-
-исопльзуй из этого все эможи и поменяй всё на сайте ну тоесть тьолько эможи и да паралельно реши проблему с входм в админ акк вот проблема в консоле 
-api.js:38  POST https://project-production-5501.up.railway.app/api/auth/login 401 (Unauthorized)
-request @ api.js:38
-login @ api.js:112
-handleLogin @ login.js:66
-api.js:83 API Error: Error: Invalid credentials
-    at request (api.js:54:13)
-    at async HTMLButtonElement.handleLogin (login.js:66:20)
-request @ api.js:83
-await in request
-login @ api.js:112
-handleLogin @ login.js:66
-login.js:73 Login error: Error: Invalid credentials
-    at request (api.js:54:13)
-    at async HTMLButtonElement.handleLogin (login.js:66:20)
+Uncaught SyntaxError: Identifier 'SECTIONS' has already been declared
+router.js:18 Uncaught ReferenceError: renderDelivery is not defined
+    at router.js:18:29
