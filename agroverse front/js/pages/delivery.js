@@ -34,7 +34,7 @@ let _deliveryState = {
   wallet: { balance: 0, history: [] },
   aiMessages: [],
   onboarding: {
-    step: 0,      // 0=transport 1=zone 2=docs
+    step: 0,
     transport_type: '',
     max_weight: 5000,
     has_thermo_bag: false,
@@ -49,6 +49,10 @@ let _deliveryState = {
     license_info: '',
     documents: [],
     bio: '',
+    route_from: '',
+    route_to: '',
+    route_anywhere: false,
+    address: '',
   },
   mapInstance: null,
 };
@@ -97,110 +101,332 @@ async function _renderFindCourier() {
   const app = document.getElementById('app');
 
   app.innerHTML = pageShell(`
-    <div style="max-width:800px;margin:0 auto;">
-      <div class="page-head" style="text-align:center;margin-bottom:32px;">
-        <div style="font-size:3rem;margin-bottom:12px;">🚚</div>
-        <h1 class="page-title">Доставка</h1>
-        <p class="page-desc">Заказывайте доставку грузов у проверенных курьеров</p>
+    <div style="max-width:1100px;margin:0 auto;">
+      <!-- Hero -->
+      <div class="del-hero">
+        <div class="del-hero-title">🚛 Доставка грузов</div>
+        <div class="del-hero-sub">Найдите проверенного курьера для перевозки вашего груза по всей Узбекистану</div>
       </div>
 
-      <div class="card" style="padding:28px;margin-bottom:24px;">
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Найти курьера</h3>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label style="font-size:13px;font-weight:600;color:var(--txt-2);margin-bottom:6px;display:block;">Адрес доставки</label>
-            <input type="text" id="fc-address" class="form-group input" style="width:100%;padding:12px 16px;border:1px solid var(--line);border-radius:12px;font-size:14px;background:#fff;" placeholder="Введите адрес..." />
-          </div>
-          <button class="btn btn-primary" onclick="_fcSimpleSearch()" style="white-space:nowrap;">🔍 Найти</button>
+      <!-- Google Map -->
+      <div class="del-map-wrap">
+        <div id="del-map" class="del-map"></div>
+        <div class="del-map-controls">
+          <input type="text" id="del-address" class="del-map-input" placeholder="📍 Введите адрес или кликните на карту..." />
+          <select id="del-radius" class="del-radius-select">
+            <option value="5">5 км</option>
+            <option value="10">10 км</option>
+            <option value="25" selected>25 км</option>
+            <option value="50">50 км</option>
+            <option value="100">100 км</option>
+            <option value="500">Весь Узбекистан</option>
+          </select>
+          <button class="del-search-btn" onclick="_delZoneSearch()">🔍 Найти</button>
         </div>
       </div>
 
-      <div id="fc-results" style="margin-bottom:24px;"></div>
+      <!-- Results -->
+      <div id="del-results"></div>
 
-      <div class="card" style="padding:28px;">
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Как это работает?</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
-          <div style="text-align:center;padding:16px;">
-            <div style="font-size:2rem;margin-bottom:8px;">📍</div>
-            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Укажите адрес</div>
-            <div style="font-size:13px;color:var(--txt-3);">Откуда забирать груз</div>
+      <!-- How it works -->
+      <div style="margin-top:40px;">
+        <h2 style="font-family:var(--font-display);font-size:24px;font-weight:600;text-align:center;margin-bottom:24px;">Как это работает?</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
+          <div class="how-card" style="text-align:center;padding:28px 20px;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">📍</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Укажите адрес</div>
+            <div style="font-size:13px;color:var(--muted);">Кликните на карту или введите адрес</div>
           </div>
-          <div style="text-align:center;padding:16px;">
-            <div style="font-size:2rem;margin-bottom:8px;">🚛</div>
-            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Выберите курьера</div>
-            <div style="font-size:13px;color:var(--txt-3);">Сравните цены и рейтинг</div>
+          <div class="how-card" style="text-align:center;padding:28px 20px;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">🔍</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Выберите курьера</div>
+            <div style="font-size:13px;color:var(--muted);">Сравните рейтинги и тарифы</div>
           </div>
-          <div style="text-align:center;padding:16px;">
-            <div style="font-size:2rem;margin-bottom:8px;">✅</div>
-            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">Доставка</div>
-            <div style="font-size:13px;color:var(--txt-3);">Быстро и надёжно</div>
+          <div class="how-card" style="text-align:center;padding:28px 20px;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">📦</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Закажите доставку</div>
+            <div style="font-size:13px;color:var(--muted);">Быстро, надёжно, с гарантией</div>
           </div>
         </div>
       </div>
     </div>
   `);
+
+  // Init Google Map
+  _initDelMap();
 }
 
-window._fcSimpleSearch = async function() {
-  const address = document.getElementById('fc-address')?.value?.trim();
-  const results = document.getElementById('fc-results');
-  if (!results) return;
+// ─── Leaflet Map initialization ───────────────────────────────────────────────
 
-  if (!address) {
-    showToast('Введите адрес доставки', 'warn');
+let _delMap = null;
+let _delMarker = null;
+let _delCircle = null;
+let _delMarkers = [];
+
+function _initDelMap() {
+  const mapEl = document.getElementById('del-map');
+  if (!mapEl || !window.L) {
+    if (mapEl) mapEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--surface-soft);color:var(--muted);">
+        <div style="font-size:48px;margin-bottom:16px;">🗺️</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Карта</div>
+        <div style="font-size:13px;">Введите адрес для поиска курьеров</div>
+      </div>`;
     return;
   }
 
-  results.innerHTML = '<div class="spinner"></div>';
+  // Default: Tashkent center
+  _delMap = L.map(mapEl, {
+    zoomControl: true,
+    attributionControl: false,
+  }).setView([41.2995, 69.2401], 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(_delMap);
+
+  // Click on map → place marker
+  _delMap.on('click', (e) => {
+    _placeDelMarker(e.latlng.lat, e.latlng.lng);
+    // Reverse geocode using Nominatim
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&accept-language=ru`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.display_name) {
+          document.getElementById('del-address').value = data.display_name;
+        }
+      })
+      .catch(() => {});
+  });
+
+  // Try to get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _delMap.setView([pos.coords.latitude, pos.coords.longitude], 12);
+        _placeDelMarker(pos.coords.latitude, pos.coords.longitude);
+      },
+      () => {}
+    );
+  }
+}
+
+function _placeDelMarker(lat, lng) {
+  if (_delMarker) _delMap.removeLayer(_delMarker);
+  if (_delCircle) _delMap.removeLayer(_delCircle);
+
+  _delMarker = L.marker([lat, lng]).addTo(_delMap);
+
+  const radius = parseInt(document.getElementById('del-radius')?.value || 25);
+  _delCircle = L.circle([lat, lng], {
+    radius: radius * 1000,
+    fillColor: '#0a6e3a',
+    fillOpacity: 0.08,
+    color: '#0a6e3a',
+    opacity: 0.3,
+    weight: 2,
+  }).addTo(_delMap);
+}
+
+// ─── Zone search ─────────────────────────────────────────────────────────────
+
+window._delZoneSearch = async function() {
+  const results = document.getElementById('del-results');
+  if (!results) return;
+
+  let lat = 41.2995, lng = 69.2401; // Default Tashkent
+  if (_delMarker) {
+    const pos = _delMarker.getPosition();
+    lat = pos.lat();
+    lng = pos.lng();
+  }
+
+  const radius = parseInt(document.getElementById('del-radius')?.value || 25);
+  results.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
 
   try {
-    let couriers = [];
-    try {
-      const data = await API.findNearbyCouriers?.({ city: address });
-      couriers = Array.isArray(data) ? data : (data?.couriers || []);
-    } catch (_) {}
+    const couriers = await API.searchCouriersZone({ lat, lng, radius });
 
     if (!couriers.length) {
       results.innerHTML = `
-        <div class="card" style="padding:28px;text-align:center;border:1px dashed var(--line-2);">
-          <div style="font-size:2.5rem;margin-bottom:12px;">🚛</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Поиск курьеров</h3>
-          <p style="color:var(--txt-2);font-size:14px;margin-bottom:16px;">
-            Адрес: <b>${address}</b>
-          </p>
-          <p style="color:var(--txt-3);font-size:13px;">
-            Курьеры в вашем районе пока не найдены.<br>
-            Попробуйте другой адрес или свяжитесь с курьером напрямую.
-          </p>
-        </div>
-      `;
+        <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+          <div style="font-size:48px;margin-bottom:16px;">🚛</div>
+          <h3 style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px;">Курьеры не найдены</h3>
+          <p style="font-size:14px;">В выбранном радиусе (${radius} км) пока нет активных курьеров.<br>Попробуйте увеличить радиус поиска.</p>
+        </div>`;
       return;
     }
 
+    // Place courier markers on map
+    if (_delMap && window.L) {
+      _delMarkers.forEach(m => _delMap.removeLayer(m));
+      _delMarkers = [];
+      couriers.forEach(c => {
+        if (c.lat && c.lng) {
+          const greenIcon = L.divIcon({
+            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🚛</div>',
+            className: '',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+          });
+          const m = L.marker([c.lat, c.lng], { icon: greenIcon }).addTo(_delMap);
+          m.on('click', () => _showCourierProfile(c.user_id));
+          _delMarkers.push(m);
+        }
+      });
+    }
+
     results.innerHTML = `
-      <div class="card" style="padding:20px;margin-bottom:16px;">
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:16px;">Найдено курьеров: ${couriers.length}</h3>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${couriers.map(c => `
-            <div style="display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg-card,#f9fafb);border:1px solid var(--line,rgba(0,0,0,0.08));border-radius:14px;">
-              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;">🚛</div>
-              <div style="flex:1;">
-                <div style="font-weight:700;font-size:15px;">${c.full_name || 'Курьер'}</div>
-                <div style="font-size:13px;color:var(--txt-2,#6B7280);">${c.transport_type || ''} ${c.city ? '· ' + c.city : ''}</div>
-                <div style="font-size:12px;color:var(--txt-3,#9CA3AF);margin-top:2px;">Рейтинг: ${c.rating || 5.0} ⭐ · До ${c.max_weight || 5000} кг</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-weight:700;color:var(--clr-primary,#10B981);font-size:14px;">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</div>
-                <div style="font-size:12px;color:var(--txt-3,#9CA3AF);">${c.status === 'online' ? '🟢 В сети' : '⚪ Оффлайн'}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
+      <h3 style="font-family:var(--font-display);font-size:20px;font-weight:600;margin-bottom:16px;">
+        Найдено курьеров: <span style="color:var(--clr-green);">${couriers.length}</span>
+      </h3>
+      <div class="del-couriers-grid">
+        ${couriers.map(c => _renderCourierCard(c)).join('')}
+      </div>`;
   } catch (e) {
     results.innerHTML = `<div class="form-error">${e.message}</div>`;
   }
+};
+
+// ─── Courier card rendering ──────────────────────────────────────────────────
+
+const TRANSPORT_EMOJI = {
+  fura: '🚛💨', refrig: '❄️🚛', tentovan: '🚚📦',
+  samosval: '🚜⚙️', bortovoy: '🚐🔧', moto: '🏍️', car: '🚗',
+};
+
+const TRANSPORT_LABEL = {
+  fura: 'Фура', refrig: 'Рефрижератор', tentovan: 'Тентованный',
+  samosval: 'Самосвал', bortovoy: 'Бортовой', moto: 'Мотоцикл', car: 'Легковой',
+};
+
+function _ratingClass(r) {
+  if (r <= 3) return 'low';
+  if (r <= 6) return 'mid';
+  return 'high';
+}
+
+function _renderCourierCard(c) {
+  const emoji = TRANSPORT_EMOJI[c.transport_type] || '🚛';
+  const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
+  const rating = c.rating || 0;
+  const ratingPct = (rating / 10) * 100;
+  const isOnline = c.status === 'online';
+
+  let routeHtml = '';
+  if (c.route_anywhere) {
+    routeHtml = `<div class="del-cc-route anywhere">🌍 Любое место → любое место</div>`;
+  } else if (c.route_from || c.route_to) {
+    routeHtml = `<div class="del-cc-route">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
+  }
+
+  return `
+    <div class="del-courier-card" onclick="_showCourierProfile(${c.user_id})">
+      <div class="del-cc-header">
+        <div class="del-cc-avatar">${emoji}</div>
+        <div class="del-cc-info">
+          <div class="del-cc-name">${c.full_name || 'Курьер'}</div>
+          <div class="del-cc-transport">${transport}</div>
+        </div>
+        <div class="del-cc-status ${isOnline ? 'online' : 'offline'}">${isOnline ? 'В сети' : 'Оффлайн'}</div>
+      </div>
+      <div class="del-cc-body">
+        <div class="del-cc-rating">
+          <div class="del-rating-bar">
+            <div class="del-rating-fill ${_ratingClass(rating)}" style="width:${ratingPct}%"></div>
+          </div>
+          <div class="del-rating-num">${rating.toFixed(1)}</div>
+          <div class="del-rating-label">/10</div>
+        </div>
+        ${routeHtml}
+        <div class="del-cc-stats">
+          <div class="del-cc-stat">📍 ${c.city || 'Узбекистан'}</div>
+          <div class="del-cc-stat">⚖️ до ${c.max_weight || 5000} кг</div>
+          <div class="del-cc-stat">📅 ${c.experience_years || 0} лет опыта</div>
+        </div>
+      </div>
+      <div class="del-cc-footer">
+        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})">📋 Профиль</button>
+        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})">📦 Заказать</button>
+      </div>
+    </div>`;
+}
+
+// ─── Courier profile modal ───────────────────────────────────────────────────
+
+window._showCourierProfile = async function(userId) {
+  try {
+    const c = await API.getPublicCourierProfile(userId);
+    const emoji = TRANSPORT_EMOJI[c.transport_type] || '🚛';
+    const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
+    const rating = c.rating || 0;
+    const ratingPct = (rating / 10) * 100;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'del-profile-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    let routeSection = '';
+    if (c.route_anywhere) {
+      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;">🌍 Любое место → любое место</div>';
+    } else if (c.route_from || c.route_to) {
+      routeSection = `<div class="del-cc-route" style="margin-bottom:0;">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
+    }
+
+    overlay.innerHTML = `
+      <div class="del-profile-modal">
+        <div class="del-profile-header">
+          <button class="del-profile-close" onclick="this.closest('.del-profile-overlay').remove()">✕</button>
+          <div class="del-profile-avatar">${emoji}</div>
+          <div class="del-profile-name">${c.full_name || 'Курьер'}</div>
+          <div class="del-profile-transport">${transport} · ${c.city || 'Узбекистан'}</div>
+        </div>
+        <div class="del-profile-body">
+          <!-- Rating -->
+          <div class="del-profile-rating-big">
+            <div class="del-profile-rating-num">${rating.toFixed(1)}</div>
+            <div style="flex:1;">
+              <div class="del-profile-rating-bar">
+                <div class="del-profile-rating-fill ${_ratingClass(rating)}" style="width:${ratingPct}%"></div>
+              </div>
+              <div class="del-profile-rating-text">рейтинг из 10</div>
+            </div>
+          </div>
+
+          <!-- Route -->
+          ${routeSection ? `<div class="del-profile-section"><div class="del-profile-section-title">Маршрут</div>${routeSection}</div>` : ''}
+
+          <!-- Details -->
+          <div class="del-profile-section">
+            <div class="del-profile-section-title">Данные</div>
+            <div class="del-profile-row"><span class="label">Телефон</span><span class="value">${c.phone || 'Не указан'}</span></div>
+            <div class="del-profile-row"><span class="label">Город</span><span class="value">${c.city || 'Не указан'}</span></div>
+            <div class="del-profile-row"><span class="label">Адрес базирования</span><span class="value">${c.address || 'Не указан'}</span></div>
+            <div class="del-profile-row"><span class="label">Транспорт</span><span class="value">${emoji} ${transport}</span></div>
+            <div class="del-profile-row"><span class="label">Грузоподъёмность</span><span class="value">до ${c.max_weight || 5000} кг</span></div>
+            <div class="del-profile-row"><span class="label">Стаж вождения</span><span class="value">${c.experience_years || 0} лет</span></div>
+            <div class="del-profile-row"><span class="label">Режим работы</span><span class="value">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</span></div>
+            <div class="del-profile-row"><span class="label">Номер авто</span><span class="value">${c.vehicle_number || 'Не указан'}</span></div>
+            <div class="del-profile-row"><span class="label">Лицензия</span><span class="value">${c.license_info || 'Не указана'}</span></div>
+            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? '✅ Есть' : '❌ Нет'}</span></div>
+            ${c.bio ? `<div class="del-profile-row"><span class="label">О себе</span><span class="value">${c.bio}</span></div>` : ''}
+          </div>
+        </div>
+        <div class="del-profile-footer">
+          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})">📦 Заказать доставку</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+};
+
+// ─── Order courier (placeholder) ─────────────────────────────────────────────
+
+window._delOrderCourier = function(userId) {
+  showToast('Функция заказа доставки — в разработке', 'info');
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -218,7 +444,7 @@ function _renderOnboarding() {
       <div class="onboard-progress">
         <div class="op-step ${_deliveryState.onboarding.step >= 0 ? 'active' : ''}" id="ops-0">1. Транспорт</div>
         <div class="op-line"></div>
-        <div class="op-step ${_deliveryState.onboarding.step >= 1 ? 'active' : ''}" id="ops-1">2. Зона</div>
+        <div class="op-step ${_deliveryState.onboarding.step >= 1 ? 'active' : ''}" id="ops-1">2. Маршрут</div>
         <div class="op-line"></div>
         <div class="op-step ${_deliveryState.onboarding.step >= 2 ? 'active' : ''}" id="ops-2">3. Данные</div>
       </div>
@@ -263,11 +489,41 @@ function _renderOnboardStep() {
     `;
 
   } else if (s.step === 1) {
-    // Шаг 2: Зона работы
+    // Шаг 2: Маршрут и зона
     body.innerHTML = `
       <div class="onboard-card">
-        <h2 class="ob-title">Зона работы</h2>
-        <p class="ob-desc">Укажите город и радиус доставки</p>
+        <h2 class="ob-title">Маршрут и зона</h2>
+        <p class="ob-desc">Укажите откуда и куда вы возите груз</p>
+
+        <div class="del-onb-anywhere" style="margin-bottom:16px;">
+          <input type="checkbox" id="ob-anywhere" ${s.route_anywhere ? 'checked' : ''}
+                 onchange="_deliveryState.onboarding.route_anywhere = this.checked; _toggleRouteInputs()">
+          <label for="ob-anywhere">🌍 Возлю из любого места в любое место</label>
+        </div>
+
+        <div id="route-inputs" style="${s.route_anywhere ? 'display:none;' : ''}">
+          <div class="del-onb-route">
+            <div class="del-onb-route-row">
+              <span class="route-label">Откуда</span>
+              <input type="text" id="ob-route-from" value="${s.route_from}" placeholder="Ташкент"
+                     oninput="_deliveryState.onboarding.route_from = this.value">
+            </div>
+            <div style="text-align:center;font-size:20px;color:var(--clr-green);">↓</div>
+            <div class="del-onb-route-row">
+              <span class="route-label">Куда</span>
+              <input type="text" id="ob-route-to" value="${s.route_to}" placeholder="Самарканд"
+                     oninput="_deliveryState.onboarding.route_to = this.value">
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-field" style="margin-top:16px;">
+          <label class="ob-label">📍 Адрес базирования</label>
+          <input type="text" class="ob-input" id="ob-address" value="${s.address}" placeholder="Ташкент, ул. Примерная 1"
+                 oninput="_deliveryState.onboarding.address = this.value">
+          <span class="hint">Ваш фактический адрес (для будущих функций)</span>
+        </div>
+
         <div class="ob-field">
           <label class="ob-label">Город / регион</label>
           <input type="text" class="ob-input" id="ob-city" value="${s.city}" placeholder="Ташкент"
@@ -369,6 +625,14 @@ function _obNext() {
   _renderOnboarding();
 }
 
+window._toggleRouteInputs = function() {
+  const el = document.getElementById('route-inputs');
+  const cb = document.getElementById('ob-anywhere');
+  if (el && cb) {
+    el.style.display = cb.checked ? 'none' : '';
+  }
+};
+
 function _obBack() {
   _deliveryState.onboarding.step = Math.max(_deliveryState.onboarding.step - 1, 0);
   _renderOnboarding();
@@ -398,9 +662,12 @@ async function _obSubmit() {
       license_info:     s.license_info,
       documents:        s.documents,
       bio:              s.bio,
+      route_from:       s.route_from,
+      route_to:         s.route_to,
+      route_anywhere:   s.route_anywhere,
+      address:          s.address,
     });
     showToast('Заявка отправлена! Ожидайте одобрения администратора', 'success');
-    // Load profile and show dashboard with pending banner
     const profile = await API.getCourierProfile().catch(() => null);
     _deliveryState.profile = profile;
     _renderDashboard();

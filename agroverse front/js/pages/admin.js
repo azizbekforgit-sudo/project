@@ -125,6 +125,10 @@ async function adminSwitchTab(tab) {
               truck:     'Грузовик',
             }[c.transport_type] || c.transport_type || '—';
 
+            const rating = c.rating || 0;
+            const routeInfo = c.route_anywhere ? '🌍 Любое место → любое место'
+              : (c.route_from || c.route_to) ? `${c.route_from || '?'} → ${c.route_to || '?'}` : '';
+
             return `
             <div class="admin-row" id="crow-${c.id}">
               <div class="ar-main">
@@ -136,14 +140,22 @@ async function adminSwitchTab(tab) {
                   ⚖️ ${c.max_weight ? c.max_weight + ' кг' : '—'} &nbsp;·&nbsp;
                   ${c.experience_years ? c.experience_years + ' лет опыта' : 'Нет опыта'}
                 </div>
+                ${routeInfo ? `<div class="ar-sub" style="margin-top:4px;">🗺️ ${routeInfo}</div>` : ''}
+                ${c.address ? `<div class="ar-sub" style="margin-top:2px;">📍 ${c.address}</div>` : ''}
                 ${c.vehicle_number ? `<div class="ar-vehicle">🔢 Авто: ${c.vehicle_number}</div>` : ''}
                 ${c.license_info ? `<div class="ar-license">🪪 Права: ${c.license_info}</div>` : ''}
-                ${c.documents && c.documents.length ? `
-                  <div class="ar-docs">
-                    📂 Документы: ${c.documents.map((d, i) => `<a href="${d}" target="_blank" class="doc-link">Файл ${i+1}</a>`).join(', ')}
-                  </div>
-                ` : ''}
                 ${c.bio ? `<div class="ar-bio">📝 ${c.bio}</div>` : ''}
+                <!-- Rating slider -->
+                <div style="margin-top:12px;display:flex;align-items:center;gap:12px;">
+                  <label style="font-size:13px;font-weight:600;color:var(--txt-2);white-space:nowrap;">Рейтинг:</label>
+                  <input type="range" min="0" max="10" step="0.5" value="${rating}"
+                         id="rating-${c.id}"
+                         oninput="document.getElementById('rating-val-${c.id}').textContent = this.value"
+                         style="flex:1;accent-color:var(--clr-primary);">
+                  <span id="rating-val-${c.id}" style="font-weight:700;font-size:15px;min-width:32px;text-align:center;">${rating}</span>
+                  <span style="font-size:12px;color:var(--txt-3);">/10</span>
+                  <button class="btn-sm btn-approve" onclick="adminSetRating(${c.id})" style="font-size:12px;padding:6px 12px;">💾</button>
+                </div>
               </div>
               <div class="ar-actions">
                 <button class="btn-sm btn-approve" onclick="adminApproveCourier(${c.id})">✓ Одобрить</button>
@@ -235,11 +247,23 @@ async function adminReject(id) {
 
 async function adminApproveCourier(id) {
   try {
-    await API.adminApproveCourier(id);
+    const slider = document.getElementById(`rating-${id}`);
+    const rating = slider ? parseFloat(slider.value) : 0;
+    await API.adminApproveCourier(id, rating);
     document.getElementById(`crow-${id}`)?.remove();
-    showToast(`Курьер одобрен ✅`, 'success');
+    showToast(`Курьер одобрен, рейтинг: ${rating}/10 ✅`, 'success');
     loadAdminStats();
     adminSwitchTab('couriers');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function adminSetRating(id) {
+  const slider = document.getElementById(`rating-${id}`);
+  if (!slider) return;
+  const rating = parseFloat(slider.value);
+  try {
+    await API.adminApproveCourier(id, rating);
+    showToast(`Рейтинг установлен: ${rating}/10 ✅`, 'success');
   } catch (e) { showToast(e.message, 'error'); }
 }
 

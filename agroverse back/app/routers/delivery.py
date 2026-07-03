@@ -33,6 +33,10 @@ class CourierProfileSetup(BaseModel):
     bio:              Optional[str] = None
     photo_url:        Optional[str] = None
     documents:        Optional[list] = []
+    route_from:       Optional[str] = ""
+    route_to:         Optional[str] = ""
+    route_anywhere:   bool = False
+    address:          Optional[str] = ""
 
 class CourierStatusUpdate(BaseModel):
     status: str
@@ -120,6 +124,11 @@ def profile_to_dict(p: CourierProfile) -> dict:
         "status": p.status,
         "lat": p.lat,
         "lng": p.lng,
+        "route_from": p.route_from,
+        "route_to": p.route_to,
+        "route_anywhere": p.route_anywhere,
+        "address": p.address,
+        "total_deliveries": p.total_deliveries,
     }
 
 def order_to_dict(o: CourierOrder) -> dict:
@@ -169,6 +178,10 @@ async def setup_courier_profile(
         profile.bio              = data.bio or ""
         profile.photo_url        = data.photo_url
         profile.documents        = data.documents or []
+        profile.route_from       = data.route_from or ""
+        profile.route_to         = data.route_to or ""
+        profile.route_anywhere   = data.route_anywhere
+        profile.address          = data.address or ""
         profile.admin_approved   = False
         profile.rejection_reason = None
     else:
@@ -189,6 +202,10 @@ async def setup_courier_profile(
             bio=data.bio or "",
             photo_url=data.photo_url,
             documents=data.documents or [],
+            route_from=data.route_from or "",
+            route_to=data.route_to or "",
+            route_anywhere=data.route_anywhere,
+            address=data.address or "",
             admin_approved=False,
             rejection_reason=None,
         )
@@ -265,6 +282,62 @@ async def couriers_nearby(
         })
     out.sort(key=lambda x: x["distance_km"])
     return out
+
+
+# ─── 3.1 Публичный профиль курьера (для карточки при клике) ───
+
+@router.get("/delivery/couriers/{courier_user_id}/profile")
+async def get_public_courier_profile(
+    courier_user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CourierProfile).where(CourierProfile.user_id == courier_user_id)
+    )
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(404, "Профиль курьера не найден")
+    d = profile_to_dict(profile)
+    d.pop("balance", None)
+    d.pop("documents", None)
+    return d
+
+
+# ─── 3.2 Поиск курьеров по зоне (lat/lng/radius) ─────────────
+
+@router.get("/delivery/couriers/zone")
+async def search_couriers_zone(
+    lat: float = Query(...),
+    lng: float = Query(...),
+    radius: float = Query(50),
+    transport: str = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(CourierProfile).where(
+        CourierProfile.admin_approved == True,
+    )
+    if transport:
+        query = query.where(CourierProfile.transport_type == transport)
+
+    result = await db.execute(query)
+    profiles = result.scalars().all()
+    out = []
+    for p in profiles:
+        if p.lat and p.lng:
+            dist = haversine(lat, lng, p.lat, p.lng)
+            if dist > radius:
+                continue
+        else:
+            dist = 0
+        t = TARIFFS.get(p.transport_type, TARIFFS.get("car", {"base": 5000, "per_km": 500}))
+        out.append({
+            **profile_to_dict(p),
+            "distance_km": round(dist, 1),
+            "est_price": int(t["base"] + t["per_km"] * max(dist, 1)),
+        })
+    out.sort(key=lambda x: x["distance_km"])
+    return out
+
 
 # ─── 4. Создание заявки ───────────────────────────────────────
 
@@ -549,9 +622,48 @@ async def get_all_couriers(
     return [profile_to_dict(p) for p in result.scalars().all()]
 
 
+@router.get("/admin/couriers/{courier_id}")
+async def get_courier_detail(
+    courier_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(403, "Только для администраторов")
+    result = await db.execute(select(CourierProfile).where(CourierProfile.id == courier_id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(404, "Курьер не найден")
+    return profile_to_dict(profile)
+
+
+@router.get("/courier/public/{user_id}")
+async def get_courier_public_profile(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(CourierProfile).where(
+            CourierProfile.user_id == user_id,
+            CourierProfile.admin_approved == True
+        )
+    )
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(404, "Профиль курьера не найден")
+    user_result = await db.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+    data = profile_to_dict(profile)
+    data["user_name"] = user.name if user else ""
+    data["user_phone"] = user.phone if user else ""
+    data.pop("balance", None)
+    return data
+
+
 @router.patch("/admin/couriers/{courier_id}/approve")
 async def approve_courier(
     courier_id: int,
+    rating: float = Body(0, embed=True),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -563,8 +675,9 @@ async def approve_courier(
         raise HTTPException(404, "Курьер не найден")
     profile.admin_approved = True
     profile.rejection_reason = ""
+    profile.rating = max(0.0, min(10.0, float(rating)))
     await db.commit()
-    return {"ok": True}
+    return {"ok": True, "rating": profile.rating}
 
 
 @router.patch("/admin/couriers/{courier_id}/reject")

@@ -156,11 +156,6 @@ const API = {
   adminOrdersReport:    () => request('GET', '/api/admin/reports/orders'),
   adminRevenueReport:   () => request('GET', '/api/admin/reports/revenue'),
 
-  // Admin — Courier management
-  adminGetPendingCouriers: ()        => request('GET', '/api/admin/couriers/pending'),
-  adminApproveCourier:     (id)      => request('PATCH', `/api/admin/couriers/${id}/approve`),
-  adminRejectCourier:      (id, reason) => request('PATCH', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
-
   // Payment
   depositWallet: (amount) => request('POST', '/api/payment/deposit', { body: { amount } }),
 
@@ -170,6 +165,15 @@ const API = {
 
   // Courier search
   findNearbyCouriers:  (params) => request('GET', '/api/delivery/couriers/nearby', { params }),
+  searchCouriersZone:  (params) => request('GET', '/api/delivery/couriers/nearby', { params }),
+  getPublicCourierProfile: (userId) => request('GET', `/api/courier/public/${userId}`),
+  getCourierPublicProfile: (userId) => request('GET', `/api/courier/public/${userId}`),
+
+  // Admin — Courier management
+  adminGetPendingCouriers: ()        => request('GET', '/api/admin/couriers/pending'),
+  adminApproveCourier:     (id, rating) => request('PATCH', `/api/admin/couriers/${id}/approve`, { body: { rating: rating || 0 } }),
+  adminRejectCourier:      (id, reason) => request('PATCH', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
+  adminGetAllCouriers:     ()        => request('GET', '/api/admin/couriers'),
 };
 
 API.request = request;

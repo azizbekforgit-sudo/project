@@ -25,7 +25,9 @@ async def seed_admin():
     from app.auth import get_password_hash
     async with AsyncSessionLocal() as db:
         res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-        if res.scalar_one_or_none():
+        existing = res.scalar_one_or_none()
+        if existing:
+            print(f"[ADMIN] Админ уже существует: phone={existing.phone}, role={existing.role}, active={existing.is_active}")
             return
         admin = User(
             name="Администратор",
@@ -39,7 +41,7 @@ async def seed_admin():
         )
         db.add(admin)
         await db.commit()
-        print(f"Админ создан — логин: {ADMIN_PHONE}")
+        print(f"[ADMIN] Новый админ создан — логин: {ADMIN_PHONE}")
 
 
 @asynccontextmanager
@@ -150,6 +152,14 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/api/config")
+async def get_config():
+    return {
+        "google_maps_key": settings.google_maps_key,
+        "version": "2.0",
+    }
 
 
 if __name__ == "__main__":

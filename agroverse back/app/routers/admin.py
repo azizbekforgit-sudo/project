@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
-from app.models import User, Product, Order, UserRole, ProductStatus, OrderStatus
+from app.models import User, Product, Order, UserRole, ProductStatus, OrderStatus, CourierProfile
 from app.dependencies import get_current_admin
 from datetime import datetime
 
@@ -215,3 +215,30 @@ async def revenue_report(
             "values": [8500, 9200, 10100, 11800, 12500, 13200]
         }
     }
+
+
+# ─── Рейтинг курьера (0-10, ставит админ) ─────────────────────
+
+from pydantic import BaseModel as _BM, Field
+
+class CourierRateRequest(_BM):
+    rating: float = Field(..., ge=0, le=10)
+
+
+@router.patch("/couriers/{courier_id}/rate")
+async def admin_rate_courier(
+    courier_id: int,
+    data: CourierRateRequest,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Админ ставит рейтинг курьеру (0-10)"""
+    result = await db.execute(
+        select(CourierProfile).where(CourierProfile.id == courier_id)
+    )
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Курьер не найден")
+    profile.rating = round(data.rating, 1)
+    await db.commit()
+    return {"ok": True, "rating": profile.rating}

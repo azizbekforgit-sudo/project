@@ -89,7 +89,7 @@ function injectStyles() {
       transition: opacity 0.4s ease, transform 0.4s ease;
     }
     .hero-stat-item.visible { opacity: 1; transform: translateY(0); }
-    .hero-stat-item b { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--ink); line-height: 1; }
+    .hero-stat-item b { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--clr-green); line-height: 1; }
     .hero-stat-item span { color: var(--muted); font-size: 13px; margin-top: 4px; }
 
     /* Dashboard (clean card) */
@@ -100,34 +100,35 @@ function injectStyles() {
     .hero-dashboard.visible { opacity: 1; transform: translateY(0); }
     .dash-card {
       background: #ffffff;
-      border: 1px solid var(--hairline);
+      border: 1px solid rgba(10,110,58,0.15);
       border-radius: var(--radius); padding: 22px;
+      box-shadow: 0 4px 24px rgba(10,110,58,0.08);
     }
     .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .dash-url { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: monospace; }
+    .dash-url { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--txt-muted); font-family: monospace; }
     .dash-dot { width: 8px; height: 8px; border-radius: 50%; }
     .dash-live {
-      background: var(--surface-soft); color: var(--ink);
-      border: 1px solid var(--hairline);
+      background: var(--clr-green-lt); color: var(--clr-green);
+      border: 1px solid rgba(10,110,58,0.2);
       border-radius: var(--radius-pill); padding: 3px 10px;
       font-size: 11px; font-weight: 600;
       display: flex; align-items: center; gap: 5px;
     }
-    .dash-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); animation: pulse 2s ease-in-out infinite; }
+    .dash-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--clr-green); animation: pulse 2s ease-in-out infinite; }
     .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .dash-tile {
-      background: var(--surface-soft); border: 1px solid var(--hairline);
+      background: var(--clr-green-lt); border: 1px solid rgba(10,110,58,0.12);
       border-radius: 8px; padding: 12px;
       opacity: 0; transform: translateY(8px);
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
     .dash-tile.visible { opacity: 1; transform: translateY(0); }
-    .dash-tile-label { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-    .dash-tile-val { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .dash-tile-label { font-size: 9px; font-weight: 700; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+    .dash-tile-val { font-size: 13px; font-weight: 700; color: var(--clr-green); }
     .dash-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; margin-bottom: 14px; }
     .dash-bar {
       flex: 1; border-radius: 2px 2px 0 0;
-      background: var(--ink);
+      background: linear-gradient(to top, var(--clr-green), #34d399);
       opacity: 0; transform: scaleY(0); transform-origin: bottom;
       transition: opacity 0.3s ease, transform 0.4s ease;
     }
@@ -135,15 +136,15 @@ function injectStyles() {
     .dash-bar.hi.visible { opacity: 1; }
     .dash-footer {
       display: flex; align-items: center; gap: 10px;
-      background: var(--surface-soft); border-radius: 8px; padding: 10px 14px;
+      background: var(--clr-green-lt); border-radius: 8px; padding: 10px 14px;
       opacity: 0; transform: translateY(4px);
       transition: opacity 0.3s ease 0.5s, transform 0.3s ease 0.5s;
     }
     .dash-footer.visible { opacity: 1; transform: translateY(0); }
-    .dash-footer-ic { width: 28px; height: 28px; border-radius: 6px; background: var(--ink); display: grid; place-items: center; color: #fff; font-size: 13px; }
+    .dash-footer-ic { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, var(--clr-green), #34d399); display: grid; place-items: center; color: #fff; font-size: 13px; }
     .dash-footer-text { font-size: 12px; }
-    .dash-footer-text b { color: var(--ink); display: block; }
-    .dash-footer-text span { color: var(--muted); }
+    .dash-footer-text b { color: var(--clr-green); display: block; }
+    .dash-footer-text span { color: var(--txt-muted); }
 
     /* ── Button effects (minimal) ── */
     .btn-ripple {

@@ -145,14 +145,20 @@ class CourierProfile(Base):
     license_info     = Column(String(200), default="")
     bio              = Column(Text, default="")
     photo_url        = Column(String(500), nullable=True)
-    documents        = Column(JSON, default=list) # List of document URLs or info
+    documents        = Column(JSON, default=list)
     admin_approved   = Column(Boolean, default=False)
     rejection_reason = Column(Text, nullable=True)
-    rating           = Column(Float, default=5.0)
+    rating           = Column(Float, default=0.0)
     balance          = Column(Float, default=0.0)
     status           = Column(String(20), default="offline")
     lat              = Column(Float, default=0.0)
     lng              = Column(Float, default=0.0)
+    # Route & address fields
+    route_from       = Column(String(200), default="")
+    route_to         = Column(String(200), default="")
+    route_anywhere   = Column(Boolean, default=False)
+    address          = Column(String(300), default="")
+    total_deliveries = Column(Integer, default=0)
     created_at       = Column(DateTime, server_default=func.now())
 
     user = relationship("User")
