@@ -2780,3 +2780,645 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
 .status-active { color: var(--clr-green); }
 .status-pending { color: var(--clr-warn); }
 .status-rejected { color: var(--clr-error); }
+
+/* ============================================================
+   ЙЎЛЧИ WOW REDESIGN — full overhaul, same green palette
+   ============================================================ */
+
+/* ── Delivery Layout ── */
+.delivery-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 28px;
+  min-height: calc(100vh - 120px);
+}
+@media (max-width: 900px) {
+  .delivery-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Dashboard Layout ── */
+.del-dash {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 28px;
+  min-height: calc(100vh - 120px);
+}
+@media (max-width: 900px) {
+  .del-dash { grid-template-columns: 1fr; }
+}
+
+/* ── Sidebar — Glassmorphism + groups ── */
+.del-sidebar {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s;
+}
+
+.ds-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--hairline);
+}
+.ds-logo { font-size: 28px; }
+.ds-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--txt);
+  letter-spacing: -0.5px;
+}
+
+.ds-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.ds-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--body);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.ds-nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: inherit;
+}
+.ds-nav-item:hover {
+  color: var(--clr-green);
+  transform: translateX(4px);
+}
+.ds-nav-item.active {
+  color: var(--on-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
+}
+.ds-nav-item.active::before { opacity: 1; }
+.ds-nav-item > * { position: relative; z-index: 1; }
+
+.ds-nav-icon { font-size: 18px; width: 24px; text-align: center; }
+.ds-nav-label { font-size: 14px; }
+
+.ds-footer {
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+  margin-top: auto;
+}
+.ds-courier-info { padding: 8px 12px; }
+.ds-courier-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--txt);
+}
+.ds-courier-status { font-size: 12px; font-weight: 600; }
+
+/* ── Section Headers ── */
+.section-home, .section-orders, .section-map,
+.section-tariffs, .section-ai, .section-wallet,
+.section-market, .section-profile {
+  animation: fadeUp 0.4s ease both;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--txt);
+  letter-spacing: -0.5px;
+}
+.section-date {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Stats Cards — Bento grid ── */
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media (max-width: 768px) {
+  .home-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.hs-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.hs-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+.hs-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+.hs-card:hover::after {
+  transform: scaleX(1);
+}
+.hs-card.clickable { cursor: pointer; }
+.hs-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+.hs-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--clr-green);
+  margin-bottom: 4px;
+}
+.hs-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Pending Banner — Glassmorphism ── */
+.pending-banner {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--clr-warn);
+}
+.pending-banner.rejection-banner {
+  border-left-color: var(--clr-error);
+}
+.pb-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+.pb-body { flex: 1; }
+.pb-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--txt);
+}
+.pb-text {
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+/* Progress bar inside pending banner */
+.pb-progress { margin-top: 14px; }
+.pb-bar {
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.pb-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: 4px;
+  transition: width 1s ease;
+  animation: progressPulse 2s ease-in-out infinite;
+}
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.pb-bar-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Profile Completion — Expressive ── */
+.profile-completion {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+}
+.pc-bar {
+  height: 12px;
+  background: var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  position: relative;
+}
+.pc-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: 6px;
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.pc-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: shimmerBar 2s ease-in-out infinite;
+}
+@keyframes shimmerBar {
+  0% { opacity: 0; transform: translateX(-20px); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(20px); }
+}
+.pc-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--clr-green);
+}
+
+/* ── Home Section Blocks ── */
+.home-section-block {
+  margin-bottom: 24px;
+}
+.hsb-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--txt);
+  margin-bottom: 14px;
+}
+
+/* ── Notifications — Glass cards ── */
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
+}
+.notif-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-lg);
+}
+.ni-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.ni-body { flex: 1; }
+.ni-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt);
+  margin-bottom: 2px;
+}
+.ni-time {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── Orders Tabs — Pill tabs ── */
+.orders-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.ot-tab {
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--body);
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: var(--shadow);
+}
+.ot-tab:hover {
+  color: var(--clr-green);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+.ot-tab.active {
+  background: var(--gradient-primary);
+  color: var(--on-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Order Cards — Modern glass ── */
+.order-item {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
+}
+.order-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── AI Chat Button — Floating action ── */
+.ai-fab-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+}
+
+/* ── Delivery Main Content ── */
+.delivery-main {
+  min-height: 400px;
+}
+
+/* ── Wallet Section ── */
+.wallet-balance-card {
+  background: var(--gradient-hero);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  color: var(--on-primary);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+}
+.wallet-balance-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+.wb-label {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+.wb-amount {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.wb-currency {
+  font-size: 16px;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* ── Tariff Cards — Glass ── */
+.tariff-card-del {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s;
+}
+.tariff-card-del:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Courier Profile Section ── */
+.profile-section-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.profile-section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--txt);
+  margin-bottom: 16px;
+}
+
+/* ── Form Elements in Delivery ── */
+.del-input, .del-select, .del-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--txt);
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.del-input:focus, .del-select:focus, .del-textarea:focus {
+  outline: none;
+  border-color: var(--clr-green);
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Map Controls — Glassmorphism ── */
+.del-map-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+.del-map-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--txt);
+  box-shadow: var(--shadow-lg);
+}
+.del-map-input:focus {
+  outline: none;
+  border-color: var(--clr-green);
+  box-shadow: var(--shadow-glow);
+}
+.del-radius-select {
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--txt);
+  box-shadow: var(--shadow-lg);
+  min-width: 120px;
+}
+
+/* ── Courier Card in Search — Premium ── */
+.del-courier-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.del-courier-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: var(--shadow-xl), 0 0 30px rgba(22,163,74,0.12);
+  border-color: var(--clr-green);
+}
+.del-cc-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--gradient-primary);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Onboarding — Step cards ── */
+.onboard-card {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow-xl);
+}
+.truck-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 14px;
+  background: rgba(255,255,255,0.8);
+  border: 2px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  text-align: center;
+}
+.truck-chip:hover {
+  border-color: var(--clr-green);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.truck-chip.selected {
+  border-color: var(--clr-green);
+  background: var(--clr-green-lt);
+  box-shadow: var(--shadow-glow);
+}
+.tc-icon { font-size: 36px; }
+.tc-label { font-size: 14px; font-weight: 700; color: var(--txt); }
+.tc-desc { font-size: 11px; color: var(--muted); }
+
+/* ── Micro-animations for all buttons ── */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.btn:hover::after { opacity: 1; }
+
+/* ── Scrollbar for delivery ── */
+.delivery-main::-webkit-scrollbar { width: 6px; }
+.delivery-main::-webkit-scrollbar-track { background: transparent; }
+.delivery-main::-webkit-scrollbar-thumb { background: rgba(22,163,74,0.2); border-radius: 3px; }
+.delivery-main::-webkit-scrollbar-thumb:hover { background: rgba(22,163,74,0.4); }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--body);
+  margin-bottom: 8px;
+  font-weight: 600;
+}

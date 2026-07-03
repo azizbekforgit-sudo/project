@@ -688,14 +688,24 @@ function _renderDashboard() {
 
   app.innerHTML = `
     <div class="delivery-layout">
-      <!-- Sidebar -->
-      <aside class="delivery-sidebar">
+      <!-- Sidebar — Grouped navigation -->
+      <aside class="del-sidebar">
         <div class="ds-brand">
           <span class="ds-logo">🚛</span>
           <span class="ds-name">Йўлчи</span>
         </div>
         <nav class="ds-nav">
-          ${SECTIONS.map(s => `
+          <div class="ds-nav-group-label" style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 14px 4px;">Основное</div>
+          ${SECTIONS.slice(0, 4).map(s => `
+            <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
+                 id="dnav-${s.id}"
+                 onclick="_deliverySection('${s.id}')">
+              <span class="ds-nav-icon">${s.icon}</span>
+              <span class="ds-nav-label">${s.label}</span>
+            </div>
+          `).join('')}
+          <div class="ds-nav-group-label" style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:12px 14px 4px;">Инструменты</div>
+          ${SECTIONS.slice(4).map(s => `
             <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
                  id="dnav-${s.id}"
                  onclick="_deliverySection('${s.id}')">
@@ -787,27 +797,27 @@ async function _sectionHome(main) {
         `}
       ` : ''}
 
-      <!-- Stats row -->
+      <!-- Stats row — Bento grid -->
       <div class="home-stats">
         <div class="hs-card clickable" onclick="_deliverySection('orders')">
           <div class="hs-icon">📦</div>
           <div class="hs-num" id="stat-available">—</div>
-          <div class="hs-label">Доступные заказы</div>
+          <div class="hs-label">Доступные</div>
         </div>
         <div class="hs-card">
           <div class="hs-icon">✅</div>
           <div class="hs-num" id="stat-done">—</div>
-          <div class="hs-label">Выполнено доставок</div>
+          <div class="hs-label">Доставлено</div>
         </div>
         <div class="hs-card">
           <div class="hs-icon">⭐</div>
-          <div class="hs-num" id="stat-rating">${profile.rating ?? '5.0'}</div>
-          <div class="hs-label">Рейтинг</div>
+          <div class="hs-num" id="stat-rating">${profile.rating ?? '0.0'}</div>
+          <div class="hs-label">Рейтинг /10</div>
         </div>
         <div class="hs-card clickable" onclick="_deliverySection('wallet')">
           <div class="hs-icon">💰</div>
           <div class="hs-num" id="stat-balance">—</div>
-          <div class="hs-label">Баланс сум</div>
+          <div class="hs-label">Баланс</div>
         </div>
       </div>
 
