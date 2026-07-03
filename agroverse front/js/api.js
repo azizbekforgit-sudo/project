@@ -127,7 +127,7 @@ const API = {
   async getMyProducts() {
     const res = await request('GET', '/api/my/products');
     const list = Array.isArray(res) ? res : (res?.products || []);
-    return list.map(normalizeProduct);
+    return { products: list.map(normalizeProduct) };
   },
   createProduct: (data) => {
     if (data instanceof FormData) return request('POST', '/api/products/', { formData: data });

@@ -27,7 +27,23 @@ async def seed_admin():
         res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
         existing = res.scalar_one_or_none()
         if existing:
-            print(f"[ADMIN] Админ уже существует: phone={existing.phone}, role={existing.role}, active={existing.is_active}")
+            # Always sync password and role from .env
+            new_hash = get_password_hash(ADMIN_PASSWORD)
+            changed = False
+            if existing.password_hash != new_hash:
+                existing.password_hash = new_hash
+                changed = True
+            if existing.role != UserRole.ADMIN:
+                existing.role = UserRole.ADMIN
+                changed = True
+            if not existing.is_active:
+                existing.is_active = True
+                changed = True
+            if changed:
+                await db.commit()
+                print(f"[ADMIN] Админ обновлён: phone={ADMIN_PHONE}, пароль синхронизирован")
+            else:
+                print(f"[ADMIN] Админ OK: phone={ADMIN_PHONE}")
             return
         admin = User(
             name="Администратор",

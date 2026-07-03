@@ -1,10 +1,10 @@
 /* pages/profile.js — Premium profile page */
 
 const ROLE_LABELS = {
-  fermer: 'Фермер',
-  xaridor: 'Покупатель',
-  courier: 'Йўлчи',
-  admin: 'Админ',
+  fermer: () => t('role_farmer'),
+  xaridor: () => t('role_buyer'),
+  courier: () => t('role_courier'),
+  admin: 'Admin',
 };
 const ROLE_ICONS = {
   fermer: 'fi fi-sr-leaf',
@@ -25,7 +25,8 @@ async function renderProfile() {
   injectProfileStyles();
 
   const avatarLetter = (user.name || '?')[0].toUpperCase();
-  const roleLabel = ROLE_LABELS[user.role] || user.role;
+  const roleLabelFn = ROLE_LABELS[user.role];
+  const roleLabel = typeof roleLabelFn === 'function' ? roleLabelFn() : (roleLabelFn || user.role);
   const roleIcon = ROLE_ICONS[user.role] || 'fi fi-rr-user';
 
   app.innerHTML = pageShell(`
@@ -51,24 +52,24 @@ async function renderProfile() {
         <div class="pr-stat-card">
           <div class="pr-stat-icon"><i class="fi fi-rr-box-open"></i></div>
           <div class="pr-stat-num" id="pr-stat-orders">—</div>
-          <div class="pr-stat-label">Заказов</div>
+          <div class="pr-stat-label">${t('stat_orders')}</div>
         </div>
         ${user.role === 'fermer' ? `
         <div class="pr-stat-card featured">
           <div class="pr-stat-icon"><i class="fi fi-rr-tag"></i></div>
           <div class="pr-stat-num" id="pr-stat-products">—</div>
-          <div class="pr-stat-label">Товаров</div>
+          <div class="pr-stat-label">${t('stat_products')}</div>
         </div>
         <div class="pr-stat-card">
           <div class="pr-stat-icon"><i class="fi fi-rr-check-circle"></i></div>
           <div class="pr-stat-num" id="pr-stat-active">—</div>
-          <div class="pr-stat-label">Активных</div>
+          <div class="pr-stat-label">${t('stat_active')}</div>
         </div>
         ` : `
         <div class="pr-stat-card featured">
           <div class="pr-stat-icon"><i class="fi fi-rr-shopping-cart"></i></div>
           <div class="pr-stat-num" id="pr-stat-cart">0</div>
-          <div class="pr-stat-label">В корзине</div>
+          <div class="pr-stat-label">${t('stat_in_cart')}</div>
         </div>
         `}
       </div>
@@ -77,8 +78,8 @@ async function renderProfile() {
       ${user.role === 'fermer' ? `
       <div class="pr-section" id="pr-products-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-tag"></i> Мои товары</h2>
-          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><i class="fi fi-rr-plus"></i> Добавить</button>
+          <h2><i class="fi fi-rr-tag"></i> ${t('my_products')}</h2>
+          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><i class="fi fi-rr-plus"></i> ${t('add_btn')}</button>
         </div>
         <div id="pr-products-list"><div class="spinner"></div></div>
       </div>
@@ -87,29 +88,29 @@ async function renderProfile() {
       <!-- Settings -->
       <div class="pr-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-settings"></i> Настройки</h2>
+          <h2><i class="fi fi-rr-settings"></i> ${t('settings_label')}</h2>
         </div>
         <div class="pr-settings-card">
           <div class="pr-setting-row">
             <div class="pr-setting-info">
-              <div class="pr-setting-label">Имя</div>
+              <div class="pr-setting-label">${t('field_name')}</div>
               <div class="pr-setting-value" id="pr-name-display">${user.name || ''}</div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('name')">Изменить</button>
+            <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('name')">${t('field_edit')}</button>
           </div>
           <div class="pr-setting-row">
             <div class="pr-setting-info">
-              <div class="pr-setting-label">Email</div>
-              <div class="pr-setting-value" id="pr-email-display">${user.email || 'Не указан'}</div>
+              <div class="pr-setting-label">${t('field_email_label')}</div>
+              <div class="pr-setting-value" id="pr-email-display">${user.email || '—'}</div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('email')">Изменить</button>
+            <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('email')">${t('field_edit')}</button>
           </div>
           <div class="pr-setting-row">
             <div class="pr-setting-info">
-              <div class="pr-setting-label">Телефон</div>
+              <div class="pr-setting-label">Phone</div>
               <div class="pr-setting-value">${user.phone || ''}</div>
             </div>
-            <span class="pr-setting-locked"><i class="fi fi-rr-lock"></i> Нельзя изменить</span>
+            <span class="pr-setting-locked"><i class="fi fi-rr-lock"></i> ${t('phone_locked')}</span>
           </div>
         </div>
       </div>
@@ -117,8 +118,8 @@ async function renderProfile() {
       <!-- Actions -->
       <div class="pr-section">
         <div class="pr-actions-row">
-          ${user.role !== 'admin' ? `<a class="btn btn-ghost" onclick="router.go('/tariffs')"><i class="fi fi-rr-star"></i> Тарифы</a>` : ''}
-          <a class="btn btn-danger" onclick="Auth.logout()"><i class="fi fi-rr-sign-out-alt"></i> Выйти</a>
+          ${user.role !== 'admin' ? `<a class="btn btn-ghost" onclick="router.go('/tariffs')"><i class="fi fi-rr-star"></i> ${t('nav_tariffs')}</a>` : ''}
+          <a class="btn btn-danger" onclick="Auth.logout()"><i class="fi fi-rr-sign-out-alt"></i> ${t('nav_logout')}</a>
         </div>
       </div>
     </div>
