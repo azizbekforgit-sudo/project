@@ -10,13 +10,13 @@ async function renderAdmin() {
 
   app.innerHTML = pageShell(`
     <div class="admin-page">
-      <div class="page-head"><h1>📊 ${t('admin_title')}</h1></div>
+      <div class="page-head"><h1>${fe('📊',24)} ${t('admin_title')}</h1></div>
 
       <div class="admin-stats" id="admin-stats">
-        <div class="stat-card"><div class="stat-ic">👥</div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
-        <div class="stat-card"><div class="stat-ic">📦</div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
-        <div class="stat-card"><div class="stat-ic">🧾</div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
-        <div class="stat-card"><div class="stat-ic">🚛</div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
+        <div class="stat-card"><div class="stat-ic">${fe('👥',22)}</div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
+        <div class="stat-card"><div class="stat-ic">${fe('📦',22)}</div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
+        <div class="stat-card"><div class="stat-ic">${fe('🧾',22)}</div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
+        <div class="stat-card"><div class="stat-ic">${fe('🚛',22)}</div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
       </div>
 
       <div class="admin-tabs">
@@ -78,7 +78,7 @@ async function adminSwitchTab(tab) {
       const res = await API.adminPendingProducts();
       const pending = res?.products ?? (Array.isArray(res) ? res : []);
       if (!pending || pending.length === 0) {
-        box.innerHTML = `<div class="empty-state">✅ ${t('no_pending')}</div>`;
+        box.innerHTML = `<div class="empty-state">${fe('✅',40)} ${t('no_pending')}</div>`;
         return;
       }
       box.innerHTML = `
@@ -211,9 +211,9 @@ async function adminSwitchTab(tab) {
       const avg = ordCnt > 0 ? Math.round(totalRev / ordCnt) : 0;
       box.innerHTML = `
         <div class="admin-stats" style="margin-top:0;">
-          <div class="stat-card"><div class="stat-ic">💰</div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
-          <div class="stat-card"><div class="stat-ic">🧾</div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
-          <div class="stat-card"><div class="stat-ic">📊</div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
+          <div class="stat-card"><div class="stat-ic">${fe('💰',22)}</div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
+          <div class="stat-card"><div class="stat-ic">${fe('🧾',22)}</div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
+          <div class="stat-card"><div class="stat-ic">${fe('📊',22)}</div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
         </div>`;
     } catch (e) {
       box.innerHTML = `<div class="empty-state">${t('rep_none')}</div>`;

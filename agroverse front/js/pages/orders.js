@@ -18,7 +18,7 @@ function badgeOrderHtml(status) {
   };
   const [cls, icon] = map[status] || ['badge-created', '•'];
   const label = t('order_status_' + status) || status;
-  return `<span class="badge ${cls}">${icon} ${label}</span>`;
+  return `<span class="badge ${cls}">${fe(icon, 14)} ${label}</span>`;
 }
 
 function timelineHtml(status) {
@@ -53,7 +53,7 @@ async function renderOrders() {
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
     <div class="page-head">
-      <h1 class="page-title">📦 ${t('nav_orders')}</h1>
+      <h1 class="page-title">${fe('📦',24)} ${t('nav_orders')}</h1>
       <p class="page-desc">${t('orders_desc')}</p>
     </div>
     <div id="orders-wrap"><div class="spinner"></div></div>
@@ -70,7 +70,7 @@ async function loadOrdersList() {
     if (!orders?.length) {
       wrap.innerHTML = `
         <div class="empty-state big">
-          <div class="icon">📦</div>
+          <div class="icon">${fe('📦',48)}</div>
           <p>${t('orders_empty')}</p>
           <button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>
         </div>`;
@@ -78,7 +78,7 @@ async function loadOrdersList() {
     }
     wrap.innerHTML = `<div class="orders-list">${orders.map(orderCardHtml).join('')}</div>`;
   } catch (e) {
-    wrap.innerHTML = `<div class="empty-state"><p>⚠️ ${e.message}</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
   }
 }
 
@@ -131,7 +131,7 @@ async function cancelOrder(id) {
 }
 
 async function confirmReceived(id) {
-  try { await API.completeOrder(id); showToast('✅ ' + t('order_received')); loadOrdersList(); }
+  try { await API.completeOrder(id); showToast(`${fe('✅',16)} ` + t('order_received')); loadOrdersList(); }
   catch (e) { showToast(e.message, 'error'); }
 }
 

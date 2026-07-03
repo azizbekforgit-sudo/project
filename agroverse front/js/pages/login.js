@@ -66,7 +66,7 @@ function renderLogin() {
       const data = await API.login({ phone, password });
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('av_user', JSON.stringify(data.user));
-      showToast('✅ ' + t('login_success'), 'success');
+      showToast(`${fe('✅',16)} ` + t('login_success'), 'success');
       const dest = data.user && data.user.role === 'admin' ? '#/admin' : '#/home';
       setTimeout(() => window.location.hash = dest, 400);
     } catch (e) {

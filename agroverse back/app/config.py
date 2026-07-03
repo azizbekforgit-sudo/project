@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 30
     upload_dir: str = "uploads"
     grok_api_key: str = ""
+    google_maps_key: str = ""
     admin_phone: str = "+998000000000"
     admin_password: str = "admin123"
 

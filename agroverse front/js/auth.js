@@ -30,7 +30,7 @@ const Auth = {
    ============================ */
 function showToast(message, type = 'success', duration = 3500) {
   const container = document.getElementById('toast-container');
-  const icons = { success: '✅', error: '❌', warn: '⚠️', info: 'ℹ️' };
+  const icons = { success: fe('✅',16), error: fe('❌',16), warn: fe('⚠️',16), info: fe('ℹ️',16) };
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;

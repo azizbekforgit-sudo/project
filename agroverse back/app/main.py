@@ -193,5 +193,37 @@ async def get_config():
     }
 
 
+@app.get("/api/debug/admin-info")
+async def debug_admin_info():
+    """Debug endpoint — shows admin account info (no auth needed)"""
+    from app.models import User, UserRole
+    from app.auth import verify_password, get_password_hash
+    async with AsyncSessionLocal() as db:
+        # Find all admins
+        result = await db.execute(select(User).where(User.role == UserRole.ADMIN))
+        admins = result.scalars().all()
+
+        admin_list = []
+        for a in admins:
+            # Test if default password works
+            test_hash = get_password_hash(ADMIN_PASSWORD)
+            password_works = verify_password(ADMIN_PASSWORD, a.password_hash)
+            admin_list.append({
+                "id": a.id,
+                "phone": a.phone,
+                "name": a.name,
+                "is_active": a.is_active,
+                "password_works_with_default": password_works,
+            })
+
+        return {
+            "admin_phone_setting": ADMIN_PHONE,
+            "admin_password_is_default": ADMIN_PASSWORD == "admin123",
+            "admins_found": len(admin_list),
+            "admins": admin_list,
+            "secret_key_length": len(settings.secret_key),
+        }
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)

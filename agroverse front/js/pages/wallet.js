@@ -176,7 +176,7 @@ async function renderWallet() {
     <div class="wallet-page">
 
       <div class="page-head" style="margin-bottom:28px">
-        <h1 class="page-title">💰 ${wt('title')}</h1>
+        <h1 class="page-title">${fe('💰',24)} ${wt('title')}</h1>
         <p class="page-desc">${wt('desc')}</p>
       </div>
 
@@ -246,7 +246,7 @@ async function renderWallet() {
 
       <!-- Как работает -->
       <div class="how-block">
-        <h3>ℹ️ ${wt('how')}</h3>
+        <h3>${fe('ℹ️',18)} ${wt('how')}</h3>
         <ul class="how-list">
           <li>🏅 ${wt('w1')}</li>
           <li>➕ ${wt('w2')}</li>
@@ -265,7 +265,7 @@ async function renderWallet() {
     const lang = (window.I18nManager && I18nManager.current) || 'uz';
     document.getElementById('wallet-hero').innerHTML = `
       <div class="wcard balance">
-        <div class="wcard-icon">💰</div>
+        <div class="wcard-icon">${fe('💰',28)}</div>
         <div class="wcard-label">${wt('balance')}</div>
         <div class="wcard-value">${Number(me.wallet_balance || 0).toLocaleString('ru')}</div>
         <div class="wcard-sub">${wt('currency')}</div>
@@ -280,7 +280,7 @@ async function renderWallet() {
   } catch (e) {
     if (e.message === 'BLOCKED') return;
     document.getElementById('wallet-hero').innerHTML =
-      `<div class="empty-state" style="grid-column:1/-1"><p>⚠️ ${e.message}</p></div>`;
+      `<div class="empty-state" style="grid-column:1/-1"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
   }
 }
 
@@ -550,7 +550,7 @@ function walletStyles() {
       position: relative; overflow: hidden;
     }
     .topup-block::after {
-      content: '💰'; position: absolute; font-size: 120px;
+      content: '${fe('💰',120)}'; position: absolute; font-size: 120px;
       right: -10px; bottom: -20px; opacity: .04; pointer-events: none;
     }
     .topup-head { margin-bottom: 28px; }

@@ -203,7 +203,7 @@ async function loadFarmerProducts() {
     }
 
     list.innerHTML = products.map(p => {
-      const emoji = CAT_EMOJI_PROF[p.category] || '🥬';
+      const emoji = fe(CAT_EMOJI_PROF[p.category] || '🥬', 20);
       const statusClass = p.status === 'active' ? 'ok' : p.status === 'pending' ? 'pending' : 'rejected';
       const statusText = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : 'Отклонён';
       const bg = p.status === 'active' ? 'var(--bg-card-2)' : 'var(--bg-card)';
@@ -436,7 +436,7 @@ async function renderCourierProfileManager(app) {
             app.innerHTML = pageShell(`
                 <div class="pr-page">
                     <div class="pr-section" style="max-width:600px;margin:40px auto;text-align:center">
-                        <div style="font-size:3.5rem;margin-bottom:16px">⏳</div>
+                        <div style="font-size:3.5rem;margin-bottom:16px">${fe('⏳',56)}</div>
                         <h2 style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:12px">Анкета на проверке</h2>
                         <p style="color:var(--txt-2);font-size:15px;line-height:1.7;margin-bottom:20px">Администратор проверяет ваши данные водителя. До одобрения вы не можете принимать заказы.</p>
                         ${profile.rejection_reason ? `<div class="form-error" style="text-align:left"><b>Причина отказа:</b> ${profile.rejection_reason}</div>` : ''}

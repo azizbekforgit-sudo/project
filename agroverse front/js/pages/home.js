@@ -536,7 +536,7 @@ async function renderHome() {
               <img src="${c.img}" alt="${t(c.key)}" loading="lazy" onerror="this.style.opacity='0'" />
               <div class="cat-overlay"></div>
             </div>
-            <div class="cat-ic">${c.icon}</div>
+            <div class="cat-ic">${fe(c.icon, 20)}</div>
             <div class="cat-name">${t(c.key)}</div>
           </div>`).join('')}
       </div>

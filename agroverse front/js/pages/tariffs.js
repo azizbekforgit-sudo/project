@@ -60,7 +60,7 @@ function renderTariffs() {
       price: '$50+',
       period: { uz: '/oy', ru: '/мес', en: '/mo' },
       accent: false,
-      icon: '🌟',
+      icon: '⭐',
       color: '#F59E0B',
       gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
       badge: { uz: 'Pro', ru: 'Pro', en: 'Pro' },

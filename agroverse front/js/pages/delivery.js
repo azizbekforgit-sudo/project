@@ -25,6 +25,17 @@ const SECTIONS = [
   { id: 'profile', icon: '👤', label: 'Профиль' },
 ];
 
+const SECTIONS = [
+  { id: 'home',    icon: '🏠', label: 'Главная' },
+  { id: 'orders',  icon: '📦', label: 'Заказы' },
+  { id: 'map',     icon: '🗺️', label: 'Карта' },
+  { id: 'tariffs', icon: '💳', label: 'Тарифы' },
+  { id: 'ai',      icon: '🤖', label: 'ИИ' },
+  { id: 'wallet',  icon: '💰', label: 'Кошелёк' },
+  { id: 'market',  icon: '🛒', label: 'Рынок' },
+  { id: 'profile', icon: '👤', label: 'Профиль' },
+];
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 let _deliveryState = {
@@ -121,7 +132,7 @@ async function _renderFindCourier() {
             <option value="100">100 км</option>
             <option value="500">Весь Узбекистан</option>
           </select>
-          <button class="del-search-btn" onclick="_delZoneSearch()">🔍 Найти</button>
+          <button class="del-search-btn" onclick="_delZoneSearch()">${fe('🔍',16)} Найти</button>
         </div>
       </div>
 
@@ -133,17 +144,17 @@ async function _renderFindCourier() {
         <h2 style="font-family:var(--font-display);font-size:24px;font-weight:600;text-align:center;margin-bottom:24px;">Как это работает?</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">📍</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('📍',40)}</div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Укажите адрес</div>
             <div style="font-size:13px;color:var(--muted);">Кликните на карту или введите адрес</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">🔍</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('🔍',40)}</div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Выберите курьера</div>
             <div style="font-size:13px;color:var(--muted);">Сравните рейтинги и тарифы</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">📦</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('📦',40)}</div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Закажите доставку</div>
             <div style="font-size:13px;color:var(--muted);">Быстро, надёжно, с гарантией</div>
           </div>
@@ -168,7 +179,7 @@ function _initDelMap() {
   if (!mapEl || !window.L) {
     if (mapEl) mapEl.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--surface-soft);color:var(--muted);">
-        <div style="font-size:48px;margin-bottom:16px;">🗺️</div>
+        <div style="font-size:48px;margin-bottom:16px;">${fe('🗺️',48)}</div>
         <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Карта</div>
         <div style="font-size:13px;">Введите адрес для поиска курьеров</div>
       </div>`;
@@ -291,8 +302,8 @@ window._delZoneSearch = async function() {
 // ─── Courier card rendering ──────────────────────────────────────────────────
 
 const TRANSPORT_EMOJI = {
-  fura: '🚛💨', refrig: '❄️🚛', tentovan: '🚚📦',
-  samosval: '🚜⚙️', bortovoy: '🚐🔧', moto: '🏍️', car: '🚗',
+  fura: () => fe('🚛',20), refrig: () => fe('❄️',20), tentovan: () => fe('🚚',20),
+  samosval: () => fe('🚜',20), bortovoy: () => fe('🚐',20), moto: () => fe('🏍️',20), car: () => fe('🚗',20),
 };
 
 const TRANSPORT_LABEL = {
@@ -340,14 +351,14 @@ function _renderCourierCard(c) {
         </div>
         ${routeHtml}
         <div class="del-cc-stats">
-          <div class="del-cc-stat">📍 ${c.city || 'Узбекистан'}</div>
+          <div class="del-cc-stat">${fe('📍',14)} ${c.city || 'Узбекистан'}</div>
           <div class="del-cc-stat">⚖️ до ${c.max_weight || 5000} кг</div>
           <div class="del-cc-stat">📅 ${c.experience_years || 0} лет опыта</div>
         </div>
       </div>
       <div class="del-cc-footer">
-        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})">📋 Профиль</button>
-        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})">📦 Заказать</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})">${fe('📋',14)} Профиль</button>
+        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})">${fe('📦',14)} Заказать</button>
       </div>
     </div>`;
 }
@@ -357,7 +368,8 @@ function _renderCourierCard(c) {
 window._showCourierProfile = async function(userId) {
   try {
     const c = await API.getPublicCourierProfile(userId);
-    const emoji = TRANSPORT_EMOJI[c.transport_type] || '🚛';
+  const emojiFn = TRANSPORT_EMOJI[c.transport_type];
+  const emoji = emojiFn ? emojiFn() : fe('🚛',20);
     const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
     const rating = c.rating || 0;
     const ratingPct = (rating / 10) * 100;
@@ -408,12 +420,12 @@ window._showCourierProfile = async function(userId) {
             <div class="del-profile-row"><span class="label">Режим работы</span><span class="value">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</span></div>
             <div class="del-profile-row"><span class="label">Номер авто</span><span class="value">${c.vehicle_number || 'Не указан'}</span></div>
             <div class="del-profile-row"><span class="label">Лицензия</span><span class="value">${c.license_info || 'Не указана'}</span></div>
-            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? '✅ Есть' : '❌ Нет'}</span></div>
+            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? `${fe('✅',14)} Есть` : `${fe('❌',14)} Нет`}</span></div>
             ${c.bio ? `<div class="del-profile-row"><span class="label">О себе</span><span class="value">${c.bio}</span></div>` : ''}
           </div>
         </div>
         <div class="del-profile-footer">
-          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})">📦 Заказать доставку</button>
+          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})">${fe('📦',14)} Заказать доставку</button>
         </div>
       </div>`;
 
@@ -482,7 +494,7 @@ function _renderOnboardStep() {
         <div class="ob-checkbox">
           <input type="checkbox" id="ob-thermo" ${s.has_thermo_bag ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.has_thermo_bag = this.checked">
-          <label for="ob-thermo">❄️ Есть рефрижератор / термоизоляция</label>
+          <label for="ob-thermo">${fe('❄️',14)} Есть рефрижератор / термоизоляция</label>
         </div>
         <button class="btn btn-primary ob-next" onclick="_obNext()">Далее →</button>
       </div>
@@ -518,7 +530,7 @@ function _renderOnboardStep() {
         </div>
 
         <div class="ob-field" style="margin-top:16px;">
-          <label class="ob-label">📍 Адрес базирования</label>
+          <label class="ob-label">${fe('📍',14)} Адрес базирования</label>
           <input type="text" class="ob-input" id="ob-address" value="${s.address}" placeholder="Ташкент, ул. Примерная 1"
                  oninput="_deliveryState.onboarding.address = this.value">
           <span class="hint">Ваш фактический адрес (для будущих функций)</span>
@@ -593,7 +605,7 @@ function _renderOnboardStep() {
         </div>
         <div class="ob-nav">
           <button class="btn btn-ghost" onclick="_obBack()">← Назад</button>
-          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()">✅ Отправить заявку</button>
+          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()">${fe('✅',14)} Отправить заявку</button>
         </div>
       </div>
     `;
@@ -673,7 +685,7 @@ async function _obSubmit() {
     _renderDashboard();
   } catch (e) {
     showToast(e.message || 'Ошибка при сохранении', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✅ Отправить заявку'; }
+    if (btn) { btn.disabled = false; btn.textContent = `${fe('✅',14)} Отправить заявку`; }
   }
 }
 
@@ -700,7 +712,7 @@ function _renderDashboard() {
             <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
                  id="dnav-${s.id}"
                  onclick="_deliverySection('${s.id}')">
-              <span class="ds-nav-icon">${s.icon}</span>
+              <span class="ds-nav-icon">${fe(s.icon, 18)}</span>
               <span class="ds-nav-label">${s.label}</span>
             </div>
           `).join('')}
@@ -709,7 +721,7 @@ function _renderDashboard() {
             <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
                  id="dnav-${s.id}"
                  onclick="_deliverySection('${s.id}')">
-              <span class="ds-nav-icon">${s.icon}</span>
+              <span class="ds-nav-icon">${fe(s.icon, 18)}</span>
               <span class="ds-nav-label">${s.label}</span>
             </div>
           `).join('')}
@@ -718,7 +730,7 @@ function _renderDashboard() {
           <div class="ds-courier-info">
             <div class="ds-courier-name">${profile.full_name || 'Курьер'}</div>
             <div class="ds-courier-status ${approved ? 'status-active' : (profile.rejection_reason ? 'status-rejected' : 'status-pending')}">
-              ${approved ? '🟢 Активен' : (profile.rejection_reason ? '🔴 Отклонен' : '🟡 На проверке')}
+              ${approved ? `${fe('🟢',14)} Активен` : (profile.rejection_reason ? `${fe('🔴',14)} Отклонен` : `${fe('🟡',14)} На проверке`)}
             </div>
           </div>
         </div>
@@ -773,7 +785,7 @@ async function _sectionHome(main) {
       ${!approved ? `
         ${profile.rejection_reason ? `
           <div class="pending-banner rejection-banner">
-            <div class="pb-icon">❌</div>
+            <div class="pb-icon">${fe('❌',32)}</div>
             <div class="pb-body">
               <div class="pb-title">Заявка отклонена</div>
               <div class="pb-text">Причина: <b>${profile.rejection_reason}</b></div>
@@ -782,7 +794,7 @@ async function _sectionHome(main) {
           </div>
         ` : `
           <div class="pending-banner">
-            <div class="pb-icon">⏳</div>
+            <div class="pb-icon">${fe('⏳',32)}</div>
             <div class="pb-body">
               <div class="pb-title">Заявка на проверке</div>
               <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
@@ -800,22 +812,22 @@ async function _sectionHome(main) {
       <!-- Stats row — Bento grid -->
       <div class="home-stats">
         <div class="hs-card clickable" onclick="_deliverySection('orders')">
-          <div class="hs-icon">📦</div>
+          <div class="hs-icon">${fe('📦',28)}</div>
           <div class="hs-num" id="stat-available">—</div>
           <div class="hs-label">Доступные</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon">✅</div>
+          <div class="hs-icon">${fe('✅',28)}</div>
           <div class="hs-num" id="stat-done">—</div>
           <div class="hs-label">Доставлено</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon">⭐</div>
+          <div class="hs-icon">${fe('⭐',28)}</div>
           <div class="hs-num" id="stat-rating">${profile.rating ?? '0.0'}</div>
           <div class="hs-label">Рейтинг /10</div>
         </div>
         <div class="hs-card clickable" onclick="_deliverySection('wallet')">
-          <div class="hs-icon">💰</div>
+          <div class="hs-icon">${fe('💰',28)}</div>
           <div class="hs-num" id="stat-balance">—</div>
           <div class="hs-label">Баланс</div>
         </div>
@@ -832,7 +844,7 @@ async function _sectionHome(main) {
         <div class="hsb-title">Уведомления</div>
         <div id="notif-list">
           <div class="notif-item">
-            <div class="ni-icon">🎉</div>
+            <div class="ni-icon">${fe('🎉',24)}</div>
             <div class="ni-body">
               <div class="ni-title">Добро пожаловать в AgroVerse!</div>
               <div class="ni-time">Только что</div>
@@ -840,7 +852,7 @@ async function _sectionHome(main) {
           </div>
           ${!approved ? `
             <div class="notif-item">
-              <div class="ni-icon">🔍</div>
+              <div class="ni-icon">${fe('🔍',24)}</div>
               <div class="ni-body">
                 <div class="ni-title">Ваш профиль проходит проверку</div>
                 <div class="ni-time">Сегодня</div>
@@ -848,7 +860,7 @@ async function _sectionHome(main) {
             </div>
           ` : `
             <div class="notif-item">
-              <div class="ni-icon">✅</div>
+              <div class="ni-icon">${fe('✅',24)}</div>
               <div class="ni-body">
                 <div class="ni-title">Профиль одобрен! Можете принимать заказы</div>
                 <div class="ni-time">Сегодня</div>
@@ -902,10 +914,10 @@ async function _sectionOrders(main) {
         <h1 class="section-title">Заказы</h1>
       </div>
       <div class="orders-tabs">
-        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')">📦 Доступные</button>
-        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')">🚚 Принятые</button>
-        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')">✅ Выполненные</button>
-        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')">❌ Отменённые</button>
+        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')">${fe('📦',16)} Доступные</button>
+        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')">${fe('🚚',16)} Принятые</button>
+        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')">${fe('✅',16)} Выполненные</button>
+        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')">${fe('❌',16)} Отменённые</button>
       </div>
       <div id="orders-list"><div class="spinner"></div></div>
     </div>
@@ -935,7 +947,7 @@ async function _loadOrdersTab(tab) {
     }
 
     if (!orders.length) {
-      list.innerHTML = `<div class="empty-state">📭 Заказов нет</div>`;
+      list.innerHTML = `<div class="empty-state">${fe('📭',48)} Заказов нет</div>`;
       return;
     }
 
@@ -953,21 +965,21 @@ function _orderCard(o, tab) {
   const to    = o.delivery_address || '—';
 
   const actions = tab === 'available' ? `
-    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})">✅ Принять</button>
+    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})">${fe('✅',14)} Принять</button>
   ` : tab === 'accepted' ? `
-    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})">📦 Доставлен</button>
+    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})">${fe('📦',14)} Доставлен</button>
     <button class="btn btn-ghost btn-sm"   onclick="_cancelOrder(${o.id})">Отмена</button>
   ` : '';
 
   return `
     <div class="order-card" id="oc-${o.id}">
       <div class="oc-left">
-        <div class="oc-cargo-icon">🌾</div>
+        <div class="oc-cargo-icon">${fe('🌾',24)}</div>
       </div>
       <div class="oc-body">
         <div class="oc-title">${cargo}</div>
         <div class="oc-route">
-          <span class="oc-from">📍 ${from}</span>
+          <span class="oc-from">${fe('📍',14)} ${from}</span>
           <span class="oc-arrow">→</span>
           <span class="oc-to">🏁 ${to}</span>
         </div>
@@ -993,7 +1005,7 @@ async function _acceptOrder(id) {
 async function _deliverOrder(id) {
   try {
     await API.updateDeliveryStatus(id, 'delivered');
-    showToast('Доставлено! ✅', 'success');
+    showToast(`Доставлено! ${fe('✅',14)}`, 'success');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
 }
@@ -1013,7 +1025,7 @@ async function _sectionMap(main) {
     <div class="section-map">
       <div class="section-header">
         <h1 class="section-title">Карта заказов</h1>
-        <button class="btn btn-sm btn-primary" onclick="_setOnline()">📍 Я онлайн</button>
+        <button class="btn btn-sm btn-primary" onclick="_setOnline()">${fe('📍',14)} Я онлайн</button>
       </div>
       <div id="delivery-map" style="width:100%;height:500px;border-radius:12px;overflow:hidden;"></div>
       <div id="map-orders-list" style="margin-top:16px;"></div>
@@ -1047,7 +1059,7 @@ async function _sectionMap(main) {
           orders.forEach(o => {
             if (o.pickup_lat && o.pickup_lng) {
               L.marker([o.pickup_lat, o.pickup_lng], {
-                icon: L.divIcon({ className: '', html: '<div style="font-size:24px;">📦</div>', iconSize: [28,28] })
+                icon: L.divIcon({ className: '', html: `<div style="font-size:24px;">${fe('📦',24)}</div>`, iconSize: [28,28] })
               }).addTo(map).bindPopup(`
                 <b>${o.cargo || 'Груз'}</b><br>
                 ${Number(o.price||0).toLocaleString()} сум<br>
@@ -1083,7 +1095,7 @@ async function _setOnline() {
     const { latitude: lat, longitude: lng } = pos.coords;
     try {
       await API.updateCourierStatus({ status: 'online', lat, lng });
-      showToast('Вы онлайн! 🟢', 'success');
+      showToast(`Вы онлайн! ${fe('🟢',14)}`, 'success');
     } catch (e) { showToast(e.message, 'error'); }
   });
 }
@@ -1103,25 +1115,25 @@ function _sectionTariffs(main) {
           <div class="tc-price">Бесплатно</div>
           <div class="tc-period">навсегда</div>
           <ul class="tc-features">
-            <li>✅ До 10 заказов в месяц</li>
-            <li>✅ Базовый ИИ-помощник</li>
-            <li>✅ Карта заказов</li>
-            <li>❌ Приоритет в поиске</li>
-            <li>❌ Аналитика</li>
+            <li>${fe('✅',14)} До 10 заказов в месяц</li>
+            <li>${fe('✅',14)} Базовый ИИ-помощник</li>
+            <li>${fe('✅',14)} Карта заказов</li>
+            <li>${fe('❌',14)} Приоритет в поиске</li>
+            <li>${fe('❌',14)} Аналитика</li>
           </ul>
           <button class="btn btn-ghost tc-btn" disabled>Текущий план</button>
         </div>
         <div class="tariff-card featured">
-          <div class="tc-top-badge">⭐ Популярный</div>
+          <div class="tc-top-badge">${fe('⭐',14)} Популярный</div>
           <div class="tc-badge">Оптимальный</div>
           <div class="tc-price">49 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li>✅ Неограниченные заказы</li>
-            <li>✅ Приоритет в поиске</li>
-            <li>✅ Расширенный ИИ</li>
-            <li>✅ Базовая аналитика</li>
-            <li>❌ Выделенный менеджер</li>
+            <li>${fe('✅',14)} Неограниченные заказы</li>
+            <li>${fe('✅',14)} Приоритет в поиске</li>
+            <li>${fe('✅',14)} Расширенный ИИ</li>
+            <li>${fe('✅',14)} Базовая аналитика</li>
+            <li>${fe('❌',14)} Выделенный менеджер</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1130,11 +1142,11 @@ function _sectionTariffs(main) {
           <div class="tc-price">149 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li>✅ Всё из Оптимального</li>
-            <li>✅ Выделенный менеджер</li>
-            <li>✅ Полная аналитика</li>
-            <li>✅ API доступ</li>
-            <li>✅ Брендирование</li>
+            <li>${fe('✅',14)} Всё из Оптимального</li>
+            <li>${fe('✅',14)} Выделенный менеджер</li>
+            <li>${fe('✅',14)} Полная аналитика</li>
+            <li>${fe('✅',14)} API доступ</li>
+            <li>${fe('✅',14)} Брендирование</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1142,7 +1154,7 @@ function _sectionTariffs(main) {
 
       <!-- Calculator -->
       <div class="tariff-calc">
-        <h3>💰 Калькулятор стоимости доставки</h3>
+        <h3>${fe('💰',20)} Калькулятор стоимости доставки</h3>
         <div class="calc-row">
           <label>Расстояние (км)</label>
           <input type="number" id="calc-dist" class="ob-input" value="50" min="1" max="2000">
@@ -1182,7 +1194,7 @@ function _sectionAI(main) {
   main.innerHTML = `
     <div class="section-ai">
       <div class="section-header">
-        <h1 class="section-title">🤖 ИИ-помощник</h1>
+        <h1 class="section-title">${fe('🤖',24)} ИИ-помощник</h1>
         <p class="section-subtitle">Задайте вопрос о маршрутах, тарифах или заказах</p>
       </div>
       <div class="ai-chat" id="ai-chat">
@@ -1214,7 +1226,7 @@ async function _sendAIMessage() {
   const chat = document.getElementById('ai-chat');
   if (chat) {
     chat.innerHTML += `<div class="ai-msg ai-user"><div class="ai-msg-bubble">${msg}</div></div>`;
-    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble">⏳ Думаю...</div></div>`;
+    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble">${fe('⏳',16)} Думаю...</div></div>`;
     chat.scrollTop = chat.scrollHeight;
   }
 
@@ -1236,13 +1248,13 @@ async function _sectionWallet(main) {
   main.innerHTML = `
     <div class="section-wallet">
       <div class="section-header">
-        <h1 class="section-title">💰 Кошелёк</h1>
+        <h1 class="section-title">${fe('💰',24)} Кошелёк</h1>
       </div>
       <div class="wallet-card">
         <div class="wc-label">Текущий баланс</div>
         <div class="wc-balance" id="wallet-balance">Загрузка...</div>
         <div class="wc-actions">
-          <button class="btn btn-primary" onclick="_withdrawModal()">💸 Вывести</button>
+          <button class="btn btn-primary" onclick="_withdrawModal()">${fe('💸',14)} Вывести</button>
         </div>
       </div>
       <div class="wallet-history">
@@ -1288,7 +1300,7 @@ function _withdrawModal() {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-box">
-      <div class="modal-ic">💸</div>
+      <div class="modal-ic">${fe('💸',36)}</div>
       <h3 class="modal-title">Вывод средств</h3>
       <p class="modal-desc">Доступно: ${Number(bal).toLocaleString('ru-RU')} сум</p>
       <input type="number" id="wd-amount" class="ob-input" placeholder="Сумма" max="${bal}" min="1000">
@@ -1329,7 +1341,7 @@ async function _sectionMarket(main) {
   main.innerHTML = `
     <div class="section-market">
       <div class="section-header">
-        <h1 class="section-title">🛒 Рынок</h1>
+        <h1 class="section-title">${fe('🛒',24)} Рынок</h1>
         <p class="section-subtitle">Товары от фермеров, доступные для доставки</p>
       </div>
       <div id="market-list"><div class="spinner"></div></div>
@@ -1341,16 +1353,16 @@ async function _sectionMarket(main) {
     const list = document.getElementById('market-list');
     if (!list) return;
     if (!products.length) {
-      list.innerHTML = `<div class="empty-state">📦 Товаров пока нет</div>`;
+      list.innerHTML = `<div class="empty-state">${fe('📦',48)} Товаров пока нет</div>`;
       return;
     }
     list.innerHTML = `<div class="market-grid">
       ${products.slice(0, 20).map(p => `
         <div class="market-card">
-          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder">🌾</div>`}
+          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder">${fe('🌾',40)}</div>`}
           <div class="mc-body">
             <div class="mc-title">${p.name || 'Без названия'}</div>
-            <div class="mc-farmer">🌱 ${p.fermer_name || 'Фермер'}</div>
+            <div class="mc-farmer">${fe('🌱',14)} ${p.fermer_name || 'Фермер'}</div>
             <div class="mc-price">${Number(p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
           </div>
         </div>
@@ -1372,12 +1384,12 @@ function _sectionProfile(main) {
   main.innerHTML = `
     <div class="section-profile">
       <div class="section-header">
-        <h1 class="section-title">👤 Профиль</h1>
+        <h1 class="section-title">${fe('👤',24)} Профиль</h1>
       </div>
 
       ${!approved ? `
         <div class="pending-banner">
-          <div class="pb-icon">⏳</div>
+          <div class="pb-icon">${fe('⏳',32)}</div>
           <div class="pb-body">
             <div class="pb-title">Ожидает одобрения администратора</div>
             <div class="pb-text">Ваши данные проверяются. Обычно это занимает 1–2 рабочих дня.</div>
@@ -1388,14 +1400,14 @@ function _sectionProfile(main) {
           </div>
         </div>
       ` : `
-        <div class="approved-banner">✅ Профиль одобрен и активен</div>
+        <div class="approved-banner">${fe('✅',16)} Профиль одобрен и активен</div>
       `}
 
       <div class="profile-card">
         <div class="profile-avatar">🚛</div>
         <div class="profile-name">${p.full_name || 'Не указано'}</div>
         <div class="profile-role">Йўлчи · ${tt ? tt.label : p.transport_type || '—'}</div>
-        <div class="profile-rating">⭐ ${p.rating ?? '5.0'}</div>
+        <div class="profile-rating">${fe('⭐',16)} ${p.rating ?? '0.0'}</div>
       </div>
 
       <!-- Completion bar -->
@@ -1406,15 +1418,14 @@ function _sectionProfile(main) {
         ${_profileRow('🏙️', 'Город', p.city)}
         ${_profileRow('🚛', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
         ${_profileRow('⚖️', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
-        ${_profileRow('🔢', 'Гос. номер', p.vehicle_number)}
-        ${_profileRow('📅', 'Опыт', p.experience_years ? `${p.experience_years} лет` : '—')}
-        ${_profileRow('📍', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
-        ${_profileRow('❄️', 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
+        ${_profileRow(fe('🔢',16), 'Гос. номер', p.vehicle_number)}
+        ${_profileRow(fe('📍',16), 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
+        ${_profileRow(fe('❄️',16), 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
         ${p.bio ? _profileRow('📝', 'О себе', p.bio) : ''}
       </div>
 
       <button class="btn btn-ghost" style="margin-top:16px;width:100%;" 
-              onclick="_editProfile()">✏️ Редактировать профиль</button>
+              onclick="_editProfile()">${fe('✏️',14)} Редактировать профиль</button>
       <button class="btn btn-danger-ghost" style="margin-top:8px;width:100%;" 
               onclick="Auth.logout ? Auth.logout() : (localStorage.clear(), router.go('/login'))">Выйти</button>
     </div>

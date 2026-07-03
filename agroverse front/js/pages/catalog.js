@@ -40,7 +40,7 @@ function productCardHtml(p) {
   const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg,#0e1411,#060807)';
   const img = p.images?.length
     ? `<img class="pc-img-el" src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.style.background='${bg}';this.remove()" />`
-    : `<div class="pc-img-ph">${CAT_EMOJI[p.category] || '🥬'}</div>`;
+    : `<div class="pc-img-ph">${fe(CAT_EMOJI[p.category] || '🥬', 44)}</div>`;
   const action = isBuyer
     ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fi fi-rr-shopping-cart"></i> ${t('add_to_cart')}</button>`
     : `<button class="btn btn-ghost btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fi fi-rr-eye"></i> ${t('details_btn')}</button>`;
