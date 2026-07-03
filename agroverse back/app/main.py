@@ -24,11 +24,13 @@ async def seed_admin():
     from app.models import User, UserRole, UserTariff
     from app.auth import get_password_hash
     async with AsyncSessionLocal() as db:
+        new_hash = get_password_hash(ADMIN_PASSWORD)
+
+        # 1) Try exact phone match
         res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
         existing = res.scalar_one_or_none()
+
         if existing:
-            # Always sync password and role from .env
-            new_hash = get_password_hash(ADMIN_PASSWORD)
             changed = False
             if existing.password_hash != new_hash:
                 existing.password_hash = new_hash
@@ -41,15 +43,28 @@ async def seed_admin():
                 changed = True
             if changed:
                 await db.commit()
-                print(f"[ADMIN] Админ обновлён: phone={ADMIN_PHONE}, пароль синхронизирован")
+                print(f"[ADMIN] Синхронизирован: phone={ADMIN_PHONE}")
             else:
-                print(f"[ADMIN] Админ OK: phone={ADMIN_PHONE}")
+                print(f"[ADMIN] OK: phone={ADMIN_PHONE}")
             return
+
+        # 2) If phone not found, check if there's ANY admin — update their password
+        admin_res = await db.execute(select(User).where(User.role == UserRole.ADMIN))
+        any_admin = admin_res.scalar_one_or_none()
+        if any_admin:
+            any_admin.phone = ADMIN_PHONE
+            any_admin.password_hash = new_hash
+            any_admin.is_active = True
+            await db.commit()
+            print(f"[ADMIN] Обновлён существующий админ: id={any_admin.id}, phone={ADMIN_PHONE}")
+            return
+
+        # 3) No admin at all — create
         admin = User(
             name="Администратор",
             phone=ADMIN_PHONE,
             email="admin@agroverse.uz",
-            password_hash=get_password_hash(ADMIN_PASSWORD),
+            password_hash=new_hash,
             role=UserRole.ADMIN,
             tariff=UserTariff.PREMIUM,
             bonus_points=0,
@@ -57,7 +72,7 @@ async def seed_admin():
         )
         db.add(admin)
         await db.commit()
-        print(f"[ADMIN] Новый админ создан — логин: {ADMIN_PHONE}")
+        print(f"[ADMIN] Создан: phone={ADMIN_PHONE}, password={ADMIN_PASSWORD}")
 
 
 @asynccontextmanager
