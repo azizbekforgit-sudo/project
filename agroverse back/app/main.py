@@ -199,14 +199,11 @@ async def debug_admin_info():
     from app.models import User, UserRole
     from app.auth import verify_password, get_password_hash
     async with AsyncSessionLocal() as db:
-        # Find all admins
         result = await db.execute(select(User).where(User.role == UserRole.ADMIN))
         admins = result.scalars().all()
 
         admin_list = []
         for a in admins:
-            # Test if default password works
-            test_hash = get_password_hash(ADMIN_PASSWORD)
             password_works = verify_password(ADMIN_PASSWORD, a.password_hash)
             admin_list.append({
                 "id": a.id,
@@ -223,6 +220,51 @@ async def debug_admin_info():
             "admins": admin_list,
             "secret_key_length": len(settings.secret_key),
         }
+
+
+@app.post("/api/debug/reset-admin")
+async def debug_reset_admin():
+    """Force-reset admin password to admin123 (no auth needed)"""
+    from app.models import User, UserRole
+    from app.auth import get_password_hash
+    async with AsyncSessionLocal() as db:
+        new_hash = get_password_hash(ADMIN_PASSWORD)
+
+        # Find admin by phone
+        result = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+        admin = result.scalar_one_or_none()
+
+        if admin:
+            admin.password_hash = new_hash
+            admin.is_active = True
+            admin.role = UserRole.ADMIN
+            await db.commit()
+            return {"ok": True, "message": f"Admin password reset for phone {ADMIN_PHONE}"}
+
+        # Find ANY admin
+        result2 = await db.execute(select(User).where(User.role == UserRole.ADMIN))
+        any_admin = result2.scalar_one_or_none()
+        if any_admin:
+            any_admin.phone = ADMIN_PHONE
+            any_admin.password_hash = new_hash
+            any_admin.is_active = True
+            await db.commit()
+            return {"ok": True, "message": f"Admin updated: id={any_admin.id}, phone={ADMIN_PHONE}"}
+
+        # Create new admin
+        new_admin = User(
+            name="Администратор",
+            phone=ADMIN_PHONE,
+            email="admin@agroverse.uz",
+            password_hash=new_hash,
+            role=UserRole.ADMIN,
+            tariff="premium",
+            bonus_points=0,
+            is_active=True,
+        )
+        db.add(new_admin)
+        await db.commit()
+        return {"ok": True, "message": f"Admin created: phone={ADMIN_PHONE}"}
 
 
 if __name__ == "__main__":

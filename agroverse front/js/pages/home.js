@@ -35,7 +35,7 @@ function injectStyles() {
   const style = document.createElement('style');
   style.id = 'av-home-styles';
   style.textContent = `
-    /* ── Hero fullscreen (modern gradient) ── */
+    /* ── Hero fullscreen (clean white) ── */
     .hero-light {
       position: relative;
       min-height: 100vh;
@@ -46,7 +46,7 @@ function injectStyles() {
       display: flex;
       align-items: center;
       overflow: hidden;
-      background: linear-gradient(135deg, #14532d 0%, #166534 30%, #15803d 60%, #16a34a 100%);
+      background: #ffffff;
       border-radius: 0;
     }
     .hero-light-bg { display: none; }
@@ -90,63 +90,8 @@ function injectStyles() {
       transition: opacity 0.4s ease, transform 0.4s ease;
     }
     .hero-stat-item.visible { opacity: 1; transform: translateY(0); }
-    .hero-stat-item b { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: #ffffff; line-height: 1; }
-    .hero-stat-item span { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 4px; }
-
-    /* Dashboard (clean card) */
-    .hero-dashboard {
-      opacity: 0; transform: translateY(20px);
-      transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
-    }
-    .hero-dashboard.visible { opacity: 1; transform: translateY(0); }
-    .dash-card {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.6);
-      border-radius: 20px; padding: 24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    }
-    .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .dash-url { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--txt-muted); font-family: monospace; }
-    .dash-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dash-live {
-      background: var(--clr-green-lt); color: var(--clr-green);
-      border: 1px solid rgba(10,110,58,0.2);
-      border-radius: var(--radius-pill); padding: 3px 10px;
-      font-size: 11px; font-weight: 600;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .dash-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--clr-green); animation: pulse 2s ease-in-out infinite; }
-    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .dash-tile {
-      background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.15);
-      border-radius: 12px; padding: 14px;
-      opacity: 0; transform: translateY(8px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .dash-tile.visible { opacity: 1; transform: translateY(0); }
-    .dash-tile-label { font-size: 9px; font-weight: 700; color: var(--txt-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-    .dash-tile-val { font-size: 13px; font-weight: 700; color: var(--clr-green); }
-    .dash-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; margin-bottom: 14px; }
-    .dash-bar {
-      flex: 1; border-radius: 4px 4px 0 0;
-      background: linear-gradient(to top, #16a34a, #4ade80);
-      opacity: 0; transform: scaleY(0); transform-origin: bottom;
-      transition: opacity 0.3s ease, transform 0.4s ease;
-    }
-    .dash-bar.visible { opacity: 0.6; transform: scaleY(1); }
-    .dash-bar.hi.visible { opacity: 1; }
-    .dash-footer {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(22,163,74,0.08); border-radius: 12px; padding: 12px 16px;
-      opacity: 0; transform: translateY(4px);
-      transition: opacity 0.3s ease 0.5s, transform 0.3s ease 0.5s;
-    }
-    .dash-footer.visible { opacity: 1; transform: translateY(0); }
-    .dash-footer-ic { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, var(--clr-green), #34d399); display: grid; place-items: center; color: #fff; font-size: 13px; }
-    .dash-footer-text { font-size: 12px; }
-    .dash-footer-text b { color: var(--clr-green); display: block; }
-    .dash-footer-text span { color: var(--txt-muted); }
+    .hero-stat-item b { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--clr-green); line-height: 1; }
+    .hero-stat-item span { color: var(--muted); font-size: 13px; margin-top: 4px; }
 
     /* ── Button effects (minimal) ── */
     .btn-ripple {
@@ -314,23 +259,6 @@ function initButtonEffects() {
   });
 }
 
-/* ── Animate dashboard after render ── */
-function animateDashboard() {
-  const dash = document.querySelector('.hero-dashboard');
-  if (dash) setTimeout(() => dash.classList.add('visible'), 100);
-
-  document.querySelectorAll('.dash-tile').forEach((tile, i) => {
-    setTimeout(() => tile.classList.add('visible'), 300 + i * 100);
-  });
-
-  document.querySelectorAll('.dash-bar').forEach((bar, i) => {
-    setTimeout(() => bar.classList.add('visible'), 500 + i * 40);
-  });
-
-  const footer = document.querySelector('.dash-footer');
-  if (footer) setTimeout(() => footer.classList.add('visible'), 900);
-}
-
 /* ── Scroll Reveal via IntersectionObserver ── */
 function initScrollReveal() {
   // how-card, tip-card, benefit-card, promo, section-head get staggered delays
@@ -424,17 +352,8 @@ async function renderHome() {
     : `<button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shopping-cart"></i> ${t('go_market')}</button>
        <button class="btn btn-ghost btn-lg" onclick="router.go('/ai')"><i class="fi fi-rr-comment-alt"></i> ${t('ask_ai')}</button>`;
 
-  const barHeights = [30,42,38,55,48,62,58,70,65,80,75,88,82,100];
-
   app.innerHTML = pageShell(`
     <section class="hero-light">
-      <div class="hero-light-bg"></div>
-      <div class="hero-light-dots"></div>
-
-      <div class="hero-orb" style="width:500px;height:500px;top:-150px;left:-200px;background:radial-gradient(circle,rgba(16,185,129,0.18),transparent 70%);animation-duration:10s;"></div>
-      <div class="hero-orb" style="width:350px;height:350px;bottom:-100px;left:20%;background:radial-gradient(circle,rgba(74,222,128,0.10),transparent 70%);animation-duration:8s;animation-delay:2s;"></div>
-      <div class="hero-orb" style="width:250px;height:250px;top:20%;right:10%;background:radial-gradient(circle,rgba(16,185,129,0.07),transparent 70%);animation-duration:7s;animation-delay:4s;"></div>
-
       <div class="hero-light-inner">
         <div class="hero-content">
           <div class="hero-badge hero-badge-anim" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#059669;">
@@ -466,58 +385,8 @@ async function renderHome() {
               <span>${t('middlemen0')}</span>
             </div>
           </div>
-        </div>
-
-        <div class="hero-dashboard">
-          <div class="dash-card">
-            <div class="dash-top">
-              <div class="dash-dot" style="background:#ff5f57;"></div>
-              <div class="dash-dot" style="background:#febc2e;"></div>
-              <div class="dash-dot" style="background:#28c840;"></div>
-              <span style="margin-left:6px;">agroverse.uz/dashboard</span>
-              </div>
-              <div class="dash-live">Live</div>
-            </div>
-
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
-            <div style="font-size:18px;font-weight:800;color:#0f1f12;margin-bottom:14px;">AI Insights</div>
-
-            <div class="dash-grid">
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-leaf" style="color:#10b981;font-size:9px;"></i> ${isFarmer ? 'MAHSULOT' : 'AI AGRONOM'}</div>
-                <div class="dash-tile-val" id="dash-val-1">${isFarmer ? '0 ta' : "Sug'orish: optimal"}</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-store-alt" style="color:#10b981;font-size:9px;"></i> MARKETPLACE</div>
-                <div class="dash-tile-val" id="dash-val-2">+0 ta order</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-truck-side" style="color:#10b981;font-size:9px;"></i> LOGISTICS</div>
-                <div class="dash-tile-val" id="dash-val-3">0 marshrut</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-chart-histogram" style="color:#10b981;font-size:9px;"></i> ANALYTICS</div>
-                <div class="dash-tile-val" id="dash-val-4">GMV +0%</div>
-              </div>
-            </div>
-
-            <div class="dash-chart">
-              ${barHeights.map((h, i) => `<div class="dash-bar ${h >= 90 ? 'hi' : ''}" style="height:${h}%;transition-delay:${0.5 + i * 0.04}s;"></div>`).join('')}
-            </div>
-
-            <div class="dash-footer">
-              <div class="dash-footer-ic"><i class="fi fi-sr-sparkles"></i></div>
-              <div class="dash-footer-text">
-                <b>AI tavsiya</b>
-                <span id="dash-forecast">+0% hosil prognozi</span>
-              </div>
-            </div>
           </div>
         </div>
-      </div>
-
-      <div style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:3;">
-        <div class="scroll-arrow" style="border-color:rgba(16,185,129,0.5);"></div>
       </div>
     </section>
 
@@ -622,21 +491,6 @@ async function renderHome() {
   initButtonEffects();
   setTimeout(initScrollReveal, 80);
 
-  // Dashboard animations
-  requestAnimationFrame(() => animateDashboard());
-
-  // Animate dashboard tile counters
-  setTimeout(() => {
-    const v2 = document.getElementById('dash-val-2');
-    const v3 = document.getElementById('dash-val-3');
-    const v4 = document.getElementById('dash-val-4');
-    const fc = document.getElementById('dash-forecast');
-    if (v2) { let n = 0; const iv = setInterval(() => { n++; v2.textContent = `+${n} ta order`; if(n>=128) clearInterval(iv); }, 8); }
-    if (v3) { let n = 0; const iv = setInterval(() => { n++; v3.textContent = `${n} marshrut`; if(n>=3) clearInterval(iv); }, 200); }
-    if (v4) { let n = 0; const iv = setInterval(() => { n++; v4.textContent = `GMV +${n}%`; if(n>=24) clearInterval(iv); }, 40); }
-    if (fc) { let n = 0; const iv = setInterval(() => { n++; fc.textContent = `+${n}% hosil prognozi`; if(n>=18) clearInterval(iv); }, 55); }
-  }, 600);
-
   // Load real products
   try {
     const products = await API.getProducts({ limit: 8 });
@@ -645,11 +499,6 @@ async function renderHome() {
     animateCounter(document.getElementById('stat-100'), 100, 1400, '%');
     const s0 = document.getElementById('stat-0');
     if (s0) s0.textContent = '0%';
-
-    if (isFarmer) {
-      const dv1 = document.getElementById('dash-val-1');
-      if (dv1) { let n = 0; const iv = setInterval(() => { n++; dv1.textContent = `${n} ta`; if(n >= products.length) clearInterval(iv); }, Math.max(10, 800/products.length)); }
-    }
 
     const grid = document.getElementById('home-products');
     if (!products.length) {
