@@ -1,6 +1,0 @@
-[phases.setup]
-nixPkgs = ["python311", "gcc"]
-cmds = ["pip install -r 'agroverse back/requirements.txt'"]
-
-[start]
-cmd = "sh -c 'cd \"agroverse back\" && uvicorn app.main:app --host 0.0.0.0 --port $PORT'"
