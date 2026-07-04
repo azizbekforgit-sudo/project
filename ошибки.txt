@@ -1,19 +1,12 @@
-Access to fetch at 'https://project-production-5501.up.railway.app/api/auth/login' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-api.js:38  POST https://project-production-5501.up.railway.app/api/auth/login net::ERR_FAILED
-request @ api.js:38
-login @ api.js:112
-handleLogin @ login.js:66
-(anonymous) @ login.js:97
-api.js:83 API Error: TypeError: Failed to fetch
-    at request (api.js:38:23)
-    at Object.login (api.js:112:28)
-    at handleLogin (login.js:66:30)
-    at HTMLInputElement.<anonymous> (login.js:97:28)
-request @ api.js:83
-await in request
-login @ api.js:112
-handleLogin @ login.js:66
-(anonymous) @ login.js:97
-login.js:73 Login error: Error: Server bilan aloqa yo'q. Iltimos, keyinroq urinib ko'ring.
-    at request (api.js:85:13)
-    at async handleLogin (login.js:66:20)
+Starting Container
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
+ERROR:    Error loading ASGI app. Could not import module "main".
