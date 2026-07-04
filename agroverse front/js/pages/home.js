@@ -58,7 +58,7 @@ function injectStyles() {
       padding: clamp(80px,8vw,120px) clamp(28px,4vw,60px) clamp(60px,6vw,80px);
       width: 100%;
       display: grid;
-      grid-template-columns: 0.8fr 1.8fr;
+      grid-template-columns: 1fr 1fr;
       gap: 30px;
       align-items: center;
     }
@@ -73,14 +73,14 @@ function injectStyles() {
     .hero-dashboard {
       opacity: 0; transform: translateY(20px);
       transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
-      margin-left: -60px;
+      margin-left: -30px;
     }
     .hero-dashboard.visible { opacity: 1; transform: translateY(0); }
     .dash-card {
       background: #ffffff;
       border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 22px; padding: 32px 36px;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.1);
+      border-radius: 20px; padding: 28px 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
       width: 100%;
     }
     .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
