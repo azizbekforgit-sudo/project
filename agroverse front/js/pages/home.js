@@ -460,7 +460,7 @@ async function renderHome() {
           </div>
         </div>
 
-        <div class="hero-dashboard">
+<div class="hero-dashboard">
           <div class="dash-card">
             <div class="dash-top">
               <div class="dash-dot" style="background:#ff5f57;"></div>
@@ -471,8 +471,8 @@ async function renderHome() {
               <div class="dash-live">Live</div>
             </div>
 
-            <div style="font-size:13px;color:#9ca3af;margin-bottom:5px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
-            <div style="font-size:22px;font-weight:800;color:#0f1f12;margin-bottom:18px;">AI Insights</div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
+            <div style="font-size:18px;font-weight:800;color:#0f1f12;margin-bottom:14px;">AI Insights</div>
 
             <div class="dash-grid">
               <div class="dash-tile">
@@ -494,7 +494,7 @@ async function renderHome() {
             </div>
 
             <div class="dash-chart">
-              ${[30,42,38,55,48,62,58,70,65,80,75,88,82,100].map((h, i) => `<div class="dash-bar ${h >= 90 ? 'hi' : ''}" style="height:${h}%;transition-delay:${0.5 + i * 0.04}s;"></div>`).join('')}
+              ${barHeights.map((h, i) => `<div class="dash-bar ${h >= 90 ? 'hi' : ''}" style="height:${h}%;transition-delay:${0.5 + i * 0.04}s;"></div>`).join('')}
             </div>
 
             <div class="dash-footer">
@@ -505,7 +505,6 @@ async function renderHome() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </section>
 
