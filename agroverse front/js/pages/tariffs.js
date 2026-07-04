@@ -355,7 +355,7 @@ function renderTariffs() {
         ${plans.map(p => `
           <div class="tariff-card ${p.accent ? 'featured' : ''}" style="--card-color: ${p.color}">
             ${p.badge ? `<div class="t-badge">${L(p.badge)}</div>` : ''}
-            <div class="t-icon">${p.icon}</div>
+            <div class="t-icon">${fe(p.icon, 36)}</div>
             <div class="t-name">${p.name}</div>
             <div class="t-price-row">
               <div class="t-price">${p.price}</div>
@@ -394,7 +394,7 @@ function renderTariffs() {
 
       <!-- Таблица сравнения -->
       <div class="compare-section">
-        <h2>${{ uz: "📊 Tariflarni solishtirish", ru: '📊 Сравнение тарифов', en: '📊 Plan comparison' }[lang]}</h2>
+        <h2>${{ uz: `${fe('📊',20)} Tariflarni solishtirish`, ru: `${fe('📊',20)} Сравнение тарифов`, en: `${fe('📊',20)} Plan comparison` }[lang]}</h2>
         <table class="compare-table">
           <thead>
             <tr>
@@ -453,7 +453,7 @@ function renderTariffs() {
 
       <!-- Бонусная система -->
       <div class="bonus-section">
-        <h2>🎁 ${{ uz: "Bonus ball tizimi", ru: 'Бонусная система баллов', en: 'Bonus Point System' }[lang]}</h2>
+        <h2>${fe('🎁',20)} ${{ uz: "Bonus ball tizimi", ru: 'Бонусная система баллов', en: 'Bonus Point System' }[lang]}</h2>
         <table class="bonus-table">
           <thead>
             <tr>

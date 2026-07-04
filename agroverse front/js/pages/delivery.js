@@ -104,7 +104,7 @@ async function _renderFindCourier() {
     <div style="max-width:1100px;margin:0 auto;">
       <!-- Hero -->
       <div class="del-hero">
-        <div class="del-hero-title">🚛 Доставка грузов</div>
+        <div class="del-hero-title">${fe('🚛',24)} Доставка грузов</div>
         <div class="del-hero-sub">Найдите проверенного курьера для перевозки вашего груза по всей Узбекистану</div>
       </div>
 
@@ -112,7 +112,7 @@ async function _renderFindCourier() {
       <div class="del-map-wrap">
         <div id="del-map" class="del-map"></div>
         <div class="del-map-controls">
-          <input type="text" id="del-address" class="del-map-input" placeholder="📍 Введите адрес или кликните на карту..." />
+          <input type="text" id="del-address" class="del-map-input" placeholder="${fe('📍',14)} Введите адрес или кликните на карту..." />
           <select id="del-radius" class="del-radius-select">
             <option value="5">5 км</option>
             <option value="10">10 км</option>
@@ -250,7 +250,7 @@ window._delZoneSearch = async function() {
     if (!couriers.length) {
       results.innerHTML = `
         <div style="text-align:center;padding:60px 20px;color:var(--muted);">
-          <div style="font-size:48px;margin-bottom:16px;">🚛</div>
+          <div style="font-size:48px;margin-bottom:16px;">${fe('🚛',48)}</div>
           <h3 style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px;">Курьеры не найдены</h3>
           <p style="font-size:14px;">В выбранном радиусе (${radius} км) пока нет активных курьеров.<br>Попробуйте увеличить радиус поиска.</p>
         </div>`;
@@ -264,7 +264,7 @@ window._delZoneSearch = async function() {
       couriers.forEach(c => {
         if (c.lat && c.lng) {
           const greenIcon = L.divIcon({
-            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🚛</div>',
+            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + fe('🚛',18) + '</div>',
             className: '',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
@@ -307,7 +307,7 @@ function _ratingClass(r) {
 }
 
 function _renderCourierCard(c) {
-  const emoji = TRANSPORT_EMOJI[c.transport_type] || '🚛';
+  const emoji = TRANSPORT_EMOJI[c.transport_type] || fe('🚛',20);
   const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
   const rating = c.rating || 0;
   const ratingPct = (rating / 10) * 100;
@@ -315,7 +315,7 @@ function _renderCourierCard(c) {
 
   let routeHtml = '';
   if (c.route_anywhere) {
-    routeHtml = `<div class="del-cc-route anywhere">🌍 Любое место → любое место</div>`;
+    routeHtml = `<div class="del-cc-route anywhere">${fe('🌍',14)} Любое место → любое место</div>`;
   } else if (c.route_from || c.route_to) {
     routeHtml = `<div class="del-cc-route">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
   }
@@ -341,8 +341,8 @@ function _renderCourierCard(c) {
         ${routeHtml}
         <div class="del-cc-stats">
           <div class="del-cc-stat">${fe('📍',14)} ${c.city || 'Узбекистан'}</div>
-          <div class="del-cc-stat">⚖️ до ${c.max_weight || 5000} кг</div>
-          <div class="del-cc-stat">📅 ${c.experience_years || 0} лет опыта</div>
+          <div class="del-cc-stat">${fe('⚖️',14)} до ${c.max_weight || 5000} кг</div>
+          <div class="del-cc-stat">${fe('📅',14)} ${c.experience_years || 0} лет опыта</div>
         </div>
       </div>
       <div class="del-cc-footer">
@@ -369,7 +369,7 @@ window._showCourierProfile = async function(userId) {
 
     let routeSection = '';
     if (c.route_anywhere) {
-      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;">🌍 Любое место → любое место</div>';
+      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;">' + fe('🌍',14) + ' Любое место → любое место</div>';
     } else if (c.route_from || c.route_to) {
       routeSection = `<div class="del-cc-route" style="margin-bottom:0;">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
     }
@@ -439,7 +439,7 @@ function _renderOnboarding() {
   app.innerHTML = `
     <div class="delivery-onboard">
       <div class="onboard-header">
-        <div class="onboard-logo">🚛 AgroVerse Йўлчи</div>
+        <div class="onboard-logo">${fe('🚛',24)} AgroVerse Йўлчи</div>
         <p class="onboard-subtitle">Зарегистрируйтесь как курьер за 3 шага</p>
       </div>
       <div class="onboard-progress">
@@ -499,7 +499,7 @@ function _renderOnboardStep() {
         <div class="del-onb-anywhere" style="margin-bottom:16px;">
           <input type="checkbox" id="ob-anywhere" ${s.route_anywhere ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.route_anywhere = this.checked; _toggleRouteInputs()">
-          <label for="ob-anywhere">🌍 Возлю из любого места в любое место</label>
+          <label for="ob-anywhere">${fe('🌍',14)} Возлю из любого места в любое место</label>
         </div>
 
         <div id="route-inputs" style="${s.route_anywhere ? 'display:none;' : ''}">
@@ -692,7 +692,7 @@ function _renderDashboard() {
       <!-- Sidebar — Grouped navigation -->
       <aside class="del-sidebar">
         <div class="ds-brand">
-          <span class="ds-logo">🚛</span>
+          <span class="ds-logo">${fe('🚛',24)}</span>
           <span class="ds-name">Йўлчи</span>
         </div>
         <nav class="ds-nav">

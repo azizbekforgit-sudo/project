@@ -101,11 +101,11 @@ function orderCardHtml(o) {
           <span class="oc-id">#${o.id}</span>
         </div>
         <div class="oc-meta">
-          🌱 ${o.fermer_name || t('farmer_word')}
+          ${fe('🌱',14)} ${o.fermer_name || t('farmer_word')}
           <span class="oc-meta-dot"></span>
           ${o.quantity} ${t('pcs')}
           <span class="oc-meta-dot"></span>
-          📅 ${date}
+          ${fe('📅',14)} ${date}
         </div>
         ${total !== '—' ? `<div class="oc-total">${total}</div>` : ''}
         ${timelineHtml(o.status)}

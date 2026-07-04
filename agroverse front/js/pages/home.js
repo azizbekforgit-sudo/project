@@ -574,7 +574,7 @@ async function renderHome() {
     const alertContainer = document.getElementById('home-dynamic-alerts');
     alertContainer.innerHTML = `
       <div class="remind-banner scroll-reveal revealed">
-        <div style="font-size: 2rem;">🚛</div>
+        <div style="font-size: 2rem;">${fe('🚛',32)}</div>
         <div class="rb-content">
           <span class="rb-title">Вы зарегистрированы как Йўлчи!</span>
           <span class="rb-text">Чтобы начать принимать заказы и зарабатывать, вам необходимо заполнить профиль перевозчика и дождаться одобрения админа.</span>
@@ -638,7 +638,7 @@ async function renderHome() {
   } catch (e) {
     if (e.message === 'BLOCKED') return;
     const grid = document.getElementById('home-products');
-    if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>⚠️ ${e.message}</p></div>`;
+    if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
   }
 
   setTimeout(() => { if (typeof initAIBubble === 'function') initAIBubble(); }, 200);

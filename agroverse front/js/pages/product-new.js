@@ -538,7 +538,7 @@ function renderProductNew() {
       Array.from(files).forEach(f => fd.append('photos', f));
 
       await API.createProduct(fd);
-      if (typeof setPendingMessage === 'function') setPendingMessage('✅ ' + t('pn_success'));
+      if (typeof setPendingMessage === 'function') setPendingMessage(fe('✅',14) + ' ' + t('pn_success'));
       router.go('/profile');
     } catch (e) {
       if (e.message === 'BLOCKED') return;

@@ -6,9 +6,9 @@ function renderCart() {
 
   if (!cart.length) {
     app.innerHTML = pageShell(`
-      <div class="page-head"><h1 class="page-title">🛍️ ${t('nav_cart')}</h1></div>
+      <div class="page-head"><h1 class="page-title">${fe('🛍️',24)} ${t('nav_cart')}</h1></div>
       <div class="empty-state big">
-        <div class="icon">🛒</div>
+        <div class="icon">${fe('🛒',48)}</div>
         <p>${t('cart_empty')}</p>
         <button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>
       </div>
@@ -20,7 +20,7 @@ function renderCart() {
 
   app.innerHTML = pageShell(`
     <div class="page-head">
-      <h1 class="page-title">🛍️ ${t('nav_cart')}</h1>
+      <h1 class="page-title">${fe('🛍️',24)} ${t('nav_cart')}</h1>
       <p class="page-desc">${cart.length} ${t('cart_items_count')}</p>
     </div>
     <div class="cart-layout">
@@ -66,7 +66,7 @@ function cartItemHtml(i) {
         <button onclick="cartQty(${i.id}, 1)">+</button>
       </div>
       <div class="ci-sum">${Number(i.price * i.qty).toLocaleString()} ${t('currency')}</div>
-      <button class="ci-del" onclick="cartRemove(${i.id})" title="${t('remove')}">🗑️</button>
+      <button class="ci-del" onclick="cartRemove(${i.id})" title="${t('remove')}">${fe('🗑️',16)}</button>
     </div>
   `;
 }

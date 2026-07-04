@@ -13,6 +13,7 @@ async function renderProduct(id) {
   try {
     const p = await API.getProduct(id);
     const emoji = CAT_EMOJI[p.category] || '🥬';
+    const emojiHtml = fe(emoji, 20);
 
     const orderPanel = isBuyer ? `
       <div class="order-panel card">
@@ -51,11 +52,11 @@ async function renderProduct(id) {
       <div class="product-detail-layout">
         <div class="product-gallery">
           ${p.images?.length
-            ? `<img src="${p.images[0]}" alt="${p.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'gallery-ph',textContent:'${emoji}'}))" />`
-            : `<div class="gallery-ph">${emoji}</div>`}
-        </div>
-        <div class="product-info">
-          <span class="pi-cat">${emoji} ${p.category || ''}</span>
+            ? `<img src="${p.images[0]}" alt="${p.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'gallery-ph'}))" />`
+
+            : `<div class="gallery-ph">${emojiHtml}</div>`}
+
+          <span class="pi-cat">${emojiHtml} ${p.category || ''}</span>
           <h1>${p.name}</h1>
           <div class="price-big">${Number(p.price).toLocaleString('ru')} <small>${t('currency') || 'sum'} / ${p.unit || 'kg'}</small></div>
           <div class="pi-rating">${starsHtml(p.rating)}</div>
@@ -106,7 +107,7 @@ async function renderProduct(id) {
       });
     }
   } catch (e) {
-    content.innerHTML = `<div class="empty-state"><p>⚠️ ${e.message}</p></div>`;
+    content.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
   }
 }
 

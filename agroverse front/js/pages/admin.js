@@ -20,10 +20,10 @@ async function renderAdmin() {
       </div>
 
       <div class="admin-tabs">
-        <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')">🛂 ${t('admin_moderation')}</button>
-        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')">🚛 Йўлчи заявки</button>
-        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')">👥 ${t('admin_users')}</button>
-        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')">📈 ${t('admin_reports')}</button>
+        <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')">${fe('🛂',16)} ${t('admin_moderation')}</button>
+        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')">${fe('🚛',16)} Йўлчи заявки</button>
+        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')">${fe('👥',16)} ${t('admin_users')}</button>
+        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')">${fe('📈',16)} ${t('admin_reports')}</button>
       </div>
 
       <div id="admin-content"><div class="spinner"></div></div>
@@ -88,7 +88,7 @@ async function adminSwitchTab(tab) {
             <div class="admin-row" id="prow-${p.id}">
               <div class="ar-main">
                 <div class="ar-title">${p.title}</div>
-                <div class="ar-sub">${p.category || ''} · ${p.price_per_unit ?? p.price ?? 0} ${t('currency')} · 🌱 ${p.fermer_name || ''}</div>
+                <div class="ar-sub">${p.category || ''} · ${p.price_per_unit ?? p.price ?? 0} ${t('currency')} · ${fe('🌱',14)} ${p.fermer_name || ''}</div>
               </div>
               <div class="ar-actions">
                 <button class="btn-sm btn-approve" onclick="adminApprove(${p.id})">✓ ${t('approve')}</button>
@@ -108,12 +108,12 @@ async function adminSwitchTab(tab) {
       if (!couriers || couriers.length === 0) {
         box.innerHTML = `
           <div class="empty-state">
-            ✅ Нет ожидающих заявок от курьеров
+            ${fe('✅',16)} Нет ожидающих заявок от курьеров
           </div>`;
         return;
       }
       box.innerHTML = `
-        <h3 style="margin-bottom:16px;">🚛 Заявки Йўлчи (${couriers.length})</h3>
+        <h3 style="margin-bottom:16px;">${fe('🚛',16)} Заявки Йўлчи (${couriers.length})</h3>
         <div class="admin-list">
           ${couriers.map(c => {
             const truckLabel = {
@@ -126,25 +126,25 @@ async function adminSwitchTab(tab) {
             }[c.transport_type] || c.transport_type || '—';
 
             const rating = c.rating || 0;
-            const routeInfo = c.route_anywhere ? '🌍 Любое место → любое место'
+            const routeInfo = c.route_anywhere ? `${fe('🌍',14)} Любое место → любое место`
               : (c.route_from || c.route_to) ? `${c.route_from || '?'} → ${c.route_to || '?'}` : '';
 
             return `
             <div class="admin-row" id="crow-${c.id}">
               <div class="ar-main">
-                <div class="ar-title">🚛 ${c.full_name || 'Без имени'}</div>
+                <div class="ar-title">${fe('🚛',16)} ${c.full_name || 'Без имени'}</div>
                 <div class="ar-sub">
-                  📞 ${c.phone || '—'} &nbsp;·&nbsp;
-                  🏙️ ${c.city || '—'} &nbsp;·&nbsp;
+                  ${fe('📞',14)} ${c.phone || '—'} &nbsp;·&nbsp;
+                  ${fe('🏙️',14)} ${c.city || '—'} &nbsp;·&nbsp;
                   ${truckLabel} &nbsp;·&nbsp;
-                  ⚖️ ${c.max_weight ? c.max_weight + ' кг' : '—'} &nbsp;·&nbsp;
+                  ${fe('⚖️',14)} ${c.max_weight ? c.max_weight + ' кг' : '—'} &nbsp;·&nbsp;
                   ${c.experience_years ? c.experience_years + ' лет опыта' : 'Нет опыта'}
                 </div>
-                ${routeInfo ? `<div class="ar-sub" style="margin-top:4px;">🗺️ ${routeInfo}</div>` : ''}
-                ${c.address ? `<div class="ar-sub" style="margin-top:2px;">📍 ${c.address}</div>` : ''}
-                ${c.vehicle_number ? `<div class="ar-vehicle">🔢 Авто: ${c.vehicle_number}</div>` : ''}
-                ${c.license_info ? `<div class="ar-license">🪪 Права: ${c.license_info}</div>` : ''}
-                ${c.bio ? `<div class="ar-bio">📝 ${c.bio}</div>` : ''}
+                ${routeInfo ? `<div class="ar-sub" style="margin-top:4px;">${fe('🗺️',14)} ${routeInfo}</div>` : ''}
+                ${c.address ? `<div class="ar-sub" style="margin-top:2px;">${fe('📍',14)} ${c.address}</div>` : ''}
+                ${c.vehicle_number ? `<div class="ar-vehicle">${fe('🔢',14)} Авто: ${c.vehicle_number}</div>` : ''}
+                ${c.license_info ? `<div class="ar-license">${fe('🪪',14)} Права: ${c.license_info}</div>` : ''}
+                ${c.bio ? `<div class="ar-bio">${fe('📝',14)} ${c.bio}</div>` : ''}
                 <!-- Rating slider -->
                 <div style="margin-top:12px;display:flex;align-items:center;gap:12px;">
                   <label style="font-size:13px;font-weight:600;color:var(--txt-2);white-space:nowrap;">Рейтинг:</label>
@@ -154,7 +154,7 @@ async function adminSwitchTab(tab) {
                          style="flex:1;accent-color:var(--clr-primary);">
                   <span id="rating-val-${c.id}" style="font-weight:700;font-size:15px;min-width:32px;text-align:center;">${rating}</span>
                   <span style="font-size:12px;color:var(--txt-3);">/10</span>
-                  <button class="btn-sm btn-approve" onclick="adminSetRating(${c.id})" style="font-size:12px;padding:6px 12px;">💾</button>
+                  <button class="btn-sm btn-approve" onclick="adminSetRating(${c.id})" style="font-size:12px;padding:6px 12px;">${fe('💾',14)}</button>
                 </div>
               </div>
               <div class="ar-actions">
@@ -183,14 +183,14 @@ async function adminSwitchTab(tab) {
             return `
             <div class="admin-row ${blocked ? 'blocked' : ''}" id="urow-${u.id}">
               <div class="ar-main">
-                <div class="ar-title">${roleIcon(u.role)} ${u.name} ${blocked ? `<span class="blocked-tag">⛔ ${t('blocked_tag')}</span>` : ''}</div>
+                <div class="ar-title">${roleIcon(u.role)} ${u.name} ${blocked ? `<span class="blocked-tag">${fe('⛔',14)} ${t('blocked_tag')}</span>` : ''}</div>
                 <div class="ar-sub">${u.phone} · ${u.role}</div>
-                ${blocked && u.block_reason ? `<div class="ar-reason">📩 ${t('reason_word')}: ${u.block_reason}</div>` : ''}
+                ${blocked && u.block_reason ? `<div class="ar-reason">${fe('📩',14)} ${t('reason_word')}: ${u.block_reason}</div>` : ''}
               </div>
               <div class="ar-actions">
                 ${u.role === 'admin' ? '' : (blocked
                   ? `<button class="btn-sm btn-approve" onclick="adminUnblock(${u.id})">✓ ${t('unblock')}</button>`
-                  : `<button class="btn-sm btn-reject" onclick="adminBlock(${u.id})">⛔ ${t('block')}</button>`)}
+                  : `<button class="btn-sm btn-reject" onclick="adminBlock(${u.id})">${fe('⛔',14)} ${t('block')}</button>`)}
               </div>
             </div>`
           }).join('')}
@@ -221,7 +221,7 @@ async function adminSwitchTab(tab) {
   }
 }
 
-function roleIcon(r) { return r === 'fermer' ? '🌱' : r === 'admin' ? '👑' : '🛍️'; }
+function roleIcon(r) { return r === 'fermer' ? fe('🌱',16) : r === 'admin' ? fe('👑',16) : fe('🛍️',16); }
 
 // ─── Product moderation ────────────────────────────────────────────────────────
 
@@ -251,7 +251,7 @@ async function adminApproveCourier(id) {
     const rating = slider ? parseFloat(slider.value) : 0;
     await API.adminApproveCourier(id, rating);
     document.getElementById(`crow-${id}`)?.remove();
-    showToast(`Курьер одобрен, рейтинг: ${rating}/10 ✅`, 'success');
+    showToast(`Курьер одобрен, рейтинг: ${rating}/10 ${fe('✅',14)}`, 'success');
     loadAdminStats();
     adminSwitchTab('couriers');
   } catch (e) { showToast(e.message, 'error'); }
@@ -263,7 +263,7 @@ async function adminSetRating(id) {
   const rating = parseFloat(slider.value);
   try {
     await API.adminApproveCourier(id, rating);
-    showToast(`Рейтинг установлен: ${rating}/10 ✅`, 'success');
+    showToast(`Рейтинг установлен: ${rating}/10 ${fe('✅',14)}`, 'success');
   } catch (e) { showToast(e.message, 'error'); }
 }
 
@@ -326,13 +326,13 @@ function adminBlock(id) {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-box">
-      <div class="modal-ic">⛔</div>
+      <div class="modal-ic">${fe('⛔',32)}</div>
       <h3 class="modal-title">${t('block_user_title')}</h3>
       <p class="modal-desc">${t('block_user_desc')}</p>
       <textarea id="block-reason" class="modal-textarea" placeholder="${t('block_user_ph')}"></textarea>
       <div class="modal-actions">
         <button class="btn btn-ghost" id="block-cancel">${t('cancel')}</button>
-        <button class="btn btn-danger" id="block-confirm">⛔ ${t('block_action')}</button>
+        <button class="btn btn-danger" id="block-confirm">${fe('⛔',14)} ${t('block_action')}</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -346,10 +346,10 @@ function adminBlock(id) {
     try {
       await API.adminBlockUser(id, reason);
       close();
-      showToast(t('user_blocked_ok') + ' ⛔', 'success');
+      showToast(t('user_blocked_ok') + ' ' + fe('⛔',14), 'success');
       adminSwitchTab('users');
     } catch (e) {
-      btn.disabled = false; btn.textContent = '⛔ ' + t('block_action');
+      btn.disabled = false; btn.textContent = fe('⛔',14) + ' ' + t('block_action');
       showToast(e.message, 'error');
     }
   });

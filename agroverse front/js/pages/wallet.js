@@ -47,7 +47,7 @@ const WALLET_I18N = {
     err_exp:      "Amal qilish muddatini kiriting (MM/YY)",
     err_cvv:      "CVV kodni kiriting",
     processing:   'Yuklanmoqda…',
-    secure_note:  '🔒 Ma\'lumotlaringiz SSL orqali himoyalangan',
+    secure_note:  fe('🔒',14) + ' Ma\'lumotlaringiz SSL orqali himoyalangan',
   },
   ru: {
     title:        'Кошелёк',
@@ -94,7 +94,7 @@ const WALLET_I18N = {
     err_exp:      'Введите срок действия (ММ/ГГ)',
     err_cvv:      'Введите CVV код',
     processing:   'Обработка…',
-    secure_note:  '🔒 Ваши данные защищены SSL-шифрованием',
+    secure_note:  fe('🔒',14) + ' Ваши данные защищены SSL-шифрованием',
   },
   en: {
     title:        'Wallet',
@@ -141,7 +141,7 @@ const WALLET_I18N = {
     err_exp:      'Enter expiry date (MM/YY)',
     err_cvv:      'Enter CVV code',
     processing:   'Processing…',
-    secure_note:  '🔒 Your data is protected by SSL encryption',
+    secure_note:  fe('🔒',14) + ' Your data is protected by SSL encryption',
   },
 };
 
@@ -223,13 +223,13 @@ async function renderWallet() {
         </div>
 
         <button class="topup-submit" id="topup-btn" onclick="goToPayment()">
-          <span>💳</span> ${wt('btn_topup')}
+          <span>${fe('💳',16)}</span> ${wt('btn_topup')}
         </button>
       </div>
 
       <!-- История -->
       <div class="hist-block">
-        <h3>📋 ${wt('history')}</h3>
+        <h3>${fe('📋',18)} ${wt('history')}</h3>
         <div class="hist-list">
           ${mockHistory.map(h => `
             <div class="hist-item">
@@ -248,10 +248,10 @@ async function renderWallet() {
       <div class="how-block">
         <h3>${fe('ℹ️',18)} ${wt('how')}</h3>
         <ul class="how-list">
-          <li>🏅 ${wt('w1')}</li>
-          <li>➕ ${wt('w2')}</li>
-          <li>🛒 ${wt('w3')}</li>
-          <li>💸 ${wt('w4')}</li>
+          <li>${fe('🏅',14)} ${wt('w1')}</li>
+          <li>${fe('➕',14)} ${wt('w2')}</li>
+          <li>${fe('🛒',14)} ${wt('w3')}</li>
+          <li>${fe('💸',14)} ${wt('w4')}</li>
         </ul>
       </div>
     </div>
@@ -271,7 +271,7 @@ async function renderWallet() {
         <div class="wcard-sub">${wt('currency')}</div>
       </div>
       <div class="wcard points-card">
-        <div class="wcard-icon">🏅</div>
+        <div class="wcard-icon">${fe('🏅',28)}</div>
         <div class="wcard-label">${wt('bonus')}</div>
         <div class="wcard-value">${me.bonus_points || 0}</div>
         <div class="wcard-sub">${wt('points')}</div>
@@ -328,7 +328,7 @@ function renderPaymentForm(amount, method) {
           ← ${wt('pay_back')}
         </button>
         <div class="pay-header-title">
-          <span>${methodIcons[method] || '💳'}</span>
+          <span>${fe('💳',16)}</span>
           <span>${methodNames[method]?.[lang] || 'Bank kartasi'}</span>
         </div>
       </div>
@@ -353,7 +353,7 @@ function renderPaymentForm(amount, method) {
             <div class="cv-val" id="cv-expiry">••/••</div>
           </div>
           <div class="cv-logo">
-            ${method === 'uzcard' ? '🟡' : method === 'payme' ? '🟢' : method === 'click' ? '🔵' : '💳'}
+            ${method === 'uzcard' ? fe('🟡',20) : method === 'payme' ? fe('🟢',20) : method === 'click' ? fe('🔵',20) : fe('💳',20)}
           </div>
         </div>
       </div>
@@ -366,7 +366,7 @@ function renderPaymentForm(amount, method) {
         <div class="pay-field">
           <label>${wt('card_number')}</label>
           <div class="pay-input-wrap">
-            <span class="pi-icon">💳</span>
+            <span class="pi-icon">${fe('💳',16)}</span>
             <input
               type="text"
               id="pf-number"
@@ -381,7 +381,7 @@ function renderPaymentForm(amount, method) {
         <div class="pay-field">
           <label>${wt('card_holder')}</label>
           <div class="pay-input-wrap">
-            <span class="pi-icon">👤</span>
+            <span class="pi-icon">${fe('👤',16)}</span>
             <input
               type="text"
               id="pf-name"
@@ -397,7 +397,7 @@ function renderPaymentForm(amount, method) {
           <div class="pay-field">
             <label>${wt('card_expiry')}</label>
             <div class="pay-input-wrap">
-              <span class="pi-icon">📅</span>
+              <span class="pi-icon">${fe('📅',16)}</span>
               <input
                 type="text"
                 id="pf-expiry"
@@ -411,7 +411,7 @@ function renderPaymentForm(amount, method) {
           <div class="pay-field">
             <label>${wt('card_cvv')}</label>
             <div class="pay-input-wrap">
-              <span class="pi-icon">🔒</span>
+              <span class="pi-icon">${fe('🔒',16)}</span>
               <input
                 type="password"
                 id="pf-cvv"
