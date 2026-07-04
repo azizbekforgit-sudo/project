@@ -56,7 +56,7 @@ function injectStyles() {
       padding: clamp(80px,8vw,120px) clamp(28px,4vw,60px) clamp(60px,6vw,80px);
       width: 100%;
       display: grid;
-      grid-template-columns: 1fr 1.3fr;
+      grid-template-columns: 1.1fr 1.5fr;
       gap: 40px;
       align-items: center;
     }
@@ -71,16 +71,19 @@ function injectStyles() {
     .hero-dashboard {
       opacity: 0; transform: translateY(20px);
       transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
+      margin-left: -20px;
     }
     .hero-dashboard.visible { opacity: 1; transform: translateY(0); }
     .dash-card {
       background: #ffffff;
       border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 18px; padding: 24px;
+      border-radius: 18px; padding: 28px 30px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 520px;
     }
     .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .dash-url { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #9ca3af; font-family: monospace; }
+    .dash-url { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; font-family: monospace; }
     .dash-dot { width: 8px; height: 8px; border-radius: 50%; }
     .dash-live {
       background: rgba(22,163,74,0.1); color: var(--clr-green);
@@ -90,17 +93,17 @@ function injectStyles() {
       display: flex; align-items: center; gap: 5px;
     }
     .dash-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--clr-green); animation: pulse 2s ease-in-out infinite; }
-    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
     .dash-tile {
       background: rgba(22,163,74,0.05); border: 1px solid rgba(22,163,74,0.1);
-      border-radius: 12px; padding: 14px;
+      border-radius: 12px; padding: 16px;
       opacity: 0; transform: translateY(8px);
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
     .dash-tile.visible { opacity: 1; transform: translateY(0); }
-    .dash-tile-label { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-    .dash-tile-val { font-size: 13px; font-weight: 700; color: var(--clr-green); }
-    .dash-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; margin-bottom: 14px; }
+    .dash-tile-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .dash-tile-val { font-size: 14px; font-weight: 700; color: var(--clr-green); }
+    .dash-chart { display: flex; align-items: flex-end; gap: 4px; height: 70px; margin-bottom: 16px; }
     .dash-bar {
       flex: 1; border-radius: 2px 2px 0 0;
       background: linear-gradient(to top, var(--clr-green), #4ade80);
@@ -110,14 +113,14 @@ function injectStyles() {
     .dash-bar.visible { opacity: 0.6; transform: scaleY(1); }
     .dash-bar.hi.visible { opacity: 1; }
     .dash-footer {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(22,163,74,0.05); border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(22,163,74,0.05); border-radius: 12px; padding: 14px 18px;
       opacity: 0; transform: translateY(4px);
       transition: opacity 0.3s ease 0.5s, transform 0.3s ease 0.5s;
     }
     .dash-footer.visible { opacity: 1; transform: translateY(0); }
-    .dash-footer-ic { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--clr-green), #4ade80); display: grid; place-items: center; color: #fff; font-size: 14px; }
-    .dash-footer-text { font-size: 12px; }
+    .dash-footer-ic { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, var(--clr-green), #4ade80); display: grid; place-items: center; color: #fff; font-size: 15px; }
+    .dash-footer-text { font-size: 13px; }
     .dash-footer-text b { color: var(--clr-green); display: block; }
     .dash-footer-text span { color: #9ca3af; }
 
@@ -469,8 +472,8 @@ async function renderHome() {
               <div class="dash-live">Live</div>
             </div>
 
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
-            <div style="font-size:18px;font-weight:800;color:#0f1f12;margin-bottom:14px;">AI Insights</div>
+            <div style="font-size:12px;color:#9ca3af;margin-bottom:4px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
+            <div style="font-size:20px;font-weight:800;color:#0f1f12;margin-bottom:16px;">AI Insights</div>
 
             <div class="dash-grid">
               <div class="dash-tile">
