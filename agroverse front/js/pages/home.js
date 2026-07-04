@@ -16,6 +16,8 @@ const HOW_IT_WORKS = [
   { icon: 'fi fi-sr-leaf',          key: 'how_deliver' },
 ];
 
+const DASH_BARS = [30,42,38,55,48,62,58,70,65,80,75,88,82,100];
+
 /* ── Animated counter ── */
 function animateCounter(el, target, duration, suffix = '') {
   if (!el) return;
@@ -210,31 +212,26 @@ function injectStyles() {
 
 /* ── Hero text word-by-word entrance ── */
 function animateHeroText() {
-  // Badge
   const badge = document.querySelector('.hero-badge-anim');
   if (badge) setTimeout(() => badge.classList.add('in'), 100);
 
-  // H1 words — each span.hero-word appears sequentially
   const words = document.querySelectorAll('.hero-word');
   words.forEach((w, i) => {
     setTimeout(() => w.classList.add('in'), 250 + i * 80);
   });
 
-  // Sub paragraph
   const sub = document.querySelector('.hero-sub-anim');
   if (sub) {
     const delay = 250 + words.length * 80 + 80;
     setTimeout(() => sub.classList.add('in'), delay);
   }
 
-  // Actions (buttons)
   const actions = document.querySelector('.hero-actions-anim');
   if (actions) {
     const delay = 250 + words.length * 80 + 200;
     setTimeout(() => actions.classList.add('in'), delay);
   }
 
-  // Stats
   document.querySelectorAll('.hero-stat-item').forEach((el, i) => {
     const delay = 400 + words.length * 80 + i * 150;
     setTimeout(() => el.classList.add('visible'), delay);
@@ -246,7 +243,6 @@ function splitHeroH1() {
   const h1 = document.querySelector('.hero-content h1');
   if (!h1) return;
 
-  // We need to split text nodes only, preserving <span> children
   const processNode = (node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       const words = node.textContent.split(/(\s+)/);
@@ -263,7 +259,6 @@ function splitHeroH1() {
       });
       node.parentNode.replaceChild(frag, node);
     } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
-      // wrap the whole span as one word unit
       const wrapper = document.createElement('span');
       wrapper.className = 'hero-word';
       node.parentNode.insertBefore(wrapper, node);
@@ -271,7 +266,6 @@ function splitHeroH1() {
     }
   };
 
-  // Clone children list (live list changes during iteration)
   [...h1.childNodes].forEach(processNode);
 }
 
@@ -333,7 +327,6 @@ function animateDashboard() {
 
 /* ── Scroll Reveal via IntersectionObserver ── */
 function initScrollReveal() {
-  // how-card, tip-card, benefit-card, promo, section-head get staggered delays
   const staggerGroups = [
     { sel: '.how-card',      baseDelay: 0 },
     { sel: '.tip-card',      baseDelay: 0 },
@@ -355,10 +348,7 @@ function initScrollReveal() {
     });
   });
 
-  // Other scroll-reveal elements
-  const otherSelectors = [
-    '.cat-card', '.product-card', '.section-head',
-  ];
+  const otherSelectors = ['.cat-card', '.product-card', '.section-head'];
   otherSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach((el, i) => {
       if (!el.classList.contains('scroll-reveal')) {
@@ -373,7 +363,6 @@ function initScrollReveal() {
     '.how-card, .tip-card, .benefit-card, .promo, .section-head'
   );
 
-  // Observe everything — с поддержкой fade-out при уходе вверх
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -382,10 +371,8 @@ function initScrollReveal() {
       } else {
         const rect = e.target.getBoundingClientRect();
         if (rect.bottom < 0) {
-          // Ушёл вверх — затухаем
           e.target.classList.add('fade-out');
         } else {
-          // Ещё ниже экрана — сброс для повторной анимации при скролле
           e.target.classList.remove('revealed');
           e.target.classList.remove('fade-out');
         }
@@ -394,7 +381,6 @@ function initScrollReveal() {
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
   allRevealEls.forEach(el => {
-    // Если элемент уже виден при загрузке — сразу показываем без анимации
     const rect = el.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       el.style.transitionDuration = '0s';
@@ -457,44 +443,44 @@ async function renderHome() {
               <span>${t('middlemen0')}</span>
             </div>
           </div>
-          </div>
         </div>
 
         <div class="hero-dashboard">
           <div class="dash-card">
             <div class="dash-top">
-              <div class="dash-dot" style="background:#ff5f57;"></div>
-              <div class="dash-dot" style="background:#febc2e;"></div>
-              <div class="dash-dot" style="background:#28c840;"></div>
-              <span style="margin-left:6px;">agroverse.uz/dashboard</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="dash-dot" style="background:#ff5f57;"></div>
+                <div class="dash-dot" style="background:#febc2e;"></div>
+                <div class="dash-dot" style="background:#28c840;"></div>
+                <span class="dash-url" style="margin-left:6px;">agroverse.uz/dashboard</span>
               </div>
               <div class="dash-live">Live</div>
             </div>
 
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
-            <div style="font-size:18px;font-weight:800;color:#0f1f12;margin-bottom:14px;">AI Insights</div>
+            <div style="font-size:13px;color:#9ca3af;margin-bottom:5px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
+            <div style="font-size:22px;font-weight:800;color:#0f1f12;margin-bottom:18px;">AI Insights</div>
 
             <div class="dash-grid">
               <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-leaf" style="color:#10b981;font-size:9px;"></i> ${isFarmer ? 'MAHSULOT' : 'AI AGRONOM'}</div>
+                <div class="dash-tile-label"><i class="fi fi-sr-leaf" style="color:#10b981;font-size:11px;"></i> ${isFarmer ? 'MAHSULOT' : 'AI AGRONOM'}</div>
                 <div class="dash-tile-val" id="dash-val-1">${isFarmer ? '0 ta' : "Sug'orish: optimal"}</div>
               </div>
               <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-store-alt" style="color:#10b981;font-size:9px;"></i> MARKETPLACE</div>
+                <div class="dash-tile-label"><i class="fi fi-sr-store-alt" style="color:#10b981;font-size:11px;"></i> MARKETPLACE</div>
                 <div class="dash-tile-val" id="dash-val-2">+0 ta order</div>
               </div>
               <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-truck-side" style="color:#10b981;font-size:9px;"></i> LOGISTICS</div>
+                <div class="dash-tile-label"><i class="fi fi-sr-truck-side" style="color:#10b981;font-size:11px;"></i> LOGISTICS</div>
                 <div class="dash-tile-val" id="dash-val-3">0 marshrut</div>
               </div>
               <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-chart-histogram" style="color:#10b981;font-size:9px;"></i> ANALYTICS</div>
+                <div class="dash-tile-label"><i class="fi fi-sr-chart-histogram" style="color:#10b981;font-size:11px;"></i> ANALYTICS</div>
                 <div class="dash-tile-val" id="dash-val-4">GMV +0%</div>
               </div>
             </div>
 
             <div class="dash-chart">
-              ${barHeights.map((h, i) => `<div class="dash-bar ${h >= 90 ? 'hi' : ''}" style="height:${h}%;transition-delay:${0.5 + i * 0.04}s;"></div>`).join('')}
+              ${DASH_BARS.map((h, i) => '<div class="dash-bar ' + (h >= 90 ? 'hi' : '') + '" style="height:' + h + '%;transition-delay:' + (0.5 + i * 0.04) + 's;"></div>').join('')}
             </div>
 
             <div class="dash-footer">
@@ -505,6 +491,7 @@ async function renderHome() {
               </div>
             </div>
           </div>
+        </div>
       </div>
     </section>
 
@@ -647,7 +634,6 @@ async function renderHome() {
       return;
     }
     grid.innerHTML = products.slice(0, 8).map(productCardHtml).join('');
-    // Reveal product cards after they render
     setTimeout(initScrollReveal, 50);
   } catch (e) {
     if (e.message === 'BLOCKED') return;
