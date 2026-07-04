@@ -460,7 +460,7 @@ async function renderHome() {
           </div>
         </div>
 
-<div class="hero-dashboard">
+        <div class="hero-dashboard">
           <div class="dash-card">
             <div class="dash-top">
               <div class="dash-dot" style="background:#ff5f57;"></div>
