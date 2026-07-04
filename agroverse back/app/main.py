@@ -80,8 +80,44 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
+        # ── Миграция из легаси main.py (если таблица создана монолитом) ──
         try:
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"))
+        except Exception:
+            pass
+        # Копируем password → password_hash если password_hash пуст
+        try:
+            await conn.execute(text(
+                "UPDATE users SET password_hash = password WHERE password_hash IS NULL OR password_hash = ''"
+            ))
+        except Exception:
+            pass
+        # Конвертируем is_blocked → is_active если is_active не установлен
+        try:
+            await conn.execute(text(
+                "UPDATE users SET is_active = (is_blocked != 'true') WHERE is_active IS NULL"
+            ))
+        except Exception:
+            pass
+        # Добавляем tariff если нет
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS tariff VARCHAR(20) DEFAULT 'standart'"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_points INTEGER DEFAULT 0"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance NUMERIC(12,2) DEFAULT 0"))
         except Exception:
             pass
     await seed_admin()

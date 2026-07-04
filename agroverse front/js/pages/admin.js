@@ -369,6 +369,7 @@ window.adminSwitchTab       = adminSwitchTab;
 window.adminApprove         = adminApprove;
 window.adminReject          = adminReject;
 window.adminApproveCourier  = adminApproveCourier;
+window.adminSetRating       = adminSetRating;
 window.adminRejectCourier   = adminRejectCourier;
 window.adminBlock           = adminBlock;
 window.adminUnblock         = adminUnblock;
