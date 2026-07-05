@@ -133,7 +133,7 @@ const API = {
     if (data instanceof FormData) return request('POST', '/api/products/', { formData: data });
     return request('POST', '/api/products/', { body: data });
   },
-  updateProduct: (id, body) => request('PATCH', `/api/products/${id}`, { body }),
+  updateProduct: (id, body) => request('PUT', `/api/products/${id}`, { body }),
   deleteProduct: (id)       => request('DELETE', `/api/products/${id}`),
 
   // Orders
