@@ -102,7 +102,7 @@ async def get_payment_history(
         history.append({
             "type": "payment",
             "amount": float(order.total_price),
-            "status": order.status.value,
+            "status": str(order.status),
             "order_id": order.id,
             "created_at": order.created_at.isoformat() if order.created_at else None
         })

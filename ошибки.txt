@@ -1,694 +1,694 @@
-2026-07-05T05:29:15.097222966Z [inf]  Starting Container
-2026-07-05T05:29:15.893497060Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:15.893502480Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:15.893508470Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:15.893514620Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:15.893531790Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:15.894459038Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:15.894467688Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:15.894473998Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:15.894479178Z [err]  KeyError: 'admin'
-2026-07-05T05:29:15.894486698Z [err]  
-2026-07-05T05:29:15.894492408Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:15.894498758Z [err]  
-2026-07-05T05:29:15.894504718Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:15.894510327Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:15.894516017Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:15.894531737Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:15.894543207Z [err]      return await anext(self.gen)
-2026-07-05T05:29:15.894548787Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.894554707Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:15.894560647Z [err]      await seed_admin()
-2026-07-05T05:29:15.894566027Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:15.894572287Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:15.894578057Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.894584477Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:15.894590406Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:15.894596316Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.894602276Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:15.896060167Z [err]      result = context.switch(value)
-2026-07-05T05:29:15.896061927Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896067097Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896071537Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:15.896076986Z [err]      return self._execute_internal(
-2026-07-05T05:29:15.896081726Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896086526Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:15.896091036Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:15.896094336Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896098696Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:15.896103116Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:15.896107476Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896111416Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:15.896116056Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:15.896120026Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896124006Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:15.896128086Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:15.896132166Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.896136696Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:15.896141036Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:15.897252461Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:15.897276451Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:15.897284571Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.897290841Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:15.897297911Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:15.897304491Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:15.897310271Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:15.897316391Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:15.897322071Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:15.897328191Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:15.897333850Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:15.897339350Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:15.897344890Z [err]      raise LookupError(
-2026-07-05T05:29:15.897362850Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:15.897368930Z [err]  
-2026-07-05T05:29:15.897374530Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:18.267836171Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:18.267844701Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:18.813843808Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:18.813847048Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:18.813851098Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:18.813854448Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:18.814517379Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:18.814532719Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:18.814539279Z [err]  KeyError: 'admin'
-2026-07-05T05:29:18.814546709Z [err]  
-2026-07-05T05:29:18.814552979Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:18.814559649Z [err]  
-2026-07-05T05:29:18.814566179Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:18.814571179Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:18.814578629Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:18.814584238Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:18.814588758Z [err]      return await anext(self.gen)
-2026-07-05T05:29:18.814593758Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.814598238Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:18.814603078Z [err]      await seed_admin()
-2026-07-05T05:29:18.814607578Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:18.814614668Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:18.814620198Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.814625828Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:18.814631118Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:18.814635708Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.814640468Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:18.814645418Z [err]      result = context.switch(value)
-2026-07-05T05:29:18.815426407Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815440577Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815440707Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:18.815451497Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:18.815458126Z [err]      return self._execute_internal(
-2026-07-05T05:29:18.815463346Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815467806Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:18.815472856Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:18.815477466Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815483616Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:18.815488336Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:18.815492316Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815495886Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:18.815499816Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:18.815503816Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815507766Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:18.815512216Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:18.815516236Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815519896Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:18.815523906Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:18.815613444Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:18.815617784Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:18.815621014Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815624254Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:18.815627464Z [err]      raise LookupError(
-2026-07-05T05:29:18.815631784Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:18.815634674Z [err]  
-2026-07-05T05:29:18.815637114Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:18.815641304Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:18.815645114Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:18.815648144Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:18.815650934Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:18.815656984Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:18.815659894Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:18.815662654Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:20.980394366Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:20.980403526Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:21.419498296Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:21.419502846Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:21.419507356Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:21.419512306Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:21.421878535Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:21.421884035Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:21.421887295Z [err]  KeyError: 'admin'
-2026-07-05T05:29:21.422097832Z [err]  
-2026-07-05T05:29:21.422103772Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:21.422107252Z [err]  
-2026-07-05T05:29:21.422110702Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:21.422114172Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:21.422117912Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:21.422121421Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:21.422124911Z [err]      return await anext(self.gen)
-2026-07-05T05:29:21.422128021Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.422130921Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:21.422133701Z [err]      await seed_admin()
-2026-07-05T05:29:21.422136751Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:21.422141241Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:21.422144541Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.422148021Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:21.422152181Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:21.422155181Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.422158321Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:21.422161720Z [err]      result = context.switch(value)
-2026-07-05T05:29:21.423236787Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423242847Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:21.423246467Z [err]      return self._execute_internal(
-2026-07-05T05:29:21.423250227Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423253407Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:21.423257696Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:21.423260926Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423264266Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:21.423267426Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:21.423270546Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423273446Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:21.423276296Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:21.423279896Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423282786Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:21.423286056Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:21.423288806Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423291356Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:21.423294826Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:21.423297866Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.423300756Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:21.425618965Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:21.425625895Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.425629865Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:21.425633445Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:21.425636565Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:21.425639425Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:21.425655275Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:21.425658815Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:21.425662065Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:21.425665335Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:21.425668885Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:21.425671525Z [err]      raise LookupError(
-2026-07-05T05:29:21.425674425Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:21.425678535Z [err]  
-2026-07-05T05:29:21.425682545Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:23.938161508Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:23.938166238Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:24.019777487Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:24.019790776Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:24.032945504Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:24.032945524Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:24.032954424Z [err]      await seed_admin()
-2026-07-05T05:29:24.032959114Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:24.032960704Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:24.032965514Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:24.032965544Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:24.032969984Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.032971024Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:24.032974914Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:24.032975764Z [err]  KeyError: 'admin'
-2026-07-05T05:29:24.032980034Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:24.032984914Z [err]  
-2026-07-05T05:29:24.032985344Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.032988954Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:24.032993103Z [err]  
-2026-07-05T05:29:24.032997533Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:24.033001973Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:24.033005673Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:24.033009153Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:24.033012723Z [err]      return await anext(self.gen)
-2026-07-05T05:29:24.033015913Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034559833Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:24.034568223Z [err]      result = context.switch(value)
-2026-07-05T05:29:24.034573953Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034578893Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:24.034584003Z [err]      return self._execute_internal(
-2026-07-05T05:29:24.034588643Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034597733Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:24.034601843Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:24.034606773Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034611183Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:24.034615753Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:24.034619383Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034623393Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:24.034628972Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:24.034632772Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034639211Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:24.034643061Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:24.034647401Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.034651921Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:24.035565710Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:24.035570780Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.035575690Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:24.035580479Z [err]      raise LookupError(
-2026-07-05T05:29:24.035583529Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:24.035585149Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:24.035590469Z [err]  
-2026-07-05T05:29:24.035590769Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.035595349Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:24.035595629Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:24.035599159Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:24.035603289Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:24.035607589Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:24.035611559Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:24.035615109Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:24.035618659Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:24.035622939Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:24.035627019Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:26.530450975Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:26.530456585Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:27.014748144Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:27.014751944Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:27.014755834Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:27.014761583Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:27.016943245Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:27.016949155Z [err]      result = context.switch(value)
-2026-07-05T05:29:27.016974284Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:27.016987214Z [err]      await seed_admin()
-2026-07-05T05:29:27.016993604Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:27.016999314Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:27.017004614Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.017009594Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:27.017014774Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:27.017018554Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.017073733Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:27.017082843Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:27.017087243Z [err]  KeyError: 'admin'
-2026-07-05T05:29:27.017094573Z [err]  
-2026-07-05T05:29:27.017099013Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:27.017103213Z [err]  
-2026-07-05T05:29:27.017107183Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:27.017110902Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:27.017114662Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:27.017118392Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:27.017123292Z [err]      return await anext(self.gen)
-2026-07-05T05:29:27.017126832Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018051540Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018067100Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:27.018075070Z [err]      return self._execute_internal(
-2026-07-05T05:29:27.018087470Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018094310Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:27.018104910Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:27.018113810Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018121380Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:27.018134099Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:27.018142559Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018147899Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:27.018162119Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:27.018168139Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018180179Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:27.018186589Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:27.018192219Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018203169Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:27.018209048Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:27.018214218Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.018221048Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:27.019452562Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:27.019453482Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:27.019463271Z [err]  
-2026-07-05T05:29:27.019465521Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.019472651Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:27.019474081Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:27.019478611Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:27.019482991Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:27.019486551Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:27.019490401Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:27.019493531Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:27.019497321Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:27.019500351Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:27.019505091Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:27.019508001Z [err]      raise LookupError(
-2026-07-05T05:29:29.274658124Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:29.274665214Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:29.706071236Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:29.706075346Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:29.728738458Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:29.728743188Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:29.728746268Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:29.728751838Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:29.728751978Z [err]      await seed_admin()
-2026-07-05T05:29:29.728757138Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:29.728757418Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:29.728762208Z [err]  KeyError: 'admin'
-2026-07-05T05:29:29.728762528Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:29.728766948Z [err]  
-2026-07-05T05:29:29.728771078Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:29.728776388Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.728776918Z [err]  
-2026-07-05T05:29:29.728781248Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:29.728781338Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:29.728785718Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:29.728786028Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:29.728790378Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:29.728791668Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.728795118Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:29.728798928Z [err]      return await anext(self.gen)
-2026-07-05T05:29:29.728802418Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729555158Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:29.729560328Z [err]      result = context.switch(value)
-2026-07-05T05:29:29.729564738Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729564758Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:29.729568398Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:29.729570878Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:29.729573068Z [err]      return self._execute_internal(
-2026-07-05T05:29:29.729576608Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729580938Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:29.729581298Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729585498Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:29.729585958Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:29.729590738Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729590968Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:29.729594977Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:29.729596747Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.729599237Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:29.729601317Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:29.729604337Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.730724962Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:29.730733852Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:29.730739312Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:29.730739702Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.730744002Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.730745692Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:29.730749192Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:29.730750382Z [err]      raise LookupError(
-2026-07-05T05:29:29.730755352Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:29.730760022Z [err]  
-2026-07-05T05:29:29.730764302Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:29.730764372Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:29.730768331Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:29.730774801Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:29.730778441Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:29.730781751Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:29.730785411Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:29.730789081Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:33.044212948Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:33.044216918Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:33.299105706Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:33.299110316Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:33.311758880Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:33.311772230Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:33.311776710Z [err]      return await anext(self.gen)
-2026-07-05T05:29:33.311780309Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.311784639Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:33.311789939Z [err]      await seed_admin()
-2026-07-05T05:29:33.311793869Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:33.311797349Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:33.311801549Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.311806149Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:33.311810469Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:33.311813719Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:33.311814979Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.311819289Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:33.311822829Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:33.311826899Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:33.311830199Z [err]  KeyError: 'admin'
-2026-07-05T05:29:33.311833399Z [err]  
-2026-07-05T05:29:33.311836289Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:33.311839239Z [err]  
-2026-07-05T05:29:33.311842729Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:33.311845679Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:33.312810525Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:33.312819025Z [err]      result = context.switch(value)
-2026-07-05T05:29:33.312823645Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312827475Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:33.312831405Z [err]      return self._execute_internal(
-2026-07-05T05:29:33.312836935Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312840295Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:33.312843525Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:33.312848025Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312851725Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:33.312854845Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:33.312857405Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312860445Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:33.312863365Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:33.312866145Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312869035Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:33.312871545Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:33.312874325Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.312876895Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:33.314002230Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:33.314007640Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:33.314008760Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.314010430Z [err]      raise LookupError(
-2026-07-05T05:29:33.314013590Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:33.314015840Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:33.314015900Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:33.314018380Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:33.314019750Z [err]  
-2026-07-05T05:29:33.314021160Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:33.314023310Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.314023370Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:33.314026340Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:33.314031060Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:33.314035540Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:33.314039840Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:33.314044110Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:33.314048280Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:35.510373858Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:35.510378698Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:36.241237935Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:36.241242295Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:36.241246854Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:36.241251084Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:36.242519527Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:36.242525147Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:36.242528877Z [err]  KeyError: 'admin'
-2026-07-05T05:29:36.242532777Z [err]  
-2026-07-05T05:29:36.242536297Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:36.242540407Z [err]  
-2026-07-05T05:29:36.242545197Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:36.242548477Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:36.242549557Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:36.242553687Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:36.242557297Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:36.242561517Z [err]      return await anext(self.gen)
-2026-07-05T05:29:36.242568547Z [err]      result = context.switch(value)
-2026-07-05T05:29:36.242568887Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.242575037Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:36.242579367Z [err]      await seed_admin()
-2026-07-05T05:29:36.242582637Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:36.242585767Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:36.242588866Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.242592216Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:36.242594956Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:36.242597636Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243681973Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:36.243694162Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243703352Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:36.243706902Z [err]      return self._execute_internal(
-2026-07-05T05:29:36.243710572Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243714032Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:36.243718122Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:36.243721652Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243725422Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:36.243728952Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:36.243732512Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243736042Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:36.243739122Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:36.243742792Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243746032Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:36.243749322Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:36.243752922Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.243755972Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:36.243759582Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:36.243763242Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.244589770Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:36.244594850Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.244598380Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:36.244601660Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:36.244605570Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:36.244609350Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:36.244613400Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:36.244616660Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:36.244620430Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:36.244623470Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:36.244627100Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:36.244632260Z [err]      raise LookupError(
-2026-07-05T05:29:36.244635450Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:36.244638510Z [err]  
-2026-07-05T05:29:36.244641860Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:38.421729773Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:38.421733843Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:38.823561884Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:38.823571024Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:38.846879708Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:38.846892128Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:38.846898898Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:38.846907088Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:38.846911728Z [err]  KeyError: 'admin'
-2026-07-05T05:29:38.846917178Z [err]  
-2026-07-05T05:29:38.846921438Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:38.846925718Z [err]  
-2026-07-05T05:29:38.846929487Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:38.846934257Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:38.846938487Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:38.846942577Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:38.846946587Z [err]      return await anext(self.gen)
-2026-07-05T05:29:38.846950477Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.846954467Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:38.846958077Z [err]      await seed_admin()
-2026-07-05T05:29:38.846962377Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:38.846967347Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:38.846971257Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.846975107Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:38.846978877Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:38.846982357Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848259201Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:38.848268600Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:38.848270390Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848278530Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:38.848280010Z [err]      result = context.switch(value)
-2026-07-05T05:29:38.848284540Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848288840Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:38.848292530Z [err]      return self._execute_internal(
-2026-07-05T05:29:38.848297690Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848302070Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:38.848305990Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:38.848309770Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848313110Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:38.848316870Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:38.848320260Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848323290Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:38.848329440Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:38.848332910Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.848338779Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:38.849808410Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:38.849815620Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.849819780Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:38.849823860Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:38.849828499Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.849832249Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:38.849836979Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:38.849840589Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:38.849845209Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:38.849850579Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:38.849855159Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:38.849859939Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:38.849864459Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:38.849869749Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:38.849874499Z [err]      raise LookupError(
-2026-07-05T05:29:38.849879609Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:38.849884719Z [err]  
-2026-07-05T05:29:38.849889289Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:40.969613847Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:40.969618316Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:41.531643188Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:41.531653138Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:41.531739707Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:41.531745327Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:41.534016087Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:41.534023097Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:41.534169625Z [err]  KeyError: 'admin'
-2026-07-05T05:29:41.534177835Z [err]  
-2026-07-05T05:29:41.534183905Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:41.534187965Z [err]  
-2026-07-05T05:29:41.534191925Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:41.534196335Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:41.534200535Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:41.534206085Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:41.534211004Z [err]      return await anext(self.gen)
-2026-07-05T05:29:41.534214694Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534218494Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:41.534222304Z [err]      await seed_admin()
-2026-07-05T05:29:41.534225894Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:41.534230514Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:41.534234934Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534238774Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:41.534242624Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:41.534246394Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534250674Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:41.534254164Z [err]      result = context.switch(value)
-2026-07-05T05:29:41.534913965Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:41.534921534Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:41.534926774Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534931654Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:41.534935874Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:41.534940594Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534940944Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534945134Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:41.534945294Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:41.534949234Z [err]      return self._execute_internal(
-2026-07-05T05:29:41.534950194Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:41.534953604Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534955454Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534958564Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:41.534959854Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:41.534962324Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:41.534966234Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.534970794Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:41.534975094Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:41.534979464Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.535622545Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:41.535626625Z [err]  
-2026-07-05T05:29:41.535633255Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.535636455Z [err]  ERROR:    Application startup failed. Exiting.
-2026-07-05T05:29:41.535640145Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:41.535644245Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:41.535648145Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:41.535652005Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:41.535656405Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:41.535660315Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:41.535665025Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:41.535668955Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:41.535673205Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:41.535677575Z [err]      raise LookupError(
-2026-07-05T05:29:41.535681285Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:44.535656924Z [err]  INFO:     Started server process [2]
-2026-07-05T05:29:44.535662414Z [err]  INFO:     Waiting for application startup.
-2026-07-05T05:29:44.611405971Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:44.611411951Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
-2026-07-05T05:29:44.611415161Z [err]  ERROR:    Traceback (most recent call last):
-2026-07-05T05:29:44.611418051Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
-2026-07-05T05:29:44.612831832Z [err]      return self._object_lookup[elem]
-2026-07-05T05:29:44.612846231Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
-2026-07-05T05:29:44.612851551Z [err]  KeyError: 'admin'
-2026-07-05T05:29:44.612857241Z [err]  
-2026-07-05T05:29:44.612861161Z [err]  The above exception was the direct cause of the following exception:
-2026-07-05T05:29:44.612864731Z [err]  
-2026-07-05T05:29:44.612868741Z [err]  Traceback (most recent call last):
-2026-07-05T05:29:44.612873201Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
-2026-07-05T05:29:44.612877631Z [err]      async with self.lifespan_context(app) as maybe_state:
-2026-07-05T05:29:44.612882161Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
-2026-07-05T05:29:44.612885891Z [err]      return await anext(self.gen)
-2026-07-05T05:29:44.612890091Z [err]             ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.612893661Z [err]    File "/app/app/main.py", line 123, in lifespan
-2026-07-05T05:29:44.612897621Z [err]      await seed_admin()
-2026-07-05T05:29:44.612900891Z [err]    File "/app/app/main.py", line 30, in seed_admin
-2026-07-05T05:29:44.612905031Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-2026-07-05T05:29:44.612908491Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.612912601Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
-2026-07-05T05:29:44.612917180Z [err]      result = await greenlet_spawn(
-2026-07-05T05:29:44.612920780Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.612924550Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
-2026-07-05T05:29:44.612928270Z [err]      result = context.switch(value)
-2026-07-05T05:29:44.614125035Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
-2026-07-05T05:29:44.614130475Z [err]      return loading.instances(result, querycontext)
-2026-07-05T05:29:44.614134765Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614139045Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
-2026-07-05T05:29:44.614143935Z [err]      _prebuffered = list(chunks(None))
-2026-07-05T05:29:44.614149795Z [err]                     ^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614154245Z [err]               ^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614154625Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
-2026-07-05T05:29:44.614167135Z [err]      fetch = cursor._raw_all_rows()
-2026-07-05T05:29:44.614168055Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
-2026-07-05T05:29:44.614175004Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614175874Z [err]      return self._execute_internal(
-2026-07-05T05:29:44.614183674Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614183864Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
-2026-07-05T05:29:44.614189564Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
-2026-07-05T05:29:44.614193334Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
-2026-07-05T05:29:44.614196364Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.614200514Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
-2026-07-05T05:29:44.614204464Z [err]      return cls.orm_setup_cursor_result(
-2026-07-05T05:29:44.614207634Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.615483267Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:44.615490427Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.615495547Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
-2026-07-05T05:29:44.615499677Z [err]      return [make_row(row) for row in rows]
-2026-07-05T05:29:44.615503737Z [err]              ^^^^^^^^^^^^^
-2026-07-05T05:29:44.615508187Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
-2026-07-05T05:29:44.615512387Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
-2026-07-05T05:29:44.615516237Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
-2026-07-05T05:29:44.615521156Z [err]      value = self._object_value_for_elem(value)
-2026-07-05T05:29:44.615524696Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-07-05T05:29:44.615528556Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
-2026-07-05T05:29:44.615533216Z [err]      raise LookupError(
-2026-07-05T05:29:44.615537296Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
-2026-07-05T05:29:44.615541636Z [err]  
-2026-07-05T05:29:44.615546146Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:18.596003903Z [inf]  Starting Container
+2026-07-05T05:50:19.303983069Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:19.303987669Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:19.303992909Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:19.303997889Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:19.304002908Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:19.305119343Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:19.305124193Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:19.305136673Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:19.305136893Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:19.305136903Z [err]  
+2026-07-05T05:50:19.305139863Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:19.305148602Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:19.305149162Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:19.305150352Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:19.305150792Z [err]  KeyError: 'admin'
+2026-07-05T05:50:19.305150892Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:19.305156452Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305159092Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:19.305165112Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:19.305165542Z [err]  
+2026-07-05T05:50:19.305167362Z [err]      return await anext(self.gen)
+2026-07-05T05:50:19.305172912Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305177402Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:19.305182092Z [err]      await seed_admin()
+2026-07-05T05:50:19.305186223Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:19.305190793Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:19.305194573Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305648387Z [err]      result = context.switch(value)
+2026-07-05T05:50:19.305651016Z [err]      return self._execute_internal(
+2026-07-05T05:50:19.305653716Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:19.305654596Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:19.305660576Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305662856Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:19.305665006Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305666326Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:19.305666716Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:19.305673656Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:19.305676166Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305676846Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305677896Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:19.305679966Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305687426Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:19.305687446Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:19.305689016Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:19.305693716Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:19.305698566Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.305701886Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.306783511Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:19.306790951Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:19.306796091Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.306801450Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:19.306806190Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:19.306810240Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:19.306814600Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:19.306818600Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:19.306822750Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:19.306826900Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:19.306836370Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:19.306840860Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:19.306854100Z [err]      raise LookupError(
+2026-07-05T05:50:19.306859150Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:19.306863450Z [err]  
+2026-07-05T05:50:19.306868260Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:20.850608835Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:20.850619265Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:21.127355269Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:21.127361019Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:21.140858576Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:21.140858706Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:21.140865436Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.140867106Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:21.140872236Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:21.140876596Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:21.140881186Z [err]  KeyError: 'admin'
+2026-07-05T05:50:21.140886886Z [err]  
+2026-07-05T05:50:21.140901556Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:21.140913796Z [err]  
+2026-07-05T05:50:21.140919096Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:21.140922976Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:21.140928075Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:21.140932275Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:21.140936125Z [err]      return await anext(self.gen)
+2026-07-05T05:50:21.140939635Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.140943025Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:21.140946775Z [err]      await seed_admin()
+2026-07-05T05:50:21.140949985Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:21.140953715Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:21.140965165Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.140968485Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:21.141503028Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:21.141507907Z [err]      result = context.switch(value)
+2026-07-05T05:50:21.141510727Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141513207Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:21.141515987Z [err]      return self._execute_internal(
+2026-07-05T05:50:21.141519157Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141522387Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:21.141524967Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:21.141528347Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141530787Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:21.141533447Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:21.141536397Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141539097Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:21.141541817Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:21.141544127Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141546857Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:21.141549537Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:21.141552907Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.141555497Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:21.142484805Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:21.142492215Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.142497495Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:21.142502975Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:21.142508315Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.142512965Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:21.142518314Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:21.142523334Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:21.142528064Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:21.142532994Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:21.142537714Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:21.142542294Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:21.142546664Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:21.142551084Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:21.142556044Z [err]      raise LookupError(
+2026-07-05T05:50:21.142560844Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:21.142566214Z [err]  
+2026-07-05T05:50:21.142571254Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:23.366250235Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:23.366254495Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:23.674839370Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:23.675409403Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:23.687973883Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:23.687978033Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:23.687981073Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:23.687984133Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:23.687985263Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:23.687988603Z [err]  KeyError: 'admin'
+2026-07-05T05:50:23.687990333Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.687992693Z [err]  
+2026-07-05T05:50:23.687996693Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:23.687996933Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:23.688002303Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:23.688003243Z [err]  
+2026-07-05T05:50:23.688003633Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:23.688008643Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:23.688010743Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.688016413Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:23.688018973Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:23.688025352Z [err]      return await anext(self.gen)
+2026-07-05T05:50:23.688031242Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.688036432Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:23.688040692Z [err]      await seed_admin()
+2026-07-05T05:50:23.688044462Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:23.689123028Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:23.689128018Z [err]      result = context.switch(value)
+2026-07-05T05:50:23.689132128Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689134978Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:23.689140128Z [err]      return self._execute_internal(
+2026-07-05T05:50:23.689145238Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689145418Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:23.689150098Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689150788Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:23.689157108Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:23.689157128Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:23.689157298Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689164968Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:23.689168718Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:23.689171948Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689175558Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:23.689178607Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:23.689181927Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.689185327Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:23.691181781Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:23.691185041Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.691189411Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:23.691194451Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:23.691196121Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:23.691200521Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.691203210Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:23.691204110Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:23.691213500Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:23.691219970Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:23.691224730Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:23.691229090Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:23.691233630Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:23.691238090Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:23.691243460Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:23.691247890Z [err]      raise LookupError(
+2026-07-05T05:50:23.691252990Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:23.691257370Z [err]  
+2026-07-05T05:50:25.327464112Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:25.327468161Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:25.570830955Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:25.570834795Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:25.582269431Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:25.582274411Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:25.582277671Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:25.582280911Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:25.582284231Z [err]  KeyError: 'admin'
+2026-07-05T05:50:25.582287591Z [err]  
+2026-07-05T05:50:25.582290661Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:25.582293361Z [err]  
+2026-07-05T05:50:25.582296141Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:25.582298701Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:25.582301681Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:25.582304721Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:25.582308051Z [err]      return await anext(self.gen)
+2026-07-05T05:50:25.582311331Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.582313941Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:25.582316811Z [err]      await seed_admin()
+2026-07-05T05:50:25.582319171Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:25.582321791Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:25.582324161Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.582326641Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:25.582329360Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:25.582331810Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585593496Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:25.585603756Z [err]      result = context.switch(value)
+2026-07-05T05:50:25.585608746Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585613056Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:25.585618556Z [err]      return self._execute_internal(
+2026-07-05T05:50:25.585624486Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585629056Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:25.585633286Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:25.585637106Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585641796Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:25.585645815Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:25.585650485Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585654535Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:25.585658535Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:25.585662245Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585666235Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:25.585670285Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:25.585674595Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.585678595Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:25.586693751Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:25.586704631Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.586707941Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:25.586710781Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:25.586713511Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.586715991Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:25.586719491Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:25.586722141Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:25.586725581Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:25.586728520Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:25.586730990Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:25.586733470Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:25.586736230Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:25.586739100Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:25.586743510Z [err]      raise LookupError(
+2026-07-05T05:50:25.586747240Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:25.586750120Z [err]  
+2026-07-05T05:50:25.586753820Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:27.587462606Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:27.587471466Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:27.895086305Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:27.895091985Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:27.907384199Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:27.907390909Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:27.907394969Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:27.907398859Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:27.907402289Z [err]  KeyError: 'admin'
+2026-07-05T05:50:27.907407449Z [err]  
+2026-07-05T05:50:27.907412109Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:27.907417108Z [err]  
+2026-07-05T05:50:27.907425258Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:27.907425598Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:27.907436328Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.907443568Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:27.907444228Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:27.907451828Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:27.907455218Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:27.907459038Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.907467688Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:27.907473958Z [err]      return await anext(self.gen)
+2026-07-05T05:50:27.907486788Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.907492578Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:27.907498218Z [err]      await seed_admin()
+2026-07-05T05:50:27.907505068Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:27.908041991Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:27.908046431Z [err]      result = context.switch(value)
+2026-07-05T05:50:27.908050091Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908053321Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:27.908057281Z [err]      return self._execute_internal(
+2026-07-05T05:50:27.908060971Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908064131Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:27.908067111Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:27.908070130Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908073200Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:27.908075920Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:27.908078850Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908083460Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:27.908086440Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:27.908089310Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908092080Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:27.908094750Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:27.908097690Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.908100360Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:27.909181725Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:27.909187425Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.909191965Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:27.909198945Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:27.909201505Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:27.909205615Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.909211895Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:27.909216355Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:27.909221295Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:27.909224884Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:27.909230104Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:27.909234264Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:27.909239054Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:27.909242974Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:27.909246534Z [err]      raise LookupError(
+2026-07-05T05:50:27.909251584Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:27.909256234Z [err]  
+2026-07-05T05:50:27.909260344Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:29.515468962Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:29.515475372Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:29.811151251Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:29.811160171Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:29.824923696Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:29.824929936Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:29.824934716Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:29.824935466Z [err]      return await anext(self.gen)
+2026-07-05T05:50:29.824940346Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:29.824942126Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.824942406Z [err]  
+2026-07-05T05:50:29.824944676Z [err]  KeyError: 'admin'
+2026-07-05T05:50:29.824947446Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:29.824950036Z [err]  
+2026-07-05T05:50:29.824950106Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:29.824951826Z [err]      await seed_admin()
+2026-07-05T05:50:29.824954976Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:29.824956706Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:29.824957296Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:29.824961506Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:29.824962096Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:29.824965836Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.824967236Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:29.824969946Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:29.824974166Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:29.824979076Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825413470Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:29.825423910Z [err]      result = context.switch(value)
+2026-07-05T05:50:29.825428909Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825434039Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:29.825438029Z [err]      return self._execute_internal(
+2026-07-05T05:50:29.825442359Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825446239Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:29.825450129Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:29.825453899Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825457909Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:29.825461339Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:29.825464729Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825468699Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:29.825472239Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:29.825475959Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825479459Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:29.825482869Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:29.825486769Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.825498289Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:29.826556344Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:29.826560084Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.826563024Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:29.826566774Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:29.826569394Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.826572034Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:29.826574554Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:29.826577444Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:29.826580164Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:29.826582994Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:29.826585543Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:29.826588063Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:29.826591103Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:29.826593803Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:29.826596893Z [err]      raise LookupError(
+2026-07-05T05:50:29.826599383Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:29.826602443Z [err]  
+2026-07-05T05:50:29.826605413Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:31.387567820Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:31.387577910Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:31.692925540Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:31.692928580Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:31.703513818Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:31.703518238Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:31.703522618Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:31.703523058Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:31.703526558Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:31.703531778Z [err]  KeyError: 'admin'
+2026-07-05T05:50:31.703532818Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.703538428Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:31.703538548Z [err]  
+2026-07-05T05:50:31.703544598Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:31.703548868Z [err]      return await anext(self.gen)
+2026-07-05T05:50:31.703553357Z [err]  
+2026-07-05T05:50:31.703557427Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.703559647Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:31.703566157Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:31.703566597Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:31.703574127Z [err]      await seed_admin()
+2026-07-05T05:50:31.703574427Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:31.703579777Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:31.703584267Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:31.703588757Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.703593347Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:31.705975575Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:31.705984435Z [err]      result = context.switch(value)
+2026-07-05T05:50:31.705989375Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.705993535Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:31.705997945Z [err]      return self._execute_internal(
+2026-07-05T05:50:31.706002535Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.706007585Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:31.706011324Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:31.706014734Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.706019034Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:31.706022764Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:31.706026084Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.706030104Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:31.706034334Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:31.706037994Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.706041634Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:31.706045224Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:31.706048574Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.706051964Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:31.707764140Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:31.707773960Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:31.707779410Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.707782450Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:31.707842389Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:31.707846159Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.707849579Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:31.707852979Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:31.707855709Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:31.707858769Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:31.707861939Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:31.707865519Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:31.707868669Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:31.707872399Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:31.707875039Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:31.707877889Z [err]      raise LookupError(
+2026-07-05T05:50:31.707881299Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:31.707884419Z [err]  
+2026-07-05T05:50:33.267985009Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:33.267994258Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:33.546325622Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:33.546333032Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:33.558587277Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:33.558587287Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:33.558593787Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:33.558594827Z [err]      await seed_admin()
+2026-07-05T05:50:33.558598177Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:33.558599177Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:33.558602607Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:33.558602627Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:33.558606157Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.558607037Z [err]  KeyError: 'admin'
+2026-07-05T05:50:33.558610197Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:33.558611377Z [err]  
+2026-07-05T05:50:33.558614937Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:33.558615757Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:33.558618317Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.558619767Z [err]  
+2026-07-05T05:50:33.558623537Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:33.558626887Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:33.558630657Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:33.558634357Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:33.558638386Z [err]      return await anext(self.gen)
+2026-07-05T05:50:33.558642626Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559239398Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:33.559242488Z [err]      result = context.switch(value)
+2026-07-05T05:50:33.559245218Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559247778Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:33.559250608Z [err]      return self._execute_internal(
+2026-07-05T05:50:33.559253358Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559255988Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:33.559259138Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:33.559262528Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559266018Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:33.559269038Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:33.559271808Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559274438Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:33.559277128Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:33.559279998Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559283768Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:33.559286448Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:33.559289457Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.559292277Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:33.560153797Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:33.560157996Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.560161046Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:33.560163556Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:33.560166476Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.560169016Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:33.560171376Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:33.560174076Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:33.560176706Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:33.560180156Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:33.560182816Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:33.560185556Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:33.560188226Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:33.560191016Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:33.560193826Z [err]      raise LookupError(
+2026-07-05T05:50:33.560196666Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:33.560199386Z [err]  
+2026-07-05T05:50:33.560203526Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:35.479463051Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:35.479469411Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:35.540660408Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:35.540670768Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:35.551487862Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:35.551499232Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:35.551501812Z [err]      return self._execute_internal(
+2026-07-05T05:50:35.551504402Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551507442Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:35.551512122Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551515582Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:35.551522252Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:35.551522442Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:35.551526041Z [err]  KeyError: 'admin'
+2026-07-05T05:50:35.551533231Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:35.551533551Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:35.551535291Z [err]  
+2026-07-05T05:50:35.551542651Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551543301Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551547181Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:35.551553421Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:35.551553991Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:35.551556471Z [err]  
+2026-07-05T05:50:35.551561601Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:35.551563621Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:35.551568031Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551570401Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:35.551574391Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:35.551576541Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:35.551580661Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:35.551583261Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:35.551587481Z [err]      return await anext(self.gen)
+2026-07-05T05:50:35.551590891Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551594041Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:35.551597340Z [err]      await seed_admin()
+2026-07-05T05:50:35.551616050Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:35.551620850Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:35.551625330Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551629650Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:35.551635390Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:35.551640630Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551645020Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:35.551649450Z [err]      result = context.switch(value)
+2026-07-05T05:50:35.551653410Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.551656820Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:35.552081504Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:35.552090064Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.552090634Z [err]      raise LookupError(
+2026-07-05T05:50:35.552096194Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:35.552097504Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:35.552101224Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:35.552104963Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:35.552109753Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:35.552113123Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.552116573Z [err]  
+2026-07-05T05:50:35.552120493Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:35.552120703Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:35.552127243Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:35.552130203Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:35.552130633Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:35.552134713Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:35.552137853Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:35.552140473Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:37.043427221Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:37.043432241Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:37.349089857Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:37.349096697Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:37.349100927Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:37.349171206Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:37.349620989Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:37.349626619Z [err]      result = context.switch(value)
+2026-07-05T05:50:37.349633309Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:37.349638399Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:37.349642679Z [err]  KeyError: 'admin'
+2026-07-05T05:50:37.349647649Z [err]  
+2026-07-05T05:50:37.349652639Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:37.349657209Z [err]  
+2026-07-05T05:50:37.349661659Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:37.349666639Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:37.349671779Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:37.349676239Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:37.349681289Z [err]      return await anext(self.gen)
+2026-07-05T05:50:37.349685369Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.349689498Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:37.349693438Z [err]      await seed_admin()
+2026-07-05T05:50:37.349697488Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:37.349719628Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:37.349723868Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.349728308Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:37.349732328Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:37.349736138Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350578037Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:37.350585037Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350589077Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:37.350593927Z [err]      return self._execute_internal(
+2026-07-05T05:50:37.350597207Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350601557Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:37.350605387Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:37.350608627Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350611747Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:37.350615477Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:37.350622937Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350627037Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:37.350631596Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:37.350636406Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350641666Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:37.350645706Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:37.350650226Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.350655326Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:37.350659616Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:37.350663356Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.351113530Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:37.351123650Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.351130210Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:37.351134030Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:37.351137569Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:37.351142669Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:37.351146269Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:37.351149709Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:37.351152639Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:37.351156359Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:37.351160089Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:37.351163289Z [err]      raise LookupError(
+2026-07-05T05:50:37.351166289Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
+2026-07-05T05:50:37.351170109Z [err]  
+2026-07-05T05:50:37.351173109Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:38.899794855Z [err]  INFO:     Started server process [2]
+2026-07-05T05:50:38.899800455Z [err]  INFO:     Waiting for application startup.
+2026-07-05T05:50:39.207711981Z [err]  sys:1: SAWarning: relationship 'Order.xaridor' will copy column users.id to column orders.xaridor_id, which conflicts with relationship(s): 'User.orders_as_xaridor' (copies users.id to orders.xaridor_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_xaridor"' to the 'Order.xaridor' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:39.207717561Z [err]  sys:1: SAWarning: relationship 'Order.fermer' will copy column users.id to column orders.fermer_id, which conflicts with relationship(s): 'User.orders_as_fermer' (copies users.id to orders.fermer_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="orders_as_fermer"' to the 'Order.fermer' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+2026-07-05T05:50:39.207722741Z [err]  ERROR:    Traceback (most recent call last):
+2026-07-05T05:50:39.207725871Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1647, in _object_value_for_elem
+2026-07-05T05:50:39.208911005Z [err]      return self._object_lookup[elem]
+2026-07-05T05:50:39.208921615Z [err]             ~~~~~~~~~~~~~~~~~~~^^^^^^
+2026-07-05T05:50:39.208927234Z [err]  KeyError: 'admin'
+2026-07-05T05:50:39.208932534Z [err]  
+2026-07-05T05:50:39.208937134Z [err]  The above exception was the direct cause of the following exception:
+2026-07-05T05:50:39.208941794Z [err]  
+2026-07-05T05:50:39.208955374Z [err]  Traceback (most recent call last):
+2026-07-05T05:50:39.208959704Z [err]    File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+2026-07-05T05:50:39.208963744Z [err]      async with self.lifespan_context(app) as maybe_state:
+2026-07-05T05:50:39.208968104Z [err]    File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+2026-07-05T05:50:39.208972054Z [err]      return await anext(self.gen)
+2026-07-05T05:50:39.208975544Z [err]             ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.208978854Z [err]    File "/app/app/main.py", line 123, in lifespan
+2026-07-05T05:50:39.208982344Z [err]      await seed_admin()
+2026-07-05T05:50:39.208986964Z [err]    File "/app/app/main.py", line 30, in seed_admin
+2026-07-05T05:50:39.208990674Z [err]      res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
+2026-07-05T05:50:39.208993884Z [err]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.208997703Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/ext/asyncio/session.py", line 455, in execute
+2026-07-05T05:50:39.209000923Z [err]      result = await greenlet_spawn(
+2026-07-05T05:50:39.209004753Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.209008323Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 192, in greenlet_spawn
+2026-07-05T05:50:39.209012033Z [err]      result = context.switch(value)
+2026-07-05T05:50:39.210265407Z [err]               ^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210276567Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2026-07-05T05:50:39.210280707Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in _raw_all_rows
+2026-07-05T05:50:39.210283437Z [err]      return self._execute_internal(
+2026-07-05T05:50:39.210289877Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210293747Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2026-07-05T05:50:39.210297487Z [err]      result: Result[Any] = compile_state_cls.orm_execute_statement(
+2026-07-05T05:50:39.210301536Z [err]                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210305426Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 296, in orm_execute_statement
+2026-07-05T05:50:39.210311536Z [err]      return cls.orm_setup_cursor_result(
+2026-07-05T05:50:39.210315006Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210318836Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 589, in orm_setup_cursor_result
+2026-07-05T05:50:39.210323016Z [err]      return loading.instances(result, querycontext)
+2026-07-05T05:50:39.210327116Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210330636Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 257, in instances
+2026-07-05T05:50:39.210334306Z [err]      _prebuffered = list(chunks(None))
+2026-07-05T05:50:39.210338256Z [err]                     ^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210341726Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py", line 215, in chunks
+2026-07-05T05:50:39.210345596Z [err]      fetch = cursor._raw_all_rows()
+2026-07-05T05:50:39.210349416Z [err]              ^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210882128Z [err]  
+2026-07-05T05:50:39.210886458Z [err]  ERROR:    Application startup failed. Exiting.
+2026-07-05T05:50:39.210892468Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:39.210896838Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210900438Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/engine/result.py", line 547, in <listcomp>
+2026-07-05T05:50:39.210904538Z [err]      return [make_row(row) for row in rows]
+2026-07-05T05:50:39.210908238Z [err]              ^^^^^^^^^^^^^
+2026-07-05T05:50:39.210913378Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 16, in sqlalchemy.cyextension.resultproxy.BaseRow.__init__
+2026-07-05T05:50:39.210916878Z [err]    File "lib/sqlalchemy/cyextension/resultproxy.pyx", line 73, in sqlalchemy.cyextension.resultproxy._apply_processors
+2026-07-05T05:50:39.210920548Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1767, in process
+2026-07-05T05:50:39.210927298Z [err]      value = self._object_value_for_elem(value)
+2026-07-05T05:50:39.210930808Z [err]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-07-05T05:50:39.210934218Z [err]    File "/usr/local/lib/python3.11/site-packages/sqlalchemy/sql/sqltypes.py", line 1649, in _object_value_for_elem
+2026-07-05T05:50:39.210937858Z [err]      raise LookupError(
+2026-07-05T05:50:39.210940858Z [err]  LookupError: 'admin' is not among the defined enum values. Enum name: userrole. Possible values: FERMER, XARIDOR, ADMIN, COURIER
