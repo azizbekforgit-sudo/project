@@ -37,6 +37,7 @@ class CourierProfileSetup(BaseModel):
     route_to:         Optional[str] = ""
     route_anywhere:   bool = False
     address:          Optional[str] = ""
+    price_per_km:     Optional[float] = 0.0
 
 class CourierStatusUpdate(BaseModel):
     status: str
@@ -128,6 +129,7 @@ def profile_to_dict(p: CourierProfile) -> dict:
         "route_to": p.route_to,
         "route_anywhere": p.route_anywhere,
         "address": p.address,
+        "price_per_km": p.price_per_km,
         "total_deliveries": p.total_deliveries,
     }
 
@@ -182,6 +184,7 @@ async def setup_courier_profile(
         profile.route_to         = data.route_to or ""
         profile.route_anywhere   = data.route_anywhere
         profile.address          = data.address or ""
+        profile.price_per_km     = data.price_per_km or 0.0
         profile.admin_approved   = False
         profile.rejection_reason = None
     else:
@@ -206,6 +209,7 @@ async def setup_courier_profile(
             route_to=data.route_to or "",
             route_anywhere=data.route_anywhere,
             address=data.address or "",
+            price_per_km=data.price_per_km or 0.0,
             admin_approved=False,
             rejection_reason=None,
         )
@@ -697,3 +701,414 @@ async def reject_courier(
     profile.rejection_reason = reason or ""
     await db.commit()
     return {"ok": True}
+
+
+# ─── Delivery Request endpoints (new) ──────────────────────────────────────
+
+# City coordinates for distance calculation
+CITY_COORDS = {
+    "ташкент":      (41.2995, 69.2401),
+    "самарканд":    (39.6542, 66.9597),
+    "навои":        (40.1000, 65.3700),
+    "бухара":       (39.7681, 64.4556),
+    "карши":        (38.8600, 65.7500),
+    "коканд":       (40.5283, 70.9425),
+    "андижан":      (40.7821, 72.3442),
+    "фергана":      (40.3842, 71.7869),
+    "наманган":     (40.9983, 71.0000),
+    "термез":       (37.2242, 67.2783),
+    "джизак":       (40.1250, 67.8400),
+    "ургенч":       (41.5500, 60.6333),
+    "хива":         (41.3786, 60.3564),
+    "нукус":        (42.4600, 59.6000),
+    "гулистан":     (40.4900, 68.7800),
+    "маргилан":     (40.4700, 71.7200),
+    "чирчик":       (41.4683, 69.5850),
+    "алмалык":      (40.8400, 69.6000),
+    "бекабад":      (40.2200, 69.2700),
+    "ташкентская":  (41.2995, 69.2401),
+    "самаркандская":(39.6542, 66.9597),
+    "навоийская":   (40.1000, 65.3700),
+    "бухарская":    (39.7681, 64.4556),
+    "кашкадарьинская":(38.8600, 65.7500),
+    "ферманская":   (40.5283, 70.9425),
+    "андижанская":  (40.7821, 72.3442),
+    "ферганская":   (40.3842, 71.7869),
+    "наманганская": (40.9983, 71.0000),
+    "сурхандарьинская":(37.2242, 67.2783),
+    "джизакская":   (40.1250, 67.8400),
+    "хорезмская":   (41.5500, 60.6333),
+    "каракалпакстан":(42.4600, 59.6000),
+    "сырдарьинская":(40.4900, 68.7800),
+}
+
+
+def get_city_coords(city_name: str):
+    """Get coordinates for a city name (case-insensitive, handles suffixes)."""
+    key = city_name.strip().lower()
+    if key in CITY_COORDS:
+        return CITY_COORDS[key]
+    # Try without common suffixes
+    for suffix in ["ская", "ая", "ий", "ый", "ой"]:
+        stripped = key.rstrip(suffix) if key.endswith(suffix) else key
+        if stripped in CITY_COORDS:
+            return CITY_COORDS[stripped]
+    return None
+
+
+class DeliveryRequestCreate(BaseModel):
+    order_id: int
+    courier_user_id: int
+    route_from: str
+    route_to: str
+    distance_km: float
+    price_per_km: float
+    total_price: float
+
+
+@router.get("/delivery/couriers/by-route")
+async def couriers_by_route(
+    from_city: str = Query(..., alias="from"),
+    to_city: str = Query(..., alias="to"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Find couriers matching a route. Exact routes first (by rating), then 'anywhere' couriers."""
+    # Exact match: route_from=from AND route_to=to
+    exact_q = select(CourierProfile).where(
+        CourierProfile.admin_approved == True,
+        CourierProfile.route_from.ilike(f"%{from_city}%"),
+        CourierProfile.route_to.ilike(f"%{to_city}%"),
+    ).order_by(CourierProfile.rating.desc())
+    exact_result = await db.execute(exact_q)
+    exact_profiles = exact_result.scalars().all()
+
+    # Anywhere couriers
+    anywhere_q = select(CourierProfile).where(
+        CourierProfile.admin_approved == True,
+        CourierProfile.route_anywhere == True,
+    ).order_by(CourierProfile.rating.desc())
+    anywhere_result = await db.execute(anywhere_q)
+    anywhere_profiles = anywhere_result.scalars().all()
+
+    def profile_brief(p):
+        return {
+            "user_id": p.user_id,
+            "full_name": p.full_name,
+            "city": p.city,
+            "transport_type": p.transport_type,
+            "rating": p.rating,
+            "route_from": p.route_from,
+            "route_to": p.route_to,
+            "route_anywhere": p.route_anywhere,
+            "price_per_km": p.price_per_km,
+            "photo_url": p.photo_url,
+            "total_deliveries": p.total_deliveries,
+        }
+
+    return {
+        "exact": [profile_brief(p) for p in exact_profiles],
+        "anywhere": [profile_brief(p) for p in anywhere_profiles],
+    }
+
+
+@router.get("/delivery/calculate-route")
+async def calculate_route(
+    from_city: str = Query(..., alias="from"),
+    to_city: str = Query(..., alias="to"),
+    courier_user_id: int = Query(None),
+):
+    """Calculate distance and price for a route."""
+    from_coords = get_city_coords(from_city)
+    to_coords = get_city_coords(to_city)
+
+    if not from_coords:
+        raise HTTPException(400, f"Город не найден: {from_city}")
+    if not to_coords:
+        raise HTTPException(400, f"Город не найден: {to_city}")
+
+    distance = haversine(from_coords[0], from_coords[1], to_coords[0], to_coords[1])
+
+    price_per_km = 0
+    if courier_user_id:
+        # Will be set by frontend from courier profile
+        pass
+
+    return {
+        "from": from_city,
+        "to": to_city,
+        "distance_km": round(distance, 1),
+        "price_per_km": price_per_km,
+        "total_price": round(distance * price_per_km, 0) if price_per_km else 0,
+    }
+
+
+@router.post("/delivery/request")
+async def create_delivery_request(
+    data: DeliveryRequestCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a delivery request linking a marketplace order to a courier."""
+    # Verify order exists and belongs to current user
+    from app.models import Order
+    order_result = await db.execute(select(Order).where(Order.id == data.order_id))
+    order = order_result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(404, "Заказ не найден")
+    if order.xaridor_id != current_user.id:
+        raise HTTPException(403, "Нет доступа к этому заказу")
+
+    # Verify courier exists
+    courier_result = await db.execute(select(User).where(User.id == data.courier_user_id))
+    courier = courier_result.scalar_one_or_none()
+    if not courier:
+        raise HTTPException(404, "Драйвер не найден")
+
+    # Create DeliveryRequest
+    from app.models import DeliveryRequest
+    dr = DeliveryRequest(
+        order_id=data.order_id,
+        courier_id=data.courier_user_id,
+        buyer_id=current_user.id,
+        route_from=data.route_from,
+        route_to=data.route_to,
+        distance_km=data.distance_km,
+        price_per_km=data.price_per_km,
+        total_price=data.total_price,
+        status="pending",
+        buyer_confirmed_disclaimer=False,
+        driver_confirmed_disclaimer=False,
+    )
+    db.add(dr)
+    await db.flush()
+
+    # Link to order
+    order.delivery_request_id = dr.id
+    await db.commit()
+    await db.refresh(dr)
+
+    return {"ok": True, "delivery_request_id": dr.id, "status": dr.status}
+
+
+@router.patch("/delivery/request/{request_id}/buyer-confirm")
+async def buyer_confirm_disclaimer(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Buyer confirms they read and agree to the disclaimer."""
+    from app.models import DeliveryRequest
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+    if dr.buyer_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+    if dr.status not in ("pending",):
+        raise HTTPException(400, f"Невозможно подтвердить в статусе: {dr.status}")
+
+    dr.buyer_confirmed_disclaimer = True
+    if dr.driver_confirmed_disclaimer:
+        dr.status = "driver_accepted"
+    await db.commit()
+    return {"ok": True, "status": dr.status, "both_confirmed": dr.buyer_confirmed_disclaimer and dr.driver_confirmed_disclaimer}
+
+
+@router.patch("/delivery/request/{request_id}/driver-accept")
+async def driver_accept_order(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Driver accepts the delivery order and confirms disclaimer."""
+    from app.models import DeliveryRequest
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+    if dr.courier_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+    if dr.status not in ("pending",):
+        raise HTTPException(400, f"Невозможно принять в статусе: {dr.status}")
+
+    dr.driver_confirmed_disclaimer = True
+    if dr.buyer_confirmed_disclaimer:
+        dr.status = "driver_accepted"
+    await db.commit()
+
+    # Get buyer phone for notification
+    buyer_result = await db.execute(select(User).where(User.id == dr.buyer_id))
+    buyer = buyer_result.scalar_one_or_none()
+
+    return {
+        "ok": True,
+        "status": dr.status,
+        "both_confirmed": dr.buyer_confirmed_disclaimer and dr.driver_confirmed_disclaimer,
+        "buyer_phone": buyer.phone if buyer else "",
+        "buyer_name": buyer.name if buyer else "",
+    }
+
+
+@router.patch("/delivery/request/{request_id}/driver-reject")
+async def driver_reject_order(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Driver rejects the delivery order."""
+    from app.models import DeliveryRequest
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+    if dr.courier_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+
+    dr.status = "cancelled_by_driver"
+    await db.commit()
+    return {"ok": True, "status": dr.status}
+
+
+@router.patch("/delivery/request/{request_id}/buyer-cancel")
+async def buyer_cancel_order(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Buyer cancels the delivery request."""
+    from app.models import DeliveryRequest
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+    if dr.buyer_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+    if dr.status in ("completed", "delivered"):
+        raise HTTPException(400, "Невозможно отменить завершённый заказ")
+
+    dr.status = "cancelled_by_buyer"
+    await db.commit()
+    return {"ok": True, "status": dr.status}
+
+
+@router.get("/delivery/request/my")
+async def get_my_delivery_requests(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get delivery requests where current user is the driver."""
+    from app.models import DeliveryRequest, Order, Product
+    result = await db.execute(
+        select(DeliveryRequest)
+        .where(DeliveryRequest.courier_id == current_user.id)
+        .order_by(DeliveryRequest.created_at.desc())
+    )
+    requests = result.scalars().all()
+
+    out = []
+    for dr in requests:
+        # Get order info
+        order_result = await db.execute(select(Order).where(Order.id == dr.order_id))
+        order = order_result.scalar_one_or_none()
+        product_title = ""
+        product_photo = None
+        order_quantity = 0
+        order_total = 0
+        buyer_name = ""
+        buyer_phone = ""
+        if order:
+            prod_result = await db.execute(select(Product).where(Product.id == order.product_id))
+            prod = prod_result.scalar_one_or_none()
+            if prod:
+                product_title = prod.title
+                product_photo = (prod.photos or [None])[0] if prod.photos else None
+            order_quantity = float(order.quantity)
+            order_total = float(order.total_price)
+            buyer_result = await db.execute(select(User).where(User.id == dr.buyer_id))
+            buyer = buyer_result.scalar_one_or_none()
+            if buyer:
+                buyer_name = buyer.name
+                buyer_phone = buyer.phone
+
+        out.append({
+            "id": dr.id,
+            "order_id": dr.order_id,
+            "route_from": dr.route_from,
+            "route_to": dr.route_to,
+            "distance_km": dr.distance_km,
+            "price_per_km": dr.price_per_km,
+            "total_price": dr.total_price,
+            "status": dr.status,
+            "buyer_confirmed_disclaimer": dr.buyer_confirmed_disclaimer,
+            "driver_confirmed_disclaimer": dr.driver_confirmed_disclaimer,
+            "product_title": product_title,
+            "product_photo": product_photo,
+            "order_quantity": order_quantity,
+            "order_total_price": order_total,
+            "buyer_name": buyer_name,
+            "buyer_phone": buyer_phone,
+            "created_at": dr.created_at.isoformat() if dr.created_at else "",
+        })
+
+    return out
+
+
+@router.get("/delivery/request/buyer")
+async def get_buyer_delivery_requests(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get delivery requests where current user is the buyer."""
+    from app.models import DeliveryRequest, Order, Product
+    result = await db.execute(
+        select(DeliveryRequest)
+        .where(DeliveryRequest.buyer_id == current_user.id)
+        .order_by(DeliveryRequest.created_at.desc())
+    )
+    requests = result.scalars().all()
+
+    out = []
+    for dr in requests:
+        order_result = await db.execute(select(Order).where(Order.id == dr.order_id))
+        order = order_result.scalar_one_or_none()
+        product_title = ""
+        product_photo = None
+        order_quantity = 0
+        order_total = 0
+        courier_name = ""
+        courier_phone = ""
+        if order:
+            prod_result = await db.execute(select(Product).where(Product.id == order.product_id))
+            prod = prod_result.scalar_one_or_none()
+            if prod:
+                product_title = prod.title
+                product_photo = (prod.photos or [None])[0] if prod.photos else None
+            order_quantity = float(order.quantity)
+            order_total = float(order.total_price)
+            courier_result = await db.execute(select(User).where(User.id == dr.courier_id))
+            courier = courier_result.scalar_one_or_none()
+            if courier:
+                courier_name = courier.name
+                courier_phone = courier.phone
+
+        out.append({
+            "id": dr.id,
+            "order_id": dr.order_id,
+            "route_from": dr.route_from,
+            "route_to": dr.route_to,
+            "distance_km": dr.distance_km,
+            "price_per_km": dr.price_per_km,
+            "total_price": dr.total_price,
+            "status": dr.status,
+            "buyer_confirmed_disclaimer": dr.buyer_confirmed_disclaimer,
+            "driver_confirmed_disclaimer": dr.driver_confirmed_disclaimer,
+            "product_title": product_title,
+            "product_photo": product_photo,
+            "order_quantity": order_quantity,
+            "order_total_price": order_total,
+            "courier_name": courier_name,
+            "courier_phone": courier_phone,
+            "created_at": dr.created_at.isoformat() if dr.created_at else "",
+        })
+
+    return out

@@ -160,6 +160,9 @@ async def lifespan(app: FastAPI):
         missing_columns = [
             ("products", "photos", "JSON DEFAULT '[]'::json"),
             ("products", "certificates", "JSON DEFAULT '[]'::json"),
+            ("products", "delivery_available", "BOOLEAN DEFAULT FALSE"),
+            ("courier_profiles", "price_per_km", "FLOAT DEFAULT 0"),
+            ("orders", "delivery_request_id", "INTEGER"),
         ]
         for table, column, coltype in missing_columns:
             async with conn.begin_nested():
@@ -221,6 +224,26 @@ END $$;
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance NUMERIC(12,2) DEFAULT 0")
         await safe_exec("ALTER TABLE users ALTER COLUMN wallet_balance SET DEFAULT 0")
         await safe_exec("UPDATE users SET wallet_balance = 0 WHERE wallet_balance IS NULL")
+
+        # ── Delivery Requests table ──
+        await safe_exec("""
+CREATE TABLE IF NOT EXISTS delivery_requests (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id),
+    courier_id INTEGER REFERENCES users(id),
+    buyer_id INTEGER REFERENCES users(id),
+    route_from VARCHAR(200) DEFAULT '',
+    route_to VARCHAR(200) DEFAULT '',
+    distance_km FLOAT DEFAULT 0,
+    price_per_km FLOAT DEFAULT 0,
+    total_price FLOAT DEFAULT 0,
+    status VARCHAR(30) DEFAULT 'pending',
+    buyer_confirmed_disclaimer BOOLEAN DEFAULT FALSE,
+    driver_confirmed_disclaimer BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
+)
+""", label="delivery_requests table")
 
     await seed_admin()
     print("🌾 AgroVerse API запущен")
@@ -305,7 +328,8 @@ async def my_products_compat(
             price_per_unit=float(product.price_per_unit), unit=product.unit,
             quantity_available=float(product.quantity_available),
             photos=product.photos or [], rating=product.rating,
-            status=product.status, created_at=product.created_at,
+            status=product.status, delivery_available=product.delivery_available or False,
+            created_at=product.created_at,
         ))
     return ProductListResponse(total=len(products), page=1, limit=len(products), products=product_responses)
 

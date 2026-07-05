@@ -93,6 +93,7 @@ async def get_products(
             photos=product.photos or [],
             rating=product.rating,
             status=product.status,
+            delivery_available=product.delivery_available or False,
             created_at=product.created_at
         ))
 
@@ -129,6 +130,7 @@ async def get_my_products(
             photos=product.photos or [],
             rating=product.rating,
             status=product.status,
+            delivery_available=product.delivery_available or False,
             created_at=product.created_at
         ))
 
@@ -162,10 +164,9 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         photos=product.photos or [],
         rating=product.rating,
         status=product.status,
+        delivery_available=product.delivery_available or False,
         created_at=product.created_at
     )
-
-@router.post("/", response_model=ProductResponse)
 async def create_product(
     title: str = Form(...),
     description: str = Form(...),
@@ -173,6 +174,7 @@ async def create_product(
     price_per_unit: float = Form(...),
     unit: str = Form(...),
     quantity_available: float = Form(...),
+    delivery_available: bool = Form(False),
     photos: List[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_fermer),
     db: AsyncSession = Depends(get_db)
@@ -208,6 +210,7 @@ async def create_product(
         price_per_unit=price_per_unit,
         unit=unit,
         quantity_available=quantity_available,
+        delivery_available=delivery_available,
         status=ProductStatus.PENDING
     )
     db.add(new_product)
@@ -249,6 +252,7 @@ async def create_product(
         photos=new_product.photos or [],
         rating=new_product.rating,
         status=new_product.status,
+        delivery_available=new_product.delivery_available or False,
         created_at=new_product.created_at
     )
 
@@ -285,6 +289,7 @@ async def update_product(
         photos=product.photos or [],
         rating=product.rating,
         status=product.status,
+        delivery_available=product.delivery_available or False,
         created_at=product.created_at
     )
 

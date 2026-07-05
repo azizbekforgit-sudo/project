@@ -53,6 +53,7 @@ let _deliveryState = {
     route_to: '',
     route_anywhere: false,
     address: '',
+    price_per_km: 0,
   },
   mapInstance: null,
 };
@@ -525,6 +526,14 @@ function _renderOnboardStep() {
           <span class="hint">Ваш фактический адрес (для будущих функций)</span>
         </div>
 
+        <div class="ob-field" style="margin-top:16px;">
+          <label class="ob-label">💰 Цена за 1 км (сум)</label>
+          <input type="number" class="ob-input" id="ob-price-per-km" value="${s.price_per_km || 0}" min="0" step="1000"
+                 placeholder="100000"
+                 oninput="_deliveryState.onboarding.price_per_km = +this.value">
+          <span class="hint">Сколько вы берёте за 1 км доставки</span>
+        </div>
+
         <div class="ob-field">
           <label class="ob-label">Город / регион</label>
           <input type="text" class="ob-input" id="ob-city" value="${s.city}" placeholder="Ташкент"
@@ -667,6 +676,7 @@ async function _obSubmit() {
       route_to:         s.route_to,
       route_anywhere:   s.route_anywhere,
       address:          s.address,
+      price_per_km:     s.price_per_km || 0,
     });
     showToast('Заявка отправлена! Ожидайте одобрения администратора', 'success');
     const profile = await API.getCourierProfile().catch(() => null);
@@ -858,6 +868,12 @@ async function _sectionHome(main) {
           `}
         </div>
       </div>
+
+      <!-- Incoming delivery requests -->
+      <div class="home-section-block" id="incoming-requests-block" style="display:none">
+        <div class="hsb-title">Входящие заказы на доставку</div>
+        <div id="incoming-requests-list"></div>
+      </div>
     </div>
   `;
 
@@ -877,6 +893,35 @@ async function _sectionHome(main) {
     // Available orders
     const avail = await API.getAvailableOrders().catch(() => []);
     if (el('stat-available')) el('stat-available').textContent = avail.length;
+
+    // Load incoming delivery requests
+    if (approved) {
+      const deliveryRequests = await API.getMyDeliveryRequests().catch(() => []);
+      const pending = deliveryRequests.filter(r => r.status === 'pending');
+      if (pending.length > 0) {
+        const block = document.getElementById('incoming-requests-block');
+        const list = document.getElementById('incoming-requests-list');
+        if (block) block.style.display = 'block';
+        if (list) {
+          list.innerHTML = pending.map(r => `
+            <div style="border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:10px;background:#fff">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+                <div>
+                  <b>${r.route_from} → ${r.route_to}</b>
+                  <div style="color:#6b7280;font-size:13px">📦 ${r.product_title || 'Товар'} | 📏 ${r.distance_km} км</div>
+                </div>
+                <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600">Ожидание</span>
+              </div>
+              <div style="color:#059669;font-weight:600;margin-bottom:8px">💰 ${Number(r.total_price).toLocaleString()} сум</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="_driverAcceptDelivery(${r.id})">Принять заказ</button>
+                <button class="btn btn-ghost btn-sm" onclick="_driverRejectDelivery(${r.id})">Отклонить</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+    }
   } catch (_) {}
 }
 
@@ -892,6 +937,87 @@ function _profileCompletionBar(profile) {
       <div class="pc-label">${pct}% заполнено</div>
     </div>
   `;
+}
+
+// ─── Driver delivery request actions ────────────────────────────────────
+
+async function _driverAcceptDelivery(requestId) {
+  // Show disclaimer modal for driver
+  const existing = document.getElementById('driver-disclaimer-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'driver-disclaimer-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:480px;width:95%;padding:24px">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:48px;margin-bottom:8px">⚠️</div>
+        <h2 style="margin:0;font-size:18px">Внимание</h2>
+      </div>
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.6">
+        Вы принимаете полную ответственность за перевозку груза. При возникновении проблем по пути, администраторы могут помочь <b>частично</b>, но не полностью.
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px">
+          <input type="checkbox" id="ddiscl-read" style="width:18px;height:18px;accent-color:#059669" />
+          <span>Я прочитал</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border:1px solid #e5e7eb;border-radius:8px">
+          <input type="checkbox" id="ddiscl-agree" style="width:18px;height:18px;accent-color:#059669" />
+          <span>Я согласен</span>
+        </label>
+      </div>
+      <button class="btn btn-primary btn-full" id="ddiscl-confirm-btn" disabled style="opacity:0.5">Принять заказ</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const readCb = document.getElementById('ddiscl-read');
+  const agreeCb = document.getElementById('ddiscl-agree');
+  const confirmBtn = document.getElementById('ddiscl-confirm-btn');
+
+  function checkBoth() {
+    const both = readCb.checked && agreeCb.checked;
+    confirmBtn.disabled = !both;
+    confirmBtn.style.opacity = both ? '1' : '0.5';
+  }
+  readCb.addEventListener('change', checkBoth);
+  agreeCb.addEventListener('change', checkBoth);
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Принятие...';
+    try {
+      const result = await API.driverAcceptDelivery(requestId);
+      overlay.remove();
+      if (result.both_confirmed) {
+        showToast(`Заказ принят! Телефон покупателя: ${result.buyer_phone}`, 'success');
+      } else {
+        showToast('Заказ принят! Ожидание подтверждения покупателя.', 'success');
+      }
+      // Refresh dashboard
+      _renderDashboard();
+    } catch (e) {
+      showToast(e.message, 'error');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Принять заказ';
+    }
+  });
+}
+
+async function _driverRejectDelivery(requestId) {
+  if (!confirm('Отклонить заказ?')) return;
+  try {
+    await API.driverRejectDelivery(requestId);
+    showToast('Заказ отклонён');
+    _renderDashboard();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }
 
 // ─── ORDERS ───────────────────────────────────────────────────────────────────
@@ -1410,6 +1536,7 @@ function _sectionProfile(main) {
         ${_profileRow(fe('🔢',16), 'Гос. номер', p.vehicle_number)}
         ${_profileRow(fe('📍',16), 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
         ${_profileRow(fe('❄️',16), 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
+        ${_profileRow('💰', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
         ${p.bio ? _profileRow('📝', 'О себе', p.bio) : ''}
       </div>
 
@@ -1450,6 +1577,11 @@ function _editProfile() {
     license_info: p.license_info || '',
     bio: p.bio || '',
     documents: p.documents || [],
+    route_from: p.route_from || '',
+    route_to: p.route_to || '',
+    route_anywhere: p.route_anywhere || false,
+    address: p.address || '',
+    price_per_km: p.price_per_km || 0,
   };
   _renderOnboarding();
 }

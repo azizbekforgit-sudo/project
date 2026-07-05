@@ -367,6 +367,13 @@ function renderProductNew() {
               <label>${t('pn_qty')} <span class="req">*</span></label>
               <input type="number" id="pn-quantity" placeholder="0" min="0" class="pn-input" />
             </div>
+            <div class="pn-field" style="margin-top:12px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="pn-delivery" style="width:18px;height:18px;accent-color:#059669" />
+                <span>Есть доставка (доставка фермера)</span>
+              </label>
+              <span class="pn-hint">Покупатели смогут выбрать доставку от вас</span>
+            </div>
           </div>
 
           <!-- Photos -->
@@ -535,6 +542,7 @@ function renderProductNew() {
       fd.append('price_per_unit', parseFloat(price));
       fd.append('unit', unit);
       fd.append('quantity_available', parseInt(quantity));
+      fd.append('delivery_available', document.getElementById('pn-delivery')?.checked || false);
       Array.from(files).forEach(f => fd.append('photos', f));
 
       await API.createProduct(fd);

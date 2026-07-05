@@ -55,6 +55,7 @@ class ProductCreate(BaseModel):
     unit: str
     quantity_available: float = Field(..., gt=0)
     pickup_method: Optional[str] = "self"
+    delivery_available: Optional[bool] = False
 
 
 class ProductUpdate(BaseModel):
@@ -63,6 +64,7 @@ class ProductUpdate(BaseModel):
     price_per_unit: Optional[float] = Field(None, gt=0)
     quantity_available: Optional[float] = Field(None, gt=0)
     status: Optional[ProductStatus] = None
+    delivery_available: Optional[bool] = None
 
 
 class ProductResponse(BaseModel):
@@ -79,6 +81,7 @@ class ProductResponse(BaseModel):
     photos: List[str] = []
     rating: float
     status: ProductStatus
+    delivery_available: bool = False
     created_at: datetime
 
 
@@ -111,6 +114,7 @@ class OrderResponse(BaseModel):
     commission: float
     pickup_method: str
     status: OrderStatus
+    delivery_request: Optional[dict] = None
     created_at: datetime
     updated_at: datetime
 
@@ -142,4 +146,40 @@ class ReviewResponse(BaseModel):
     xaridor_name: str
     rating: int
     comment: Optional[str]
+    created_at: datetime
+
+
+# ── Delivery Request schemas ──────────────────────────────────────────────────
+
+class DeliveryRequestCreate(BaseModel):
+    order_id: int
+    courier_user_id: int
+    route_from: str
+    route_to: str
+    distance_km: float = Field(..., gt=0)
+    price_per_km: float = Field(..., gt=0)
+    total_price: float = Field(..., gt=0)
+
+
+class DeliveryRequestResponse(BaseModel):
+    id: int
+    order_id: int
+    courier_id: int
+    courier_name: str
+    courier_phone: str
+    buyer_id: int
+    buyer_name: str
+    buyer_phone: str
+    route_from: str
+    route_to: str
+    distance_km: float
+    price_per_km: float
+    total_price: float
+    status: str
+    buyer_confirmed_disclaimer: bool
+    driver_confirmed_disclaimer: bool
+    order_product_title: Optional[str] = None
+    order_product_photo: Optional[str] = None
+    order_quantity: Optional[float] = None
+    order_total_price: Optional[float] = None
     created_at: datetime

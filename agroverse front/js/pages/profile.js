@@ -304,6 +304,12 @@ function showProductEditModal(product) {
           <option value="г" ${product.unit === 'г' ? 'selected' : ''}>г</option>
         </select>
       </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="pe-delivery" style="width:18px;height:18px;accent-color:#059669" ${product.delivery_available ? 'checked' : ''} />
+          <span>Есть доставка (доставка фермера)</span>
+        </label>
+      </div>
 
       <div id="pe-error" class="form-error hidden"></div>
 
@@ -342,6 +348,7 @@ function showProductEditModal(product) {
         price_per_unit: price,
         quantity_available: qty,
         unit: document.getElementById('pe-unit').value,
+        delivery_available: document.getElementById('pe-delivery')?.checked || false,
       });
       overlay.remove();
       showToast('Товар обновлён', 'success');

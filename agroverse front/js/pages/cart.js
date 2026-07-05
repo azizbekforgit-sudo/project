@@ -34,9 +34,12 @@ function renderCart() {
           <span>${t('cart_products')} (${cart.length})</span>
           <b>${Number(total).toLocaleString()} ${t('currency')}</b>
         </div>
-        <div class="cs-row">
+        <div class="cs-row" style="flex-direction:column;gap:8px">
           <span>${t('cart_delivery')}</span>
-          <b style="color:var(--clr-primary)">${t('cart_pickup')}</b>
+          <div class="radio-col" style="gap:4px">
+            <label class="radio-label" style="font-size:13px"><input type="radio" name="cart-pickup" value="self" checked /> 🚗 Самовывоз</label>
+            <label class="radio-label" style="font-size:13px"><input type="radio" name="cart-pickup" value="external" /> 📦 Внешняя доставка</label>
+          </div>
         </div>
         <div class="cs-total">
           <span>${t('cart_to_pay')}</span>
@@ -88,11 +91,22 @@ function cartRemove(id) {
 async function cartCheckout() {
   const cart = getCart();
   if (!cart.length) return;
+
+  const pickup_method = document.querySelector('input[name="cart-pickup"]:checked')?.value || 'self';
+
+  // If external delivery, open driver picker for the first item
+  if (pickup_method === 'external') {
+    const firstItem = cart[0];
+    const product = { id: firstItem.id, name: firstItem.name, price: firstItem.price, delivery_available: true };
+    showDriverPickerModal(product, firstItem.qty);
+    return;
+  }
+
   showToast(t('cart_processing'), 'info');
   let ok = 0, fail = 0;
   for (const item of cart) {
     try {
-      await API.createOrder({ product_id: item.id, quantity: item.qty });
+      await API.createOrder({ product_id: item.id, quantity: item.qty, pickup_method });
       ok++;
     } catch (e) { fail++; }
   }

@@ -103,6 +103,7 @@ function normalizeProduct(p) {
     images: Array.isArray(p.photos) ? p.photos.map(u => u.startsWith('http') ? u : BASE_URL + u) : [],
     rating: p.rating || 0,
     status: p.status,
+    delivery_available: p.delivery_available || false,
     created_at: p.created_at,
   };
 }
@@ -174,6 +175,17 @@ const API = {
   adminApproveCourier:     (id, rating) => request('PATCH', `/api/admin/couriers/${id}/approve`, { body: { rating: rating || 0 } }),
   adminRejectCourier:      (id, reason) => request('PATCH', `/api/admin/couriers/${id}/reject`, { body: { reason: reason || '' } }),
   adminGetAllCouriers:     ()        => request('GET', '/api/admin/couriers'),
+
+  // Delivery requests (new)
+  getCouriersByRoute: (from, to) => request('GET', '/api/delivery/couriers/by-route', { params: { from, to } }),
+  calculateRoute: (from, to, courier_user_id) => request('GET', '/api/delivery/calculate-route', { params: { from, to, courier_user_id } }),
+  createDeliveryRequest: (body) => request('POST', '/api/delivery/request', { body }),
+  buyerConfirmDelivery: (id) => request('PATCH', `/api/delivery/request/${id}/buyer-confirm`),
+  driverAcceptDelivery: (id) => request('PATCH', `/api/delivery/request/${id}/driver-accept`),
+  driverRejectDelivery: (id) => request('PATCH', `/api/delivery/request/${id}/driver-reject`),
+  buyerCancelDelivery: (id) => request('PATCH', `/api/delivery/request/${id}/buyer-cancel`),
+  getMyDeliveryRequests: () => request('GET', '/api/delivery/request/my'),
+  getBuyerDeliveryRequests: () => request('GET', '/api/delivery/request/buyer'),
 };
 
 API.request = request;

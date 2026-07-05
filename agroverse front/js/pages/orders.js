@@ -100,6 +100,39 @@ function orderCardHtml(o, isFermer) {
     ? `${fe('🛒',14)} ${o.xaridor_name || t('buyer_word')}`
     : `${fe('🌱',14)} ${o.fermer_name || t('farmer_word')}`;
 
+  // Delivery request info
+  let deliveryHtml = '';
+  if (o.delivery_request) {
+    const dr = o.delivery_request;
+    const statusLabels = {
+      pending: 'Ожидание драйвера',
+      driver_accepted: 'Драйвер принял',
+      in_transit: 'В пути',
+      delivered: 'Доставлен',
+      completed: 'Завершён',
+      cancelled_by_buyer: 'Отменено покупателем',
+      cancelled_by_driver: 'Отменено драйвером',
+    };
+    const drStatus = statusLabels[dr.status] || dr.status;
+    const drStatusColor = dr.status === 'driver_accepted' ? '#059669' : dr.status === 'pending' ? '#d97706' : '#6b7280';
+
+    deliveryHtml = `
+      <div style="background:#f0fdf4;border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <b style="font-size:13px">🚗 Доставка</b>
+          <span style="color:${drStatusColor};font-size:12px;font-weight:600">${drStatus}</span>
+        </div>
+        <div style="font-size:13px;color:#374151">
+          📍 ${dr.route_from} → ${dr.route_to} &nbsp;|&nbsp; 📏 ${dr.distance_km} км
+        </div>
+        <div style="font-size:13px;color:#059669;font-weight:600;margin-top:4px">
+          💰 ${Number(dr.total_price).toLocaleString()} сум
+        </div>
+        ${dr.courier_name ? `<div style="font-size:13px;color:#6b7280;margin-top:4px">👤 Драйвер: ${dr.courier_name} (${dr.courier_phone})</div>` : ''}
+      </div>
+    `;
+  }
+
   return `
     <div class="order-card" id="order-${o.id}">
       <div class="oc-img">${img}</div>
@@ -117,6 +150,7 @@ function orderCardHtml(o, isFermer) {
           ${fe('📅',14)} ${date}
         </div>
         ${total !== '—' ? `<div class="oc-total">${total}</div>` : ''}
+        ${deliveryHtml}
         ${timelineHtml(o.status)}
       </div>
       <div class="oc-actions">

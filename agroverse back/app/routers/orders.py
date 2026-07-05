@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.database import get_db
-from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod
+from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest
 from app.schemas import OrderCreate, OrderResponse
 from app.dependencies import get_current_user
 from datetime import datetime
@@ -105,6 +105,28 @@ async def get_my_orders(
         xaridor = xaridors_map.get(order.xaridor_id)
         if not product or not fermer or not xaridor:
             continue
+
+        # Load delivery request if linked
+        delivery_info = None
+        if order.delivery_request_id:
+            dr_result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == order.delivery_request_id))
+            dr = dr_result.scalar_one_or_none()
+            if dr:
+                courier_result = await db.execute(select(User).where(User.id == dr.courier_id))
+                courier = courier_result.scalar_one_or_none()
+                delivery_info = {
+                    "id": dr.id,
+                    "status": dr.status,
+                    "route_from": dr.route_from,
+                    "route_to": dr.route_to,
+                    "distance_km": dr.distance_km,
+                    "total_price": dr.total_price,
+                    "courier_name": courier.name if courier else "",
+                    "courier_phone": courier.phone if courier else "",
+                    "buyer_confirmed_disclaimer": dr.buyer_confirmed_disclaimer,
+                    "driver_confirmed_disclaimer": dr.driver_confirmed_disclaimer,
+                }
+
         orders_response.append(OrderResponse(
             id=order.id,
             product_id=product.id,
@@ -119,6 +141,7 @@ async def get_my_orders(
             commission=float(order.commission),
             pickup_method=getattr(order.pickup_method, "value", order.pickup_method),
             status=order.status,
+            delivery_request=delivery_info,
             created_at=order.created_at,
             updated_at=order.updated_at
         ))

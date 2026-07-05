@@ -68,6 +68,7 @@ class Product(Base):
     price_per_unit = Column(Numeric(10, 2), nullable=False)
     unit = Column(String(20), nullable=False)
     quantity_available = Column(Numeric(10, 2), nullable=False)
+    delivery_available = Column(Boolean, default=False)
     photos = Column(JSON, default=list)
     certificates = Column(JSON, default=list)
     status = Column(String(20), default=ProductStatus.PENDING.value)
@@ -90,6 +91,7 @@ class Order(Base):
     commission = Column(Numeric(12, 2), nullable=False)
     pickup_method = Column(String(20), default=PickupMethod.SELF.value)
     status = Column(String(20), default=OrderStatus.CREATED.value)
+    delivery_request_id = Column(Integer, ForeignKey("delivery_requests.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
@@ -97,6 +99,7 @@ class Order(Base):
     fermer = relationship("User", foreign_keys=[fermer_id], back_populates="orders_as_fermer")
     product = relationship("Product", back_populates="orders")
     review = relationship("Review", back_populates="order", uselist=False)
+    delivery_request = relationship("DeliveryRequest", back_populates="order", uselist=False)
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -158,6 +161,7 @@ class CourierProfile(Base):
     route_to         = Column(String(200), default="")
     route_anywhere   = Column(Boolean, default=False)
     address          = Column(String(300), default="")
+    price_per_km     = Column(Float, default=0.0)
     total_deliveries = Column(Integer, default=0)
     created_at       = Column(DateTime, server_default=func.now())
 
@@ -208,6 +212,33 @@ class CourierRatingEntry(Base):
     rating     = Column(Integer, nullable=False)
     comment    = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+
+
+# ─── Delivery Request (links marketplace orders to couriers) ────
+
+class DeliveryRequest(Base):
+    __tablename__ = "delivery_requests"
+
+    id                       = Column(Integer, primary_key=True)
+    order_id                 = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    courier_id               = Column(Integer, ForeignKey("users.id"), nullable=False)
+    buyer_id                 = Column(Integer, ForeignKey("users.id"), nullable=False)
+    route_from               = Column(String(200), default="")
+    route_to                 = Column(String(200), default="")
+    distance_km              = Column(Float, default=0.0)
+    price_per_km             = Column(Float, default=0.0)
+    total_price              = Column(Float, default=0.0)
+    status                   = Column(String(30), default="pending")
+    # pending -> driver_accepted -> in_transit -> delivered -> completed
+    # pending -> cancelled_by_buyer / cancelled_by_driver
+    buyer_confirmed_disclaimer  = Column(Boolean, default=False)
+    driver_confirmed_disclaimer = Column(Boolean, default=False)
+    created_at               = Column(DateTime, server_default=func.now())
+    updated_at               = Column(DateTime, onupdate=func.now())
+
+    order   = relationship("Order", back_populates="delivery_request")
+    courier = relationship("User", foreign_keys=[courier_id])
+    buyer   = relationship("User", foreign_keys=[buyer_id])
 
 
 # Индексы для производительности
