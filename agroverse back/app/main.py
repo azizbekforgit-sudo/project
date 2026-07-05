@@ -90,55 +90,65 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
 
-        # ── Конвертируем PostgreSQL enum-колонки в VARCHAR через DO блоки ──
-        # Это НЕЗАВИСИМО от SQLAlchemy модели — работает напрямую с БД
-        migrate_sql = """
-DO $$
-DECLARE
-    col_type text;
-BEGIN
-    -- users.role
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name='users' AND column_name='role';
-    IF col_type = 'USER-DEFINED' THEN
-        ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(20) USING role::text;
-    END IF;
+        # ── Конвертируем PostgreSQL enum-колонки в VARCHAR ──
+        # Каждая колонка конвертируется отдельно, чтобы ошибка одной не ломала другие.
+        enum_columns = [
+            ("users",       "role"),
+            ("users",       "tariff"),
+            ("products",    "status"),
+            ("orders",      "pickup_method"),
+            ("orders",      "status"),
+        ]
+        for table, column in enum_columns:
+            try:
+                check = await conn.execute(text(
+                    "SELECT data_type FROM information_schema.columns "
+                    "WHERE table_name=:t AND column_name=:c"
+                ), {"t": table, "c": column})
+                row = check.fetchone()
+                if row and row[0] == "USER-DEFINED":
+                    await conn.execute(text(
+                        f"ALTER TABLE {table} ALTER COLUMN {column} TYPE VARCHAR(50) USING {column}::text"
+                    ))
+                    print(f"[MIGRATION] {table}.{column}: enum → VARCHAR OK")
+            except Exception as e:
+                print(f"[MIGRATION] {table}.{column}: {e}")
 
-    -- users.tariff
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name='users' AND column_name='tariff';
-    IF col_type = 'USER-DEFINED' THEN
-        ALTER TABLE users ALTER COLUMN tariff TYPE VARCHAR(20) USING tariff::text;
-    END IF;
+        # Нормализуем uppercase enum-значения в lowercase (FERMER→fermer, ADMIN→admin и т.д.)
+        try:
+            await conn.execute(text(
+                "UPDATE users SET role = lower(role) WHERE role ~ '[A-Z]'"
+            ))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text(
+                "UPDATE users SET tariff = lower(tariff) WHERE tariff ~ '[A-Z]'"
+            ))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text(
+                "UPDATE products SET status = lower(status) WHERE status ~ '[A-Z]'"
+            ))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text(
+                "UPDATE orders SET pickup_method = lower(pickup_method) WHERE pickup_method ~ '[A-Z]'"
+            ))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text(
+                "UPDATE orders SET status = lower(status) WHERE status ~ '[A-Z]'"
+            ))
+        except Exception:
+            pass
 
-    -- products.status
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name='products' AND column_name='status';
-    IF col_type = 'USER-DEFINED' THEN
-        ALTER TABLE products ALTER COLUMN status TYPE VARCHAR(20) USING status::text;
-    END IF;
-
-    -- orders.pickup_method
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name='orders' AND column_name='pickup_method';
-    IF col_type = 'USER-DEFINED' THEN
-        ALTER TABLE orders ALTER COLUMN pickup_method TYPE VARCHAR(20) USING pickup_method::text;
-    END IF;
-
-    -- orders.status
-    SELECT data_type INTO col_type
-    FROM information_schema.columns
-    WHERE table_name='orders' AND column_name='status';
-    IF col_type = 'USER-DEFINED' THEN
-        ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(20) USING status::text;
-    END IF;
-END $$;
-
--- Удаляем старые enum-типы PostgreSQL
+        # Удаляем старые enum-типы PostgreSQL
+        try:
+            await conn.execute(text("""
 DO $$
 DECLARE
     t RECORD;
@@ -148,12 +158,9 @@ BEGIN
         EXECUTE 'DROP TYPE IF EXISTS ' || quote_ident(t.typname) || ' CASCADE';
     END LOOP;
 END $$;
-        """
-        try:
-            await conn.execute(text(migrate_sql))
-            print("[MIGRATION] Enum → VARCHAR конвертация выполнена")
-        except Exception as e:
-            print(f"[MIGRATION] Предупреждение: {e}")
+            """))
+        except Exception:
+            pass
 
         # ── Миграция из легаси main.py (если таблица создана монолитом) ──
         try:
