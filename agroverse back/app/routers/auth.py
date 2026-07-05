@@ -47,7 +47,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
             "name": new_user.name,
             "phone": new_user.phone,
             "email": new_user.email,
-            "role": str(new_user.role) if new_user.role else "xaridor"
+            "role": new_user.role.value if new_user.role else "xaridor"
         }
     }
 
@@ -81,7 +81,7 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "name": user.name,
             "phone": user.phone,
             "email": user.email,
-            "role": str(user.role) if user.role else "xaridor"
+            "role": user.role.value if user.role else "xaridor"
         }
     }
 @router.get("/me")
@@ -91,10 +91,10 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
-        "role": str(current_user.role) if current_user.role else None,
-        "tariff": str(current_user.tariff) if current_user.tariff else None,
+        "role": current_user.role.value if current_user.role else None,
+        "tariff": current_user.tariff.value if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
-        "wallet_balance": float(current_user.wallet_balance),
+        "wallet_balance": float(current_user.wallet_balance or 0),
         "is_active": current_user.is_active
     }
 
@@ -121,10 +121,10 @@ async def update_profile(
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
-        "role": str(current_user.role) if current_user.role else None,
-        "tariff": str(current_user.tariff) if current_user.tariff else None,
+        "role": current_user.role.value if current_user.role else None,
+        "tariff": current_user.tariff.value if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
-        "wallet_balance": float(current_user.wallet_balance),
+        "wallet_balance": float(current_user.wallet_balance or 0),
     }
 
 @router.post("/otp/send")
