@@ -62,7 +62,7 @@ async def create_order(
         quantity=float(new_order.quantity),
         total_price=float(new_order.total_price),
         commission=float(new_order.commission),
-        pickup_method=new_order.pickup_method.value,
+        pickup_method=getattr(new_order.pickup_method, "value", new_order.pickup_method),
         status=new_order.status,
         created_at=new_order.created_at,
         updated_at=new_order.updated_at
@@ -84,7 +84,6 @@ async def get_my_orders(
     result = await db.execute(query)
     orders = result.scalars().all()
 
-    # FIX: batch-load products and farmers to avoid N+1 queries
     product_ids = list({o.product_id for o in orders})
     fermer_ids = list({o.fermer_id for o in orders})
 
@@ -111,7 +110,7 @@ async def get_my_orders(
             quantity=float(order.quantity),
             total_price=float(order.total_price),
             commission=float(order.commission),
-            pickup_method=order.pickup_method.value,
+            pickup_method=getattr(order.pickup_method, "value", order.pickup_method),
             status=order.status,
             created_at=order.created_at,
             updated_at=order.updated_at
@@ -150,7 +149,7 @@ async def get_order(
         quantity=float(order.quantity),
         total_price=float(order.total_price),
         commission=float(order.commission),
-        pickup_method=order.pickup_method.value,
+        pickup_method=getattr(order.pickup_method, "value", order.pickup_method),
         status=order.status,
         created_at=order.created_at,
         updated_at=order.updated_at
@@ -266,14 +265,11 @@ async def cancel_order(
     if order.status in [OrderStatus.COMPLETED, OrderStatus.CANCELLED]:
         raise HTTPException(status_code=400, detail="Нельзя отменить завершенный или уже отмененный заказ")
 
-    # FIX: при отмене оплаченного заказа корректно откатываем платёж
     if order.status == OrderStatus.PAID:
         xaridor_result = await db.execute(select(User).where(User.id == order.xaridor_id))
         xaridor = xaridor_result.scalar_one()
-        # Возвращаем полную сумму покупателю
         xaridor.wallet_balance += order.total_price
 
-        # Забираем у фермера то, что ему уже было начислено (total - commission)
         fermer_result = await db.execute(select(User).where(User.id == order.fermer_id))
         fermer = fermer_result.scalar_one()
         fermer.wallet_balance -= (order.total_price - order.commission)
