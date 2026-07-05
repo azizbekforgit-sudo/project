@@ -6,4 +6,4 @@ couldn't locate the dockerfile at path sh -c "uvicorn app.main:app --host 0.0.0.
   -  not found at agroverse back/sh -c "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
   -  not found at sh -c "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 uploading snapshot
-6.7 MB
+6.7 M
