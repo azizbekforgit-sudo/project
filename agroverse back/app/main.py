@@ -114,6 +114,27 @@ async def lifespan(app: FastAPI):
             except Exception as e:
                 print(f"[MIGRATION] {table}.{column}: {e}")
 
+        # ── Добавляем колонки, которых не хватает в уже существующих таблицах ──
+        # (create_all создаёт только новые таблицы, но не добавляет новые колонки
+        # в те, что уже есть в базе)
+        missing_columns = [
+            ("products", "photos", "JSON DEFAULT '[]'::json"),
+            ("products", "certificates", "JSON DEFAULT '[]'::json"),
+        ]
+        for table, column, coltype in missing_columns:
+            try:
+                check = await conn.execute(text(
+                    "SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name=:t AND column_name=:c"
+                ), {"t": table, "c": column})
+                if not check.fetchone():
+                    await conn.execute(text(
+                        f"ALTER TABLE {table} ADD COLUMN {column} {coltype}"
+                    ))
+                    print(f"[MIGRATION] {table}.{column}: колонка добавлена")
+            except Exception as e:
+                print(f"[MIGRATION] {table}.{column} (add column): {e}")
+
         # Нормализуем uppercase enum-значения в lowercase (FERMER→fermer, ADMIN→admin и т.д.)
         try:
             await conn.execute(text(
