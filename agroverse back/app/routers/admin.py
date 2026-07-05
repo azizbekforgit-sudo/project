@@ -34,8 +34,8 @@ async def get_all_users(
             "name": u.name,
             "phone": u.phone,
             "email": u.email,
-            "role": u.role.value,
-            "tariff": u.tariff.value,
+            "role": getattr(u.role, "value", u.role),
+            "tariff": getattr(u.tariff, "value", u.tariff),
             "bonus_points": u.bonus_points,
             "wallet_balance": float(u.wallet_balance or 0),
             "is_active": u.is_active,
@@ -98,7 +98,6 @@ async def get_pending_products(
     )
     products = result.scalars().all()
 
-    # FIX: batch-load farmers to avoid N+1 queries
     fermer_ids = list({p.fermer_id for p in products})
     fermers_result = await db.execute(select(User).where(User.id.in_(fermer_ids)))
     fermers_map = {u.id: u for u in fermers_result.scalars().all()}
@@ -198,12 +197,11 @@ async def orders_report(
 
 @router.get("/reports/revenue")
 async def revenue_report(
-    period: str = "month",  # day, week, month, year
+    period: str = "month",
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """Отчёт по доходам"""
-    # Заглушка для MVP
     return {
         "period": period,
         "total_revenue": 125000.00,
@@ -216,8 +214,6 @@ async def revenue_report(
         }
     }
 
-
-# ─── Рейтинг курьера (0-10, ставит админ) ─────────────────────
 
 from pydantic import BaseModel as _BM, Field
 

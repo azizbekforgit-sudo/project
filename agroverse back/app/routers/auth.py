@@ -14,13 +14,11 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register")
 async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
-    # Проверка существующего пользователя
     result = await db.execute(select(User).where(User.phone == user_data.phone))
     existing = result.scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=400, detail="Phone already registered")
     
-    # Создание пользователя
     new_user = User(
         name=user_data.name,
         phone=user_data.phone,
@@ -34,7 +32,6 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     
-    # Создание токенов
     access_token = create_access_token({"sub": str(new_user.id)})
     refresh_token = create_refresh_token({"sub": str(new_user.id)})
 
@@ -47,7 +44,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
             "name": new_user.name,
             "phone": new_user.phone,
             "email": new_user.email,
-            "role": new_user.role.value if new_user.role else "xaridor"
+            "role": getattr(new_user.role, "value", new_user.role) if new_user.role else "xaridor"
         }
     }
 
@@ -71,7 +68,6 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token({"sub": str(user.id)})
     refresh_token = create_refresh_token({"sub": str(user.id)})
     
-    # Возвращаем вместе с токеном данные пользователя
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -81,9 +77,10 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "name": user.name,
             "phone": user.phone,
             "email": user.email,
-            "role": user.role.value if user.role else "xaridor"
+            "role": getattr(user.role, "value", user.role) if user.role else "xaridor"
         }
     }
+
 @router.get("/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return {
@@ -91,8 +88,8 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
-        "role": current_user.role.value if current_user.role else None,
-        "tariff": current_user.tariff.value if current_user.tariff else None,
+        "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
+        "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
         "wallet_balance": float(current_user.wallet_balance or 0),
         "is_active": current_user.is_active
@@ -121,8 +118,8 @@ async def update_profile(
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
-        "role": current_user.role.value if current_user.role else None,
-        "tariff": current_user.tariff.value if current_user.tariff else None,
+        "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
+        "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
         "wallet_balance": float(current_user.wallet_balance or 0),
     }
