@@ -80,6 +80,44 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
+
+        # ── Конвертируем PostgreSQL enum-колонки в VARCHAR ──
+        for col, new_type in [
+            ("role", "VARCHAR(20)"),
+            ("tariff", "VARCHAR(20)"),
+        ]:
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE users ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
+                ))
+            except Exception:
+                pass
+        for col, new_type in [
+            ("status", "VARCHAR(20)"),
+        ]:
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE products ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
+                ))
+            except Exception:
+                pass
+        for col, new_type in [
+            ("pickup_method", "VARCHAR(20)"),
+            ("status", "VARCHAR(20)"),
+        ]:
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE orders ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
+                ))
+            except Exception:
+                pass
+        # Удаляем старые enum-типы PostgreSQL если есть
+        for tname in ["userrole", "usertariff", "productstatus", "orderstatus", "pickupmethod"]:
+            try:
+                await conn.execute(text(f"DROP TYPE IF EXISTS {tname} CASCADE"))
+            except Exception:
+                pass
+
         # ── Миграция из легаси main.py (если таблица создана монолитом) ──
         try:
             await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
