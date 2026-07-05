@@ -86,7 +86,23 @@ async def seed_admin():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from sqlalchemy import text
+
     async with engine.begin() as conn:
+
+        async def safe_exec(sql, params=None, label=None):
+            """Выполняет SQL в отдельном SAVEPOINT, чтобы ошибка в одной
+            команде не откатывала ВСЮ транзакцию (включая create_all и
+            все успешные миграции, выполненные ранее)."""
+            try:
+                async with conn.begin_nested():
+                    await conn.execute(text(sql), params or {})
+                if label:
+                    print(f"[MIGRATION] {label}: OK")
+            except Exception as e:
+                if label:
+                    print(f"[MIGRATION] {label}: {e}")
+
         # ── ВРЕМЕННО: полный снос и пересоздание таблиц ──
         # Включается переменной окружения RESET_DB=true в Railway.
         # ОБЯЗАТЕЛЬНО убрать/выключить эту переменную после одного запуска,
@@ -96,10 +112,8 @@ async def lifespan(app: FastAPI):
             print("[RESET_DB] Все таблицы удалены")
 
         await conn.run_sync(Base.metadata.create_all)
-        from sqlalchemy import text
 
         # ── Конвертируем PostgreSQL enum-колонки в VARCHAR ──
-        # Каждая колонка конвертируется отдельно, чтобы ошибка одной не ломала другие.
         enum_columns = [
             ("users",       "role"),
             ("users",       "tariff"),
@@ -108,76 +122,45 @@ async def lifespan(app: FastAPI):
             ("orders",      "status"),
         ]
         for table, column in enum_columns:
-            try:
+            async with conn.begin_nested():
                 check = await conn.execute(text(
                     "SELECT data_type FROM information_schema.columns "
                     "WHERE table_name=:t AND column_name=:c"
                 ), {"t": table, "c": column})
                 row = check.fetchone()
-                if row and row[0] == "USER-DEFINED":
-                    await conn.execute(text(
-                        f"ALTER TABLE {table} ALTER COLUMN {column} TYPE VARCHAR(50) USING {column}::text"
-                    ))
-                    print(f"[MIGRATION] {table}.{column}: enum → VARCHAR OK")
-            except Exception as e:
-                print(f"[MIGRATION] {table}.{column}: {e}")
+            if row and row[0] == "USER-DEFINED":
+                await safe_exec(
+                    f"ALTER TABLE {table} ALTER COLUMN {column} TYPE VARCHAR(50) USING {column}::text",
+                    label=f"{table}.{column} enum→VARCHAR"
+                )
 
         # ── Добавляем колонки, которых не хватает в уже существующих таблицах ──
-        # (create_all создаёт только новые таблицы, но не добавляет новые колонки
-        # в те, что уже есть в базе)
         missing_columns = [
             ("products", "photos", "JSON DEFAULT '[]'::json"),
             ("products", "certificates", "JSON DEFAULT '[]'::json"),
         ]
         for table, column, coltype in missing_columns:
-            try:
+            async with conn.begin_nested():
                 check = await conn.execute(text(
                     "SELECT 1 FROM information_schema.columns "
                     "WHERE table_name=:t AND column_name=:c"
                 ), {"t": table, "c": column})
-                if not check.fetchone():
-                    await conn.execute(text(
-                        f"ALTER TABLE {table} ADD COLUMN {column} {coltype}"
-                    ))
-                    print(f"[MIGRATION] {table}.{column}: колонка добавлена")
-            except Exception as e:
-                print(f"[MIGRATION] {table}.{column} (add column): {e}")
+                exists = check.fetchone()
+            if not exists:
+                await safe_exec(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {coltype}",
+                    label=f"{table}.{column} добавлена"
+                )
 
-        # Нормализуем uppercase enum-значения в lowercase (FERMER→fermer, ADMIN→admin и т.д.)
-        try:
-            await conn.execute(text(
-                "UPDATE users SET role = lower(role) WHERE role ~ '[A-Z]'"
-            ))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text(
-                "UPDATE users SET tariff = lower(tariff) WHERE tariff ~ '[A-Z]'"
-            ))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text(
-                "UPDATE products SET status = lower(status) WHERE status ~ '[A-Z]'"
-            ))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text(
-                "UPDATE orders SET pickup_method = lower(pickup_method) WHERE pickup_method ~ '[A-Z]'"
-            ))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text(
-                "UPDATE orders SET status = lower(status) WHERE status ~ '[A-Z]'"
-            ))
-        except Exception:
-            pass
+        # Нормализуем uppercase enum-значения в lowercase
+        await safe_exec("UPDATE users SET role = lower(role) WHERE role ~ '[A-Z]'")
+        await safe_exec("UPDATE users SET tariff = lower(tariff) WHERE tariff ~ '[A-Z]'")
+        await safe_exec("UPDATE products SET status = lower(status) WHERE status ~ '[A-Z]'")
+        await safe_exec("UPDATE orders SET pickup_method = lower(pickup_method) WHERE pickup_method ~ '[A-Z]'")
+        await safe_exec("UPDATE orders SET status = lower(status) WHERE status ~ '[A-Z]'")
 
         # Удаляем старые enum-типы PostgreSQL
-        try:
-            await conn.execute(text("""
+        await safe_exec("""
 DO $$
 DECLARE
     t RECORD;
@@ -187,50 +170,34 @@ BEGIN
         EXECUTE 'DROP TYPE IF EXISTS ' || quote_ident(t.typname) || ' CASCADE';
     END LOOP;
 END $$;
-            """))
-        except Exception:
-            pass
+        """)
 
         # ── Миграция из легаси main.py (если таблица создана монолитом) ──
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT"))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)"))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE"))
-        except Exception:
-            pass
-        # Копируем password → password_hash если password_hash пуст
-        try:
-            await conn.execute(text(
-                "UPDATE users SET password_hash = password WHERE password_hash IS NULL OR password_hash = ''"
-            ))
-        except Exception:
-            pass
-        # Конвертируем is_blocked → is_active если is_active не установлен
-        try:
-            await conn.execute(text(
-                "UPDATE users SET is_active = (is_blocked != 'true') WHERE is_active IS NULL"
-            ))
-        except Exception:
-            pass
-        # Добавляем tariff если нет
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS tariff VARCHAR(20) DEFAULT 'standart'"))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_points INTEGER DEFAULT 0"))
-        except Exception:
-            pass
-        try:
-            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance NUMERIC(12,2) DEFAULT 0"))
-        except Exception:
-            pass
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS block_reason TEXT")
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)")
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE")
+        # Копируем password → password_hash, только если такая legacy-колонка вообще есть
+        await safe_exec("""
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='password') THEN
+        UPDATE users SET password_hash = password WHERE password_hash IS NULL OR password_hash = '';
+    END IF;
+END $$;
+        """)
+        # Конвертируем is_blocked → is_active, только если такая legacy-колонка есть
+        await safe_exec("""
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='is_blocked') THEN
+        UPDATE users SET is_active = (is_blocked::text != 'true') WHERE is_active IS NULL;
+    END IF;
+END $$;
+        """)
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS tariff VARCHAR(20) DEFAULT 'standart'")
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_points INTEGER DEFAULT 0")
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance NUMERIC(12,2) DEFAULT 0")
+
     await seed_admin()
     print("🌾 AgroVerse API запущен")
     yield
