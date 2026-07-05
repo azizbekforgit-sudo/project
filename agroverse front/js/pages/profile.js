@@ -215,10 +215,10 @@ async function loadFarmerProducts() {
             <span class="pr-pc-status ${statusClass}">${statusText}</span>
           </div>
           <div class="pr-pc-body">
-            <div class="pr-pc-title">${p.title}</div>
+            <div class="pr-pc-title">${p.name}</div>
             <div class="pr-pc-meta">
-              <span class="pr-pc-price">${Number(p.price_per_unit).toLocaleString('ru')} сум/${p.unit || 'кг'}</span>
-              <span class="pr-pc-qty">Остаток: ${p.quantity_available} ${p.unit || 'кг'}</span>
+              <span class="pr-pc-price">${Number(p.price).toLocaleString('ru')} сум/${p.unit || 'кг'}</span>
+              <span class="pr-pc-qty">Остаток: ${p.quantity} ${p.unit || 'кг'}</span>
             </div>
             <div class="pr-pc-category">${p.category || 'Без категории'}</div>
           </div>
@@ -226,7 +226,7 @@ async function loadFarmerProducts() {
             <button class="btn btn-ghost btn-sm" onclick="openProductEdit(${p.id})" title="Редактировать">
               <i class="fi fi-rr-pencil"></i>
             </button>
-            <button class="btn btn-ghost btn-sm" onclick="deleteMyProduct(${p.id}, '${p.title.replace(/'/g, "\\'")}')" title="Удалить">
+            <button class="btn btn-ghost btn-sm" onclick="deleteMyProduct(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" title="Удалить">
               <i class="fi fi-rr-trash"></i>
             </button>
           </div>
