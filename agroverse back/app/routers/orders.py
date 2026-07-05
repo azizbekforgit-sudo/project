@@ -57,6 +57,7 @@ async def create_order(
         product_title=product.title,
         product_photo=product.photos[0] if product.photos else None,
         xaridor_id=current_user.id,
+        xaridor_name=current_user.name,
         fermer_id=product.fermer_id,
         fermer_name=fermer.name,
         quantity=float(new_order.quantity),
@@ -86,6 +87,7 @@ async def get_my_orders(
 
     product_ids = list({o.product_id for o in orders})
     fermer_ids = list({o.fermer_id for o in orders})
+    xaridor_ids = list({o.xaridor_id for o in orders})
 
     products_result = await db.execute(select(Product).where(Product.id.in_(product_ids)))
     products_map = {p.id: p for p in products_result.scalars().all()}
@@ -93,11 +95,15 @@ async def get_my_orders(
     fermers_result = await db.execute(select(User).where(User.id.in_(fermer_ids)))
     fermers_map = {u.id: u for u in fermers_result.scalars().all()}
 
+    xaridors_result = await db.execute(select(User).where(User.id.in_(xaridor_ids)))
+    xaridors_map = {u.id: u for u in xaridors_result.scalars().all()}
+
     orders_response = []
     for order in orders:
         product = products_map.get(order.product_id)
         fermer = fermers_map.get(order.fermer_id)
-        if not product or not fermer:
+        xaridor = xaridors_map.get(order.xaridor_id)
+        if not product or not fermer or not xaridor:
             continue
         orders_response.append(OrderResponse(
             id=order.id,
@@ -105,6 +111,7 @@ async def get_my_orders(
             product_title=product.title,
             product_photo=product.photos[0] if product.photos else None,
             xaridor_id=order.xaridor_id,
+            xaridor_name=xaridor.name,
             fermer_id=order.fermer_id,
             fermer_name=fermer.name,
             quantity=float(order.quantity),
@@ -137,6 +144,8 @@ async def get_order(
     product = product_result.scalar_one()
     fermer_result = await db.execute(select(User).where(User.id == order.fermer_id))
     fermer = fermer_result.scalar_one()
+    xaridor_result = await db.execute(select(User).where(User.id == order.xaridor_id))
+    xaridor = xaridor_result.scalar_one()
 
     return OrderResponse(
         id=order.id,
@@ -144,6 +153,7 @@ async def get_order(
         product_title=product.title,
         product_photo=product.photos[0] if product.photos else None,
         xaridor_id=order.xaridor_id,
+        xaridor_name=xaridor.name,
         fermer_id=order.fermer_id,
         fermer_name=fermer.name,
         quantity=float(order.quantity),

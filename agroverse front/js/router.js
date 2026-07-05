@@ -10,7 +10,7 @@ const ROUTES = {
   '/tariffs':     { render: renderTariffs, auth: true },
 
   '/product/new': { render: renderProductNew, role: 'fermer' },
-  '/orders':      { render: renderOrders,     role: 'xaridor' },
+  '/orders':      { render: renderOrders,     auth: true },
   '/cart':        { render: renderCart,       role: 'xaridor' },
   '/admin':       { render: renderAdmin,      role: 'admin' },
 

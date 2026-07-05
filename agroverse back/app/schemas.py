@@ -103,6 +103,7 @@ class OrderResponse(BaseModel):
     product_title: str
     product_photo: Optional[str] = None
     xaridor_id: int
+    xaridor_name: str
     fermer_id: int
     fermer_name: str
     quantity: float
@@ -112,7 +113,6 @@ class OrderResponse(BaseModel):
     status: OrderStatus
     created_at: datetime
     updated_at: datetime
-
 
 # ── Bonus schemas ─────────────────────────────────────────────────────────────
 

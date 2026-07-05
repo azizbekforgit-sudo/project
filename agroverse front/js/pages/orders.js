@@ -1,4 +1,4 @@
-/* pages/orders.js — Мои заказы (покупатель) */
+/* pages/orders.js — Мои заказы (покупатель и фермер) */
 
 const ORDER_STEPS = ['created', 'paid', 'ready_for_pickup', 'completed'];
 
@@ -65,6 +65,8 @@ async function loadOrdersList() {
   const wrap = document.getElementById('orders-wrap');
   if (!wrap) return;
   try {
+    const user = Auth.getUser();
+    const isFermer = user && user.role === 'fermer';
     const data = await API.getMyOrders();
     const orders = data?.orders || data || [];
     if (!orders?.length) {
@@ -72,27 +74,34 @@ async function loadOrdersList() {
         <div class="empty-state big">
           <div class="icon">${fe('📦',48)}</div>
           <p>${t('orders_empty')}</p>
-          <button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>
+          ${!isFermer ? `<button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>` : ''}
         </div>`;
       return;
     }
-    wrap.innerHTML = `<div class="orders-list">${orders.map(orderCardHtml).join('')}</div>`;
+    wrap.innerHTML = `<div class="orders-list">${orders.map(o => orderCardHtml(o, isFermer)).join('')}</div>`;
   } catch (e) {
     wrap.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
   }
 }
 
-function orderCardHtml(o) {
+function orderCardHtml(o, isFermer) {
   const date  = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
   const total = o.total_price != null ? `${Number(o.total_price).toLocaleString()} ${t('currency')}` : '—';
-  const canCancel   = ['created', 'paid'].includes(o.status);
-  const canComplete = o.status === 'ready_for_pickup' || o.status === 'ready';
+
+  const canCancel   = !isFermer && ['created', 'paid'].includes(o.status);
+  const canComplete = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
+  const canMarkReady = isFermer && o.status === 'paid';
+
   const img = o.product_photo
     ? `<img src="${API_PHOTO(o.product_photo)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'oc-ph',textContent:'🥬'}))" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
     : '<div class="oc-ph">🥬</div>';
 
+  const personLabel = isFermer
+    ? `${fe('🛒',14)} ${o.xaridor_name || t('buyer_word')}`
+    : `${fe('🌱',14)} ${o.fermer_name || t('farmer_word')}`;
+
   return `
-    <div class="order-card" id="buyer-order-${o.id}">
+    <div class="order-card" id="order-${o.id}">
       <div class="oc-img">${img}</div>
       <div class="oc-main">
         <div class="oc-top">
@@ -101,7 +110,7 @@ function orderCardHtml(o) {
           <span class="oc-id">#${o.id}</span>
         </div>
         <div class="oc-meta">
-          ${fe('🌱',14)} ${o.fermer_name || t('farmer_word')}
+          ${personLabel}
           <span class="oc-meta-dot"></span>
           ${o.quantity} ${t('pcs')}
           <span class="oc-meta-dot"></span>
@@ -111,8 +120,9 @@ function orderCardHtml(o) {
         ${timelineHtml(o.status)}
       </div>
       <div class="oc-actions">
-        ${canCancel   ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
-        ${canComplete ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
+        ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
+        ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
+        ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
       </div>
     </div>
   `;
@@ -135,6 +145,12 @@ async function confirmReceived(id) {
   catch (e) { showToast(e.message, 'error'); }
 }
 
+async function markOrderReady(id) {
+  try { await API.markReady(id); showToast(`${fe('📦',16)} ` + (t('order_marked_ready') || 'Заказ готов к выдаче')); loadOrdersList(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
 window.renderOrders     = renderOrders;
 window.cancelOrder      = cancelOrder;
 window.confirmReceived  = confirmReceived;
+window.markOrderReady   = markOrderReady;
