@@ -34,10 +34,10 @@ async def get_all_users(
             "name": u.name,
             "phone": u.phone,
             "email": u.email,
-            "role": str(u.role),
-            "tariff": str(u.tariff),
+            "role": u.role.value,
+            "tariff": u.tariff.value,
             "bonus_points": u.bonus_points,
-            "wallet_balance": float(u.wallet_balance),
+            "wallet_balance": float(u.wallet_balance or 0),
             "is_active": u.is_active,
             "block_reason": u.block_reason,
             "created_at": u.created_at.isoformat() if u.created_at else None

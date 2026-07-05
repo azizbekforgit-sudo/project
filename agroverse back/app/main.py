@@ -219,6 +219,8 @@ END $$;
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS tariff VARCHAR(20) DEFAULT 'standart'")
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_points INTEGER DEFAULT 0")
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS wallet_balance NUMERIC(12,2) DEFAULT 0")
+        await safe_exec("ALTER TABLE users ALTER COLUMN wallet_balance SET DEFAULT 0")
+        await safe_exec("UPDATE users SET wallet_balance = 0 WHERE wallet_balance IS NULL")
 
     await seed_admin()
     print("🌾 AgroVerse API запущен")
