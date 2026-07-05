@@ -128,9 +128,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
+ALLOWED_ORIGINS = [
+    "https://pure-strength-production.up.railway.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -163,7 +170,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     safe_errors = _safe_serialize(errors)
     return JSONResponse(
         status_code=422,
-        headers={"Access-Control-Allow-Origin": "*"},
         content={"detail": safe_errors},
     )
 
