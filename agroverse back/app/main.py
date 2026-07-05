@@ -8,6 +8,8 @@ from sqlalchemy import select
 import os
 import uvicorn
 
+print("========== ВЕРСИЯ ФАЙЛА: MARKER-7788 ==========")
+
 from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.config import settings
 from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery
