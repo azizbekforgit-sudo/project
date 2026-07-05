@@ -87,6 +87,14 @@ async def seed_admin():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
+        # ── ВРЕМЕННО: полный снос и пересоздание таблиц ──
+        # Включается переменной окружения RESET_DB=true в Railway.
+        # ОБЯЗАТЕЛЬНО убрать/выключить эту переменную после одного запуска,
+        # иначе база будет стираться при КАЖДОМ деплое!
+        if os.getenv("RESET_DB") == "true":
+            await conn.run_sync(Base.metadata.drop_all)
+            print("[RESET_DB] Все таблицы удалены")
+
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
 
