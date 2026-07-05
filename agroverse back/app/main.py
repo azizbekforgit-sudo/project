@@ -113,6 +113,26 @@ async def lifespan(app: FastAPI):
 
         await conn.run_sync(Base.metadata.create_all)
 
+        # ── ВРЕМЕННАЯ ДИАГНОСТИКА: к какой базе реально подключились ──
+        try:
+            db_info = await conn.execute(text(
+                "SELECT current_database(), inet_server_addr()::text"
+            ))
+            dbname, dbhost = db_info.fetchone()
+            print(f"[DEBUG] Подключены к базе: {dbname} @ {dbhost}")
+        except Exception as e:
+            print(f"[DEBUG] Не удалось получить инфо о базе: {e}")
+
+        try:
+            cols = await conn.execute(text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name='products' ORDER BY ordinal_position"
+            ))
+            col_names = [r[0] for r in cols.fetchall()]
+            print(f"[DEBUG] Колонки products СРАЗУ после create_all: {col_names}")
+        except Exception as e:
+            print(f"[DEBUG] Не удалось получить колонки products: {e}")
+
         # ── Конвертируем PostgreSQL enum-колонки в VARCHAR ──
         enum_columns = [
             ("users",       "role"),
