@@ -20,26 +20,38 @@ ADMIN_PASSWORD = settings.admin_password or "admin123"
 
 
 async def seed_admin():
-    from sqlalchemy import select
-    from app.models import User, UserRole, UserTariff
+    from sqlalchemy import text
     from app.auth import get_password_hash
     async with AsyncSessionLocal() as db:
         new_hash = get_password_hash(ADMIN_PASSWORD)
 
-        # 1) Try exact phone match
-        res = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-        existing = res.scalar_one_or_none()
+        # Используем сырые SQL чтобы избежать проблем с PostgreSQL enum-типами
+        result = await db.execute(
+            text("SELECT id, password_hash, role, is_active FROM users WHERE phone = :phone"),
+            {"phone": ADMIN_PHONE},
+        )
+        row = result.fetchone()
 
-        if existing:
+        if row:
+            user_id, current_hash, current_role, current_active = row
             changed = False
-            if existing.password_hash != new_hash:
-                existing.password_hash = new_hash
+            if current_hash != new_hash:
+                await db.execute(
+                    text("UPDATE users SET password_hash = :h WHERE id = :id"),
+                    {"h": new_hash, "id": user_id},
+                )
                 changed = True
-            if existing.role != UserRole.ADMIN:
-                existing.role = UserRole.ADMIN
+            if str(current_role).lower() != "admin":
+                await db.execute(
+                    text("UPDATE users SET role = 'admin' WHERE id = :id"),
+                    {"id": user_id},
+                )
                 changed = True
-            if not existing.is_active:
-                existing.is_active = True
+            if not current_active:
+                await db.execute(
+                    text("UPDATE users SET is_active = true WHERE id = :id"),
+                    {"id": user_id},
+                )
                 changed = True
             if changed:
                 await db.commit()
@@ -48,29 +60,26 @@ async def seed_admin():
                 print(f"[ADMIN] OK: phone={ADMIN_PHONE}")
             return
 
-        # 2) If phone not found, check if there's ANY admin — update their password
-        admin_res = await db.execute(select(User).where(User.role == UserRole.ADMIN))
-        any_admin = admin_res.scalar_one_or_none()
+        # 2) Check if there's ANY admin
+        admin_res = await db.execute(
+            text("SELECT id FROM users WHERE lower(role) = 'admin' LIMIT 1")
+        )
+        any_admin = admin_res.fetchone()
         if any_admin:
-            any_admin.phone = ADMIN_PHONE
-            any_admin.password_hash = new_hash
-            any_admin.is_active = True
+            await db.execute(
+                text("UPDATE users SET phone = :phone, password_hash = :h, is_active = true WHERE id = :id"),
+                {"phone": ADMIN_PHONE, "h": new_hash, "id": any_admin[0]},
+            )
             await db.commit()
-            print(f"[ADMIN] Обновлён существующий админ: id={any_admin.id}, phone={ADMIN_PHONE}")
+            print(f"[ADMIN] Обновлён существующий админ: id={any_admin[0]}, phone={ADMIN_PHONE}")
             return
 
-        # 3) No admin at all — create
-        admin = User(
-            name="Администратор",
-            phone=ADMIN_PHONE,
-            email="admin@agroverse.uz",
-            password_hash=new_hash,
-            role=UserRole.ADMIN,
-            tariff=UserTariff.PREMIUM,
-            bonus_points=0,
-            is_active=True,
+        # 3) Create admin
+        await db.execute(
+            text("INSERT INTO users (name, phone, email, password_hash, role, tariff, bonus_points, is_active) "
+                 "VALUES (:name, :phone, :email, :hash, 'admin', 'premium', 0, true)"),
+            {"name": "Администратор", "phone": ADMIN_PHONE, "email": "admin@agroverse.uz", "hash": new_hash},
         )
-        db.add(admin)
         await db.commit()
         print(f"[ADMIN] Создан: phone={ADMIN_PHONE}, password={ADMIN_PASSWORD}")
 
@@ -81,42 +90,70 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
 
-        # ── Конвертируем PostgreSQL enum-колонки в VARCHAR ──
-        for col, new_type in [
-            ("role", "VARCHAR(20)"),
-            ("tariff", "VARCHAR(20)"),
-        ]:
-            try:
-                await conn.execute(text(
-                    f"ALTER TABLE users ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
-                ))
-            except Exception:
-                pass
-        for col, new_type in [
-            ("status", "VARCHAR(20)"),
-        ]:
-            try:
-                await conn.execute(text(
-                    f"ALTER TABLE products ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
-                ))
-            except Exception:
-                pass
-        for col, new_type in [
-            ("pickup_method", "VARCHAR(20)"),
-            ("status", "VARCHAR(20)"),
-        ]:
-            try:
-                await conn.execute(text(
-                    f"ALTER TABLE orders ALTER COLUMN {col} TYPE {new_type} USING {col}::text"
-                ))
-            except Exception:
-                pass
-        # Удаляем старые enum-типы PostgreSQL если есть
-        for tname in ["userrole", "usertariff", "productstatus", "orderstatus", "pickupmethod"]:
-            try:
-                await conn.execute(text(f"DROP TYPE IF EXISTS {tname} CASCADE"))
-            except Exception:
-                pass
+        # ── Конвертируем PostgreSQL enum-колонки в VARCHAR через DO блоки ──
+        # Это НЕЗАВИСИМО от SQLAlchemy модели — работает напрямую с БД
+        migrate_sql = """
+DO $$
+DECLARE
+    col_type text;
+BEGIN
+    -- users.role
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name='users' AND column_name='role';
+    IF col_type = 'USER-DEFINED' THEN
+        ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(20) USING role::text;
+    END IF;
+
+    -- users.tariff
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name='users' AND column_name='tariff';
+    IF col_type = 'USER-DEFINED' THEN
+        ALTER TABLE users ALTER COLUMN tariff TYPE VARCHAR(20) USING tariff::text;
+    END IF;
+
+    -- products.status
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name='products' AND column_name='status';
+    IF col_type = 'USER-DEFINED' THEN
+        ALTER TABLE products ALTER COLUMN status TYPE VARCHAR(20) USING status::text;
+    END IF;
+
+    -- orders.pickup_method
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name='orders' AND column_name='pickup_method';
+    IF col_type = 'USER-DEFINED' THEN
+        ALTER TABLE orders ALTER COLUMN pickup_method TYPE VARCHAR(20) USING pickup_method::text;
+    END IF;
+
+    -- orders.status
+    SELECT data_type INTO col_type
+    FROM information_schema.columns
+    WHERE table_name='orders' AND column_name='status';
+    IF col_type = 'USER-DEFINED' THEN
+        ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(20) USING status::text;
+    END IF;
+END $$;
+
+-- Удаляем старые enum-типы PostgreSQL
+DO $$
+DECLARE
+    t RECORD;
+BEGIN
+    FOR t IN SELECT typname FROM pg_type WHERE typtype = 'e'
+             AND typname IN ('userrole','usertariff','productstatus','orderstatus','pickupmethod') LOOP
+        EXECUTE 'DROP TYPE IF EXISTS ' || quote_ident(t.typname) || ' CASCADE';
+    END LOOP;
+END $$;
+        """
+        try:
+            await conn.execute(text(migrate_sql))
+            print("[MIGRATION] Enum → VARCHAR конвертация выполнена")
+        except Exception as e:
+            print(f"[MIGRATION] Предупреждение: {e}")
 
         # ── Миграция из легаси main.py (если таблица создана монолитом) ──
         try:
@@ -267,20 +304,22 @@ async def get_config():
 @app.get("/api/debug/admin-info")
 async def debug_admin_info():
     """Debug endpoint — shows admin account info (no auth needed)"""
-    from app.models import User, UserRole
-    from app.auth import verify_password, get_password_hash
+    from sqlalchemy import text
+    from app.auth import verify_password
     async with AsyncSessionLocal() as db:
-        result = await db.execute(select(User).where(User.role == UserRole.ADMIN))
-        admins = result.scalars().all()
+        result = await db.execute(
+            text("SELECT id, phone, name, is_active, password_hash FROM users WHERE lower(role) = 'admin'")
+        )
+        rows = result.fetchall()
 
         admin_list = []
-        for a in admins:
-            password_works = verify_password(ADMIN_PASSWORD, a.password_hash)
+        for row in rows:
+            password_works = verify_password(ADMIN_PASSWORD, row[4])
             admin_list.append({
-                "id": a.id,
-                "phone": a.phone,
-                "name": a.name,
-                "is_active": a.is_active,
+                "id": row[0],
+                "phone": row[1],
+                "name": row[2],
+                "is_active": row[3],
                 "password_works_with_default": password_works,
             })
 
@@ -296,44 +335,42 @@ async def debug_admin_info():
 @app.post("/api/debug/reset-admin")
 async def debug_reset_admin():
     """Force-reset admin password to admin123 (no auth needed)"""
-    from app.models import User, UserRole
+    from sqlalchemy import text
     from app.auth import get_password_hash
     async with AsyncSessionLocal() as db:
         new_hash = get_password_hash(ADMIN_PASSWORD)
 
-        # Find admin by phone
-        result = await db.execute(select(User).where(User.phone == ADMIN_PHONE))
-        admin = result.scalar_one_or_none()
+        result = await db.execute(
+            text("SELECT id FROM users WHERE phone = :phone"),
+            {"phone": ADMIN_PHONE},
+        )
+        admin = result.fetchone()
 
         if admin:
-            admin.password_hash = new_hash
-            admin.is_active = True
-            admin.role = UserRole.ADMIN
+            await db.execute(
+                text("UPDATE users SET password_hash = :h, is_active = true, role = 'admin' WHERE id = :id"),
+                {"h": new_hash, "id": admin[0]},
+            )
             await db.commit()
             return {"ok": True, "message": f"Admin password reset for phone {ADMIN_PHONE}"}
 
-        # Find ANY admin
-        result2 = await db.execute(select(User).where(User.role == UserRole.ADMIN))
-        any_admin = result2.scalar_one_or_none()
-        if any_admin:
-            any_admin.phone = ADMIN_PHONE
-            any_admin.password_hash = new_hash
-            any_admin.is_active = True
-            await db.commit()
-            return {"ok": True, "message": f"Admin updated: id={any_admin.id}, phone={ADMIN_PHONE}"}
-
-        # Create new admin
-        new_admin = User(
-            name="Администратор",
-            phone=ADMIN_PHONE,
-            email="admin@agroverse.uz",
-            password_hash=new_hash,
-            role=UserRole.ADMIN,
-            tariff="premium",
-            bonus_points=0,
-            is_active=True,
+        result2 = await db.execute(
+            text("SELECT id FROM users WHERE lower(role) = 'admin' LIMIT 1")
         )
-        db.add(new_admin)
+        any_admin = result2.fetchone()
+        if any_admin:
+            await db.execute(
+                text("UPDATE users SET phone = :phone, password_hash = :h, is_active = true WHERE id = :id"),
+                {"phone": ADMIN_PHONE, "h": new_hash, "id": any_admin[0]},
+            )
+            await db.commit()
+            return {"ok": True, "message": f"Admin updated: id={any_admin[0]}, phone={ADMIN_PHONE}"}
+
+        await db.execute(
+            text("INSERT INTO users (name, phone, email, password_hash, role, tariff, bonus_points, is_active) "
+                 "VALUES (:name, :phone, :email, :hash, 'admin', 'premium', 0, true)"),
+            {"name": "Администратор", "phone": ADMIN_PHONE, "email": "admin@agroverse.uz", "hash": new_hash},
+        )
         await db.commit()
         return {"ok": True, "message": f"Admin created: phone={ADMIN_PHONE}"}
 

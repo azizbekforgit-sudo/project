@@ -52,8 +52,8 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
     
     products = relationship("Product", back_populates="fermer")
-    orders_as_xaridor = relationship("Order", foreign_keys="Order.xaridor_id")
-    orders_as_fermer = relationship("Order", foreign_keys="Order.fermer_id")
+    orders_as_xaridor = relationship("Order", foreign_keys="Order.xaridor_id", overlaps="xaridor")
+    orders_as_fermer = relationship("Order", foreign_keys="Order.fermer_id", overlaps="fermer")
     reviews = relationship("Review", back_populates="xaridor")
     bonus_transactions = relationship("BonusTransaction", back_populates="user")
 
@@ -93,8 +93,8 @@ class Order(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
-    xaridor = relationship("User", foreign_keys=[xaridor_id])
-    fermer = relationship("User", foreign_keys=[fermer_id])
+    xaridor = relationship("User", foreign_keys=[xaridor_id], overlaps="orders_as_xaridor")
+    fermer = relationship("User", foreign_keys=[fermer_id], overlaps="orders_as_fermer")
     product = relationship("Product", back_populates="orders")
     review = relationship("Review", back_populates="order", uselist=False)
 
