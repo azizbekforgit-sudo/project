@@ -91,7 +91,6 @@ class Order(Base):
     commission = Column(Numeric(12, 2), nullable=False)
     pickup_method = Column(String(20), default=PickupMethod.SELF.value)
     status = Column(String(20), default=OrderStatus.CREATED.value)
-    delivery_request_id = Column(Integer, ForeignKey("delivery_requests.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
@@ -99,7 +98,12 @@ class Order(Base):
     fermer = relationship("User", foreign_keys=[fermer_id], back_populates="orders_as_fermer")
     product = relationship("Product", back_populates="orders")
     review = relationship("Review", back_populates="order", uselist=False)
-    delivery_request = relationship("DeliveryRequest", back_populates="order", uselist=False)
+    delivery_request = relationship(
+        "DeliveryRequest",
+        back_populates="order",
+        uselist=False,
+        foreign_keys="DeliveryRequest.order_id"
+    )
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -236,7 +240,7 @@ class DeliveryRequest(Base):
     created_at               = Column(DateTime, server_default=func.now())
     updated_at               = Column(DateTime, onupdate=func.now())
 
-    order   = relationship("Order", back_populates="delivery_request")
+    order   = relationship("Order", back_populates="delivery_request", foreign_keys=[order_id])
     courier = relationship("User", foreign_keys=[courier_id])
     buyer   = relationship("User", foreign_keys=[buyer_id])
 
