@@ -7,22 +7,22 @@
 // ─── Константы ────────────────────────────────────────────────────────────────
 
 const TRUCK_TYPES = [
-  { id: 'fura',       label: 'Фура',         icon: '🚛', desc: 'Тяжёлый грузовик до 20т' },
-  { id: 'refrig',     label: 'Рефрижератор', icon: '❄️',  desc: 'Рефрижератор, до 10т' },
-  { id: 'tentovan',   label: 'Тентованный',  icon: '🚚', desc: 'Тент-фургон, до 15т' },
-  { id: 'samosval',   label: 'Самосвал',     icon: '🚜', desc: 'Самосвал, до 25т' },
-  { id: 'bortovoy',   label: 'Бортовой',     icon: '🚐', desc: 'Бортовой грузовик, до 8т' },
+  { id: 'fura',       label: 'Фура',         icon: '<i class="fi fi-sr-truck"></i>', desc: 'Тяжёлый грузовик до 20т' },
+  { id: 'refrig',     label: 'Рефрижератор', icon: '<i class="fi fi-sr-snowflake"></i>',  desc: 'Рефрижератор, до 10т' },
+  { id: 'tentovan',   label: 'Тентованный',  icon: '<i class="fi fi-sr-truck-moving"></i>', desc: 'Тент-фургон, до 15т' },
+  { id: 'samosval',   label: 'Самосвал',     icon: '<i class="fi fi-sr-dumpster"></i>', desc: 'Самосвал, до 25т' },
+  { id: 'bortovoy',   label: 'Бортовой',     icon: '<i class="fi fi-sr-truck-side"></i>', desc: 'Бортовой грузовик, до 8т' },
 ];
 
 const SECTIONS = [
-  { id: 'home',    icon: '🏠', label: 'Главная' },
-  { id: 'orders',  icon: '📦', label: 'Заказы' },
-  { id: 'map',     icon: '🗺️', label: 'Карта' },
-  { id: 'tariffs', icon: '💳', label: 'Тарифы' },
-  { id: 'ai',      icon: '🤖', label: 'ИИ' },
-  { id: 'wallet',  icon: '💰', label: 'Кошелёк' },
-  { id: 'market',  icon: '🛒', label: 'Рынок' },
-  { id: 'profile', icon: '👤', label: 'Профиль' },
+  { id: 'home',    icon: '<i class="fi fi-sr-home"></i>', label: 'Главная' },
+  { id: 'orders',  icon: '<i class="fi fi-sr-box-open"></i>', label: 'Заказы' },
+  { id: 'map',     icon: '<i class="fi fi-sr-map-marker-alt"></i>', label: 'Карта' },
+  { id: 'tariffs', icon: '<i class="fi fi-sr-credit-card"></i>', label: 'Тарифы' },
+  { id: 'ai',      icon: '<i class="fi fi-sr-robot"></i>', label: 'ИИ' },
+  { id: 'wallet',  icon: '<i class="fi fi-sr-wallet"></i>', label: 'Кошелёк' },
+  { id: 'market',  icon: '<i class="fi fi-sr-shopping-cart"></i>', label: 'Рынок' },
+  { id: 'profile', icon: '<i class="fi fi-sr-user"></i>', label: 'Профиль' },
 ];
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ async function _renderFindCourier() {
             <option value="100">100 км</option>
             <option value="500">Весь Узбекистан</option>
           </select>
-          <button class="del-search-btn" onclick="_delZoneSearch()">${fe('🔍',16)} Найти</button>
+          <button class="del-search-btn" onclick="_delZoneSearch()"><i class="fi fi-sr-search" style="font-size:16px"></i> Найти</button>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ async function _renderFindCourier() {
             <div style="font-size:13px;color:var(--muted);">Кликните на карту или введите адрес</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('🔍',40)}</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-search" style="font-size:40px"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Выберите курьера</div>
             <div style="font-size:13px;color:var(--muted);">Сравните рейтинги и тарифы</div>
           </div>
@@ -169,7 +169,7 @@ function _initDelMap() {
   if (!mapEl || !window.L) {
     if (mapEl) mapEl.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--surface-soft);color:var(--muted);">
-        <div style="font-size:48px;margin-bottom:16px;">${fe('🗺️',48)}</div>
+        <div style="font-size:48px;margin-bottom:16px;"><i class="fi fi-sr-map" style="font-size:48px"></i></div>
         <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Карта</div>
         <div style="font-size:13px;">Введите адрес для поиска курьеров</div>
       </div>`;
@@ -265,7 +265,7 @@ window._delZoneSearch = async function() {
       couriers.forEach(c => {
         if (c.lat && c.lng) {
           const greenIcon = L.divIcon({
-            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + fe('🚛',18) + '</div>',
+            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-truck" style="font-size:18px;color:#fff"></i></div>',
             className: '',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
@@ -292,8 +292,13 @@ window._delZoneSearch = async function() {
 // ─── Courier card rendering ──────────────────────────────────────────────────
 
 const TRANSPORT_EMOJI = {
-  fura: () => fe('🚛',20), refrig: () => fe('❄️',20), tentovan: () => fe('🚚',20),
-  samosval: () => fe('🚜',20), bortovoy: () => fe('🚐',20), moto: () => fe('🏍️',20), car: () => fe('🚗',20),
+  fura: () => '<i class="fi fi-sr-truck" style="font-size:20px"></i>',
+  refrig: () => '<i class="fi fi-sr-snowflake" style="font-size:20px"></i>',
+  tentovan: () => '<i class="fi fi-sr-truck-moving" style="font-size:20px"></i>',
+  samosval: () => '<i class="fi fi-sr-dumpster" style="font-size:20px"></i>',
+  bortovoy: () => '<i class="fi fi-sr-truck-side" style="font-size:20px"></i>',
+  moto: () => '<i class="fi fi-sr-motorcycle" style="font-size:20px"></i>',
+  car: () => '<i class="fi fi-sr-car" style="font-size:20px"></i>',
 };
 
 const TRANSPORT_LABEL = {
@@ -308,7 +313,8 @@ function _ratingClass(r) {
 }
 
 function _renderCourierCard(c) {
-  const emoji = TRANSPORT_EMOJI[c.transport_type] || fe('🚛',20);
+  const emojiFn = TRANSPORT_EMOJI[c.transport_type];
+  const emoji = emojiFn ? emojiFn() : '<i class="fi fi-sr-truck" style="font-size:20px"></i>';
   const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
   const rating = c.rating || 0;
   const ratingPct = (rating / 10) * 100;
@@ -316,7 +322,7 @@ function _renderCourierCard(c) {
 
   let routeHtml = '';
   if (c.route_anywhere) {
-    routeHtml = `<div class="del-cc-route anywhere">${fe('🌍',14)} Любое место → любое место</div>`;
+    routeHtml = `<div class="del-cc-route anywhere"><i class="fi fi-sr-globe" style="font-size:14px"></i> Любое место → любое место</div>`;
   } else if (c.route_from || c.route_to) {
     routeHtml = `<div class="del-cc-route">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
   }
@@ -341,14 +347,14 @@ function _renderCourierCard(c) {
         </div>
         ${routeHtml}
         <div class="del-cc-stats">
-          <div class="del-cc-stat">${fe('📍',14)} ${c.city || 'Узбекистан'}</div>
-          <div class="del-cc-stat">${fe('⚖️',14)} до ${c.max_weight || 5000} кг</div>
-          <div class="del-cc-stat">${fe('📅',14)} ${c.experience_years || 0} лет опыта</div>
+          <div class="del-cc-stat"><i class="fi fi-sr-marker" style="font-size:14px"></i> ${c.city || 'Узбекистан'}</div>
+          <div class="del-cc-stat"><i class="fi fi-sr-weight" style="font-size:14px"></i> до ${c.max_weight || 5000} кг</div>
+          <div class="del-cc-stat"><i class="fi fi-sr-calendar" style="font-size:14px"></i> ${c.experience_years || 0} лет опыта</div>
         </div>
       </div>
       <div class="del-cc-footer">
-        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})">${fe('📋',14)} Профиль</button>
-        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})">${fe('📦',14)} Заказать</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})"><i class="fi fi-sr-id-card" style="font-size:14px"></i> Профиль</button>
+        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Заказать</button>
       </div>
     </div>`;
 }
@@ -359,7 +365,7 @@ window._showCourierProfile = async function(userId) {
   try {
     const c = await API.getPublicCourierProfile(userId);
   const emojiFn = TRANSPORT_EMOJI[c.transport_type];
-  const emoji = emojiFn ? emojiFn() : fe('🚛',20);
+  const emoji = emojiFn ? emojiFn() : '<i class="fi fi-sr-truck" style="font-size:20px"></i>';
     const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
     const rating = c.rating || 0;
     const ratingPct = (rating / 10) * 100;
@@ -370,7 +376,7 @@ window._showCourierProfile = async function(userId) {
 
     let routeSection = '';
     if (c.route_anywhere) {
-      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;">' + fe('🌍',14) + ' Любое место → любое место</div>';
+      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;"><i class="fi fi-sr-globe" style="font-size:14px"></i> Любое место → любое место</div>';
     } else if (c.route_from || c.route_to) {
       routeSection = `<div class="del-cc-route" style="margin-bottom:0;">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
     }
@@ -410,12 +416,12 @@ window._showCourierProfile = async function(userId) {
             <div class="del-profile-row"><span class="label">Режим работы</span><span class="value">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</span></div>
             <div class="del-profile-row"><span class="label">Номер авто</span><span class="value">${c.vehicle_number || 'Не указан'}</span></div>
             <div class="del-profile-row"><span class="label">Лицензия</span><span class="value">${c.license_info || 'Не указана'}</span></div>
-            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? `${fe('✅',14)} Есть` : `${fe('❌',14)} Нет`}</span></div>
+            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? `<i class="fi fi-sr-check-circle" style="color:#10b981;font-size:14px"></i> Есть` : `<i class="fi fi-sr-times-circle" style="color:#ef4444;font-size:14px"></i> Нет`}</span></div>
             ${c.bio ? `<div class="del-profile-row"><span class="label">О себе</span><span class="value">${c.bio}</span></div>` : ''}
           </div>
         </div>
         <div class="del-profile-footer">
-          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})">${fe('📦',14)} Заказать доставку</button>
+          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Заказать доставку</button>
         </div>
       </div>`;
 
@@ -484,7 +490,7 @@ function _renderOnboardStep() {
         <div class="ob-checkbox">
           <input type="checkbox" id="ob-thermo" ${s.has_thermo_bag ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.has_thermo_bag = this.checked">
-          <label for="ob-thermo">${fe('❄️',14)} Есть рефрижератор / термоизоляция</label>
+          <label for="ob-thermo"><i class="fi fi-sr-snowflake" style="font-size:14px"></i> Есть рефрижератор / термоизоляция</label>
         </div>
         <button class="btn btn-primary ob-next" onclick="_obNext()">Далее →</button>
       </div>
@@ -500,7 +506,7 @@ function _renderOnboardStep() {
         <div class="del-onb-anywhere" style="margin-bottom:16px;">
           <input type="checkbox" id="ob-anywhere" ${s.route_anywhere ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.route_anywhere = this.checked; _toggleRouteInputs()">
-          <label for="ob-anywhere">${fe('🌍',14)} Возлю из любого места в любое место</label>
+          <label for="ob-anywhere"><i class="fi fi-sr-globe" style="font-size:14px"></i> Возлю из любого места в любое место</label>
         </div>
 
         <div id="route-inputs" style="${s.route_anywhere ? 'display:none;' : ''}">
@@ -527,7 +533,7 @@ function _renderOnboardStep() {
         </div>
 
         <div class="ob-field" style="margin-top:16px;">
-          <label class="ob-label">💰 Цена за 1 км (сум)</label>
+          <label class="ob-label"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> Цена за 1 км (сум)</label>
           <input type="number" class="ob-input" id="ob-price-per-km" value="${s.price_per_km || 0}" min="0" step="1000"
                  placeholder="100000"
                  oninput="_deliveryState.onboarding.price_per_km = +this.value">
@@ -598,7 +604,7 @@ function _renderOnboardStep() {
         </div>
         <div class="ob-nav">
           <button class="btn btn-ghost" onclick="_obBack()">← Назад</button>
-          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()">${fe('✅',14)} Отправить заявку</button>
+          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()"><i class="fi fi-sr-check" style="font-size:14px"></i> Отправить заявку</button>
         </div>
       </div>
     `;
@@ -679,7 +685,7 @@ async function _obSubmit() {
     _renderDashboard();
   } catch (e) {
     showToast(e.message || 'Ошибка при сохранении', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = `${fe('✅',14)} Отправить заявку`; }
+    if (btn) { btn.disabled = false; btn.textContent = `<i class="fi fi-sr-check" style="font-size:14px"></i> Отправить заявку`; }
   }
 }
 
@@ -706,7 +712,7 @@ function _renderDashboard() {
             <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
                  id="dnav-${s.id}"
                  onclick="_deliverySection('${s.id}')">
-              <span class="ds-nav-icon">${fe(s.icon, 18)}</span>
+              <span class="ds-nav-icon">${s.icon}</span>
               <span class="ds-nav-label">${s.label}</span>
             </div>
           `).join('')}
@@ -715,7 +721,7 @@ function _renderDashboard() {
             <div class="ds-nav-item ${_deliveryState.section === s.id ? 'active' : ''}"
                  id="dnav-${s.id}"
                  onclick="_deliverySection('${s.id}')">
-              <span class="ds-nav-icon">${fe(s.icon, 18)}</span>
+              <span class="ds-nav-icon">${s.icon}</span>
               <span class="ds-nav-label">${s.label}</span>
             </div>
           `).join('')}
@@ -724,7 +730,7 @@ function _renderDashboard() {
           <div class="ds-courier-info">
             <div class="ds-courier-name">${profile.full_name || 'Курьер'}</div>
             <div class="ds-courier-status ${approved ? 'status-active' : (profile.rejection_reason ? 'status-rejected' : 'status-pending')}">
-              ${approved ? `${fe('🟢',14)} Активен` : (profile.rejection_reason ? `${fe('🔴',14)} Отклонен` : `${fe('🟡',14)} На проверке`)}
+              ${approved ? `<i class="fi fi-sr-check-circle" style="color:#10b981;font-size:14px"></i> Активен` : (profile.rejection_reason ? `<i class="fi fi-sr-times-circle" style="color:#ef4444;font-size:14px"></i> Отклонен` : `<i class="fi fi-sr-clock" style="color:#f59e0b;font-size:14px"></i> На проверке`)}
             </div>
           </div>
         </div>
@@ -779,7 +785,7 @@ async function _sectionHome(main) {
       ${!approved ? `
         ${profile.rejection_reason ? `
           <div class="pending-banner rejection-banner">
-            <div class="pb-icon">${fe('❌',32)}</div>
+            <div class="pb-icon"><i class="fi fi-sr-times-circle" style="font-size:32px;color:#ef4444"></i></div>
             <div class="pb-body">
               <div class="pb-title">Заявка отклонена</div>
               <div class="pb-text">Причина: <b>${profile.rejection_reason}</b></div>
@@ -788,7 +794,7 @@ async function _sectionHome(main) {
           </div>
         ` : `
           <div class="pending-banner">
-            <div class="pb-icon">${fe('⏳',32)}</div>
+            <div class="pb-icon"><i class="fi fi-sr-hourglass" style="font-size:32px;color:#f59e0b"></i></div>
             <div class="pb-body">
               <div class="pb-title">Заявка на проверке</div>
               <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
@@ -811,12 +817,12 @@ async function _sectionHome(main) {
           <div class="hs-label">Доступные</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon">${fe('✅',28)}</div>
+          <div class="hs-icon"><i class="fi fi-sr-check-circle" style="font-size:28px;color:#10b981"></i></div>
           <div class="hs-num" id="stat-done">—</div>
           <div class="hs-label">Доставлено</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon">${fe('⭐',28)}</div>
+          <div class="hs-icon"><i class="fi fi-sr-star" style="font-size:28px;color:#f59e0b"></i></div>
           <div class="hs-num" id="stat-rating">${profile.rating ?? '0.0'}</div>
           <div class="hs-label">Рейтинг /10</div>
         </div>
@@ -838,7 +844,7 @@ async function _sectionHome(main) {
         <div class="hsb-title">Уведомления</div>
         <div id="notif-list">
           <div class="notif-item">
-            <div class="ni-icon">${fe('🎉',24)}</div>
+            <div class="ni-icon"><i class="fi fi-sr-party-horn" style="font-size:24px;color:#10b981"></i></div>
             <div class="ni-body">
               <div class="ni-title">Добро пожаловать в AgroVerse!</div>
               <div class="ni-time">Только что</div>
@@ -846,7 +852,7 @@ async function _sectionHome(main) {
           </div>
           ${!approved ? `
             <div class="notif-item">
-              <div class="ni-icon">${fe('🔍',24)}</div>
+              <div class="ni-icon"><i class="fi fi-sr-search" style="font-size:24px;color:#f59e0b"></i></div>
               <div class="ni-body">
                 <div class="ni-title">Ваш профиль проходит проверку</div>
                 <div class="ni-time">Сегодня</div>
@@ -854,7 +860,7 @@ async function _sectionHome(main) {
             </div>
           ` : `
             <div class="notif-item">
-              <div class="ni-icon">${fe('✅',24)}</div>
+              <div class="ni-icon"><i class="fi fi-sr-check-circle" style="font-size:24px;color:#10b981"></i></div>
               <div class="ni-body">
                 <div class="ni-title">Профиль одобрен! Можете принимать заказы</div>
                 <div class="ni-time">Сегодня</div>
@@ -903,11 +909,11 @@ async function _sectionHome(main) {
               <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
                 <div>
                   <b>${r.route_from} → ${r.route_to}</b>
-                  <div style="color:#6b7280;font-size:13px">📦 ${r.product_title || 'Товар'} | 📏 ${r.distance_km} км</div>
+                  <div style="color:#6b7280;font-size:13px"><i class="fi fi-sr-box" style="font-size:13px"></i> ${r.product_title || 'Товар'} | <i class="fi fi-sr-ruler" style="font-size:13px"></i> ${r.distance_km} км</div>
                 </div>
                 <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600">Ожидание</span>
               </div>
-              <div style="color:#059669;font-weight:600;margin-bottom:8px">💰 ${Number(r.total_price).toLocaleString()} сум</div>
+              <div style="color:#059669;font-weight:600;margin-bottom:8px"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> ${Number(r.total_price).toLocaleString()} сум</div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-primary btn-sm" onclick="_driverAcceptDelivery(${r.id})">Принять заказ</button>
                 <button class="btn btn-ghost btn-sm" onclick="_driverRejectDelivery(${r.id})">Отклонить</button>
@@ -949,7 +955,7 @@ async function _driverAcceptDelivery(requestId) {
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:16px;max-width:480px;width:95%;padding:24px">
       <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:48px;margin-bottom:8px">⚠️</div>
+        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-exclamation-triangle" style="font-size:48px;color:#f59e0b"></i></div>
         <h2 style="margin:0;font-size:18px">Внимание</h2>
       </div>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.6">
@@ -1024,10 +1030,10 @@ async function _sectionOrders(main) {
         <h1 class="section-title">Заказы</h1>
       </div>
       <div class="orders-tabs">
-        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')">${fe('📦',16)} Доступные</button>
-        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')">${fe('🚚',16)} Принятые</button>
-        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')">${fe('✅',16)} Выполненные</button>
-        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')">${fe('❌',16)} Отменённые</button>
+        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')"><i class="fi fi-sr-box-open" style="font-size:16px"></i> Доступные</button>
+        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Принятые</button>
+        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')"><i class="fi fi-sr-check-circle" style="font-size:16px"></i> Выполненные</button>
+        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')"><i class="fi fi-sr-times-circle" style="font-size:16px"></i> Отменённые</button>
       </div>
       <div id="orders-list"><div class="spinner"></div></div>
     </div>
@@ -1057,7 +1063,7 @@ async function _loadOrdersTab(tab) {
     }
 
     if (!orders.length) {
-      list.innerHTML = `<div class="empty-state">${fe('📭',48)} Заказов нет</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fi fi-sr-inbox" style="font-size:48px;color:var(--muted)"></i> Заказов нет</div>`;
       return;
     }
 
@@ -1075,26 +1081,26 @@ function _orderCard(o, tab) {
   const to    = o.delivery_address || '—';
 
   const actions = tab === 'available' ? `
-    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})">${fe('✅',14)} Принять</button>
+    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})"><i class="fi fi-sr-check" style="font-size:14px"></i> Принять</button>
   ` : tab === 'accepted' ? `
-    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})">${fe('📦',14)} Доставлен</button>
+    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Доставлен</button>
     <button class="btn btn-ghost btn-sm"   onclick="_cancelOrder(${o.id})">Отмена</button>
   ` : '';
 
   return `
     <div class="order-card" id="oc-${o.id}">
       <div class="oc-left">
-        <div class="oc-cargo-icon">${fe('🌾',24)}</div>
+        <div class="oc-cargo-icon"><i class="fi fi-sr-wheat" style="font-size:24px;color:#10b981"></i></div>
       </div>
       <div class="oc-body">
         <div class="oc-title">${cargo}</div>
         <div class="oc-route">
-          <span class="oc-from">${fe('📍',14)} ${from}</span>
+          <span class="oc-from"><i class="fi fi-sr-marker" style="font-size:14px"></i> ${from}</span>
           <span class="oc-arrow">→</span>
-          <span class="oc-to">🏁 ${to}</span>
+          <span class="oc-to"><i class="fi fi-sr-flag-checkered" style="font-size:14px"></i> ${to}</span>
         </div>
-        ${dist ? `<div class="oc-dist">📏 ${dist}</div>` : ''}
-        ${o.weight_kg ? `<div class="oc-weight">⚖️ ${o.weight_kg} кг</div>` : ''}
+        ${dist ? `<div class="oc-dist"><i class="fi fi-sr-ruler" style="font-size:14px"></i> ${dist}</div>` : ''}
+        ${o.weight_kg ? `<div class="oc-weight"><i class="fi fi-sr-weight" style="font-size:14px"></i> ${o.weight_kg} кг</div>` : ''}
       </div>
       <div class="oc-right">
         <div class="oc-price">${price} сум</div>
@@ -1107,7 +1113,7 @@ function _orderCard(o, tab) {
 async function _acceptOrder(id) {
   try {
     await API.acceptDeliveryOrder(id);
-    showToast('Заказ принят! 🚛', 'success');
+    showToast('Заказ принят! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>', 'success');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
 }
@@ -1115,7 +1121,7 @@ async function _acceptOrder(id) {
 async function _deliverOrder(id) {
   try {
     await API.updateDeliveryStatus(id, 'delivered');
-    showToast(`Доставлено! ${fe('✅',14)}`, 'success');
+    showToast(`Доставлено! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>`, 'success');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
 }
@@ -1135,7 +1141,7 @@ async function _sectionMap(main) {
     <div class="section-map">
       <div class="section-header">
         <h1 class="section-title">Карта заказов</h1>
-        <button class="btn btn-sm btn-primary" onclick="_setOnline()">${fe('📍',14)} Я онлайн</button>
+        <button class="btn btn-sm btn-primary" onclick="_setOnline()"><i class="fi fi-sr-marker" style="font-size:14px"></i> Я онлайн</button>
       </div>
       <div id="delivery-map" style="width:100%;height:500px;border-radius:12px;overflow:hidden;"></div>
       <div id="map-orders-list" style="margin-top:16px;"></div>
@@ -1161,7 +1167,7 @@ async function _sectionMap(main) {
         const { latitude: lat, longitude: lng } = pos.coords;
         map.setView([lat, lng], 13);
         L.marker([lat, lng], {
-          icon: L.divIcon({ className: '', html: '<div style="font-size:28px;">🚛</div>', iconSize: [32,32] })
+          icon: L.divIcon({ className: '', html: '<div style="width:32px;height:32px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-truck" style="font-size:16px;color:#fff"></i></div>', iconSize: [32,32] })
         }).addTo(map).bindPopup('Вы здесь').openPopup();
 
         // Load nearby orders
@@ -1169,7 +1175,7 @@ async function _sectionMap(main) {
           orders.forEach(o => {
             if (o.pickup_lat && o.pickup_lng) {
               L.marker([o.pickup_lat, o.pickup_lng], {
-                icon: L.divIcon({ className: '', html: `<div style="font-size:24px;">${fe('📦',24)}</div>`, iconSize: [28,28] })
+                icon: L.divIcon({ className: '', html: `<div style="width:28px;height:28px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-box-open" style="font-size:14px;color:#fff"></i></div>`, iconSize: [28,28] })
               }).addTo(map).bindPopup(`
                 <b>${o.cargo || 'Груз'}</b><br>
                 ${Number(o.price||0).toLocaleString()} сум<br>
@@ -1205,7 +1211,7 @@ async function _setOnline() {
     const { latitude: lat, longitude: lng } = pos.coords;
     try {
       await API.updateCourierStatus({ status: 'online', lat, lng });
-      showToast(`Вы онлайн! ${fe('🟢',14)}`, 'success');
+      showToast(`Вы онлайн! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>`, 'success');
     } catch (e) { showToast(e.message, 'error'); }
   });
 }
@@ -1225,25 +1231,25 @@ function _sectionTariffs(main) {
           <div class="tc-price">Бесплатно</div>
           <div class="tc-period">навсегда</div>
           <ul class="tc-features">
-            <li>${fe('✅',14)} До 10 заказов в месяц</li>
-            <li>${fe('✅',14)} Базовый ИИ-помощник</li>
-            <li>${fe('✅',14)} Карта заказов</li>
-            <li>${fe('❌',14)} Приоритет в поиске</li>
-            <li>${fe('❌',14)} Аналитика</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> До 10 заказов в месяц</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Базовый ИИ-помощник</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Карта заказов</li>
+            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Приоритет в поиске</li>
+            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Аналитика</li>
           </ul>
           <button class="btn btn-ghost tc-btn" disabled>Текущий план</button>
         </div>
         <div class="tariff-card featured">
-          <div class="tc-top-badge">${fe('⭐',14)} Популярный</div>
+          <div class="tc-top-badge"><i class="fi fi-sr-star" style="font-size:14px"></i> Популярный</div>
           <div class="tc-badge">Оптимальный</div>
           <div class="tc-price">49 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li>${fe('✅',14)} Неограниченные заказы</li>
-            <li>${fe('✅',14)} Приоритет в поиске</li>
-            <li>${fe('✅',14)} Расширенный ИИ</li>
-            <li>${fe('✅',14)} Базовая аналитика</li>
-            <li>${fe('❌',14)} Выделенный менеджер</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Неограниченные заказы</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Приоритет в поиске</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Расширенный ИИ</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Базовая аналитика</li>
+            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Выделенный менеджер</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1252,11 +1258,11 @@ function _sectionTariffs(main) {
           <div class="tc-price">149 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li>${fe('✅',14)} Всё из Оптимального</li>
-            <li>${fe('✅',14)} Выделенный менеджер</li>
-            <li>${fe('✅',14)} Полная аналитика</li>
-            <li>${fe('✅',14)} API доступ</li>
-            <li>${fe('✅',14)} Брендирование</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Всё из Оптимального</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Выделенный менеджер</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Полная аналитика</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> API доступ</li>
+            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Брендирование</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1309,7 +1315,7 @@ function _sectionAI(main) {
       </div>
       <div class="ai-chat" id="ai-chat">
         <div class="ai-msg ai-bot">
-          <div class="ai-msg-bubble">Привет! Я ИИ-помощник AgroVerse. Могу помочь с маршрутами, расчётом стоимости и вопросами по заказам. Чем могу помочь? 🚛</div>
+          <div class="ai-msg-bubble">Привет! Я ИИ-помощник AgroVerse. Могу помочь с маршрутами, расчётом стоимости и вопросами по заказам. Чем могу помочь? <i class="fi fi-sr-truck" style="font-size:14px"></i></div>
         </div>
         ${_deliveryState.aiMessages.map(m => `
           <div class="ai-msg ${m.role === 'user' ? 'ai-user' : 'ai-bot'}">
@@ -1320,7 +1326,7 @@ function _sectionAI(main) {
       <div class="ai-input-row">
         <input type="text" id="ai-input" class="ai-input" placeholder="Введите вопрос..." 
                onkeydown="if(event.key==='Enter') _sendAIMessage()">
-        <button class="btn btn-primary" onclick="_sendAIMessage()">➤</button>
+        <button class="btn btn-primary" onclick="_sendAIMessage()"><i class="fi fi-sr-paper-plane" style="font-size:14px"></i></button>
       </div>
     </div>
   `;
@@ -1336,7 +1342,7 @@ async function _sendAIMessage() {
   const chat = document.getElementById('ai-chat');
   if (chat) {
     chat.innerHTML += `<div class="ai-msg ai-user"><div class="ai-msg-bubble">${msg}</div></div>`;
-    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble">${fe('⏳',16)} Думаю...</div></div>`;
+    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble"><i class="fi fi-sr-hourglass" style="font-size:16px"></i> Думаю...</div></div>`;
     chat.scrollTop = chat.scrollHeight;
   }
 
@@ -1364,7 +1370,7 @@ async function _sectionWallet(main) {
         <div class="wc-label">Текущий баланс</div>
         <div class="wc-balance" id="wallet-balance">Загрузка...</div>
         <div class="wc-actions">
-          <button class="btn btn-primary" onclick="_withdrawModal()">${fe('💸',14)} Вывести</button>
+          <button class="btn btn-primary" onclick="_withdrawModal()"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> Вывести</button>
         </div>
       </div>
       <div class="wallet-history">
@@ -1386,7 +1392,7 @@ async function _sectionWallet(main) {
       } else {
         txList.innerHTML = wallet.history.slice().reverse().map(tx => `
           <div class="tx-item ${tx.type === 'income' ? 'tx-in' : 'tx-out'}">
-            <div class="tx-icon">${tx.type === 'income' ? '⬇️' : '⬆️'}</div>
+            <div class="tx-icon">${tx.type === 'income' ? '<i class="fi fi-sr-arrow-down" style="font-size:14px;color:#10b981"></i>' : '<i class="fi fi-sr-arrow-up" style="font-size:14px;color:#ef4444"></i>'}</div>
             <div class="tx-body">
               <div class="tx-desc">${tx.desc || tx.method || tx.type}</div>
               <div class="tx-status">${tx.status || ''}</div>
@@ -1410,7 +1416,7 @@ function _withdrawModal() {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-box">
-      <div class="modal-ic">${fe('💸',36)}</div>
+      <div class="modal-ic"><i class="fi fi-sr-money-bill-wave" style="font-size:36px;color:#10b981"></i></div>
       <h3 class="modal-title">Вывод средств</h3>
       <p class="modal-desc">Доступно: ${Number(bal).toLocaleString('ru-RU')} сум</p>
       <input type="number" id="wd-amount" class="ob-input" placeholder="Сумма" max="${bal}" min="1000">
@@ -1499,7 +1505,7 @@ function _sectionProfile(main) {
 
       ${!approved ? `
         <div class="pending-banner">
-          <div class="pb-icon">${fe('⏳',32)}</div>
+          <div class="pb-icon"><i class="fi fi-sr-hourglass" style="font-size:32px;color:#f59e0b"></i></div>
           <div class="pb-body">
             <div class="pb-title">Ожидает одобрения администратора</div>
             <div class="pb-text">Ваши данные проверяются. Обычно это занимает 1–2 рабочих дня.</div>
@@ -1510,33 +1516,33 @@ function _sectionProfile(main) {
           </div>
         </div>
       ` : `
-        <div class="approved-banner">${fe('✅',16)} Профиль одобрен и активен</div>
+        <div class="approved-banner"><i class="fi fi-sr-check-circle" style="font-size:16px;color:#10b981"></i> Профиль одобрен и активен</div>
       `}
 
       <div class="profile-card">
-        <div class="profile-avatar">🚛</div>
+        <div class="profile-avatar"><i class="fi fi-sr-truck" style="font-size:32px;color:#10b981"></i></div>
         <div class="profile-name">${p.full_name || 'Не указано'}</div>
         <div class="profile-role">Йўлчи · ${tt ? tt.label : p.transport_type || '—'}</div>
-        <div class="profile-rating">${fe('⭐',16)} ${p.rating ?? '0.0'}</div>
+        <div class="profile-rating"><i class="fi fi-sr-star" style="font-size:16px;color:#f59e0b"></i> ${p.rating ?? '0.0'}</div>
       </div>
 
       <!-- Completion bar -->
       ${_profileCompletionBar(p)}
 
       <div class="profile-details">
-        ${_profileRow('📞', 'Телефон', p.phone)}
-        ${_profileRow('🏙️', 'Город', p.city)}
-        ${_profileRow('🚛', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
-        ${_profileRow('⚖️', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
-        ${_profileRow(fe('🔢',16), 'Гос. номер', p.vehicle_number)}
+        ${_profileRow('<i class="fi fi-sr-phone" style="font-size:16px"></i>', 'Телефон', p.phone)}
+        ${_profileRow('<i class="fi fi-sr-city" style="font-size:16px"></i>', 'Город', p.city)}
+        ${_profileRow('<i class="fi fi-sr-truck" style="font-size:16px"></i>', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
+        ${_profileRow('<i class="fi fi-sr-weight" style="font-size:16px"></i>', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
+        ${_profileRow('<i class="fi fi-sr-id-card" style="font-size:16px"></i>', 'Гос. номер', p.vehicle_number)}
         ${_profileRow('<i class="fi fi-sr-marker" style="font-size:16px"></i>', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
-        ${_profileRow(fe('❄️',16), 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
-        ${_profileRow('💰', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
-        ${p.bio ? _profileRow('📝', 'О себе', p.bio) : ''}
+        ${_profileRow('<i class="fi fi-sr-snowflake" style="font-size:16px"></i>', 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
+        ${_profileRow('<i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i>', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
+        ${p.bio ? _profileRow('<i class="fi fi-sr-comment" style="font-size:16px"></i>', 'О себе', p.bio) : ''}
       </div>
 
       <button class="btn btn-ghost" style="margin-top:16px;width:100%;" 
-              onclick="_editProfile()">${fe('✏️',14)} Редактировать профиль</button>
+              onclick="_editProfile()"><i class="fi fi-sr-pencil" style="font-size:14px"></i> Редактировать профиль</button>
       <button class="btn btn-danger-ghost" style="margin-top:8px;width:100%;" 
               onclick="Auth.logout ? Auth.logout() : (localStorage.clear(), router.go('/login'))">Выйти</button>
     </div>
