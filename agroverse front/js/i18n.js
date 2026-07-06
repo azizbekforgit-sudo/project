@@ -344,6 +344,8 @@ const I18N = {
     cat_vegetables: 'Sabzavotlar', cat_fruits: 'Mevalar', cat_greens: 'Koʻkatlar',
     currency: 'so\'m',  unit_kg: 'kg',
     cat_grains: 'Don', cat_dairy: 'Sut mahsulotlari', cat_honey: 'Asal',
+    cat_flowers: 'Gullar', cat_seedlings: 'Koʻchatlar', cat_melon: 'Poliz ekin',
+    cat_seeds: 'Urugʻlar', cat_land: 'Yer va mulk',
     // product detail page
     back_market: '← Bozorga qaytish',
     order_form_title: 'Buyurtma rasmiylashtirish',
@@ -696,6 +698,8 @@ const I18N = {
     cat_vegetables: 'Овощи', cat_fruits: 'Фрукты', cat_greens: 'Зелень',
     currency: 'сум',  unit_kg: 'кг',
     cat_grains: 'Зерновые', cat_dairy: 'Молочные', cat_honey: 'Мёд',
+    cat_flowers: 'Цветы', cat_seedlings: 'Саженцы', cat_melon: 'Бахчевые',
+    cat_seeds: 'Семена', cat_land: 'Земля и недвижимость',
     // product detail page
     back_market: '← Назад в Рынок',
     order_form_title: 'Оформить заказ',
@@ -1047,6 +1051,8 @@ const I18N = {
     cat_vegetables: 'Vegetables', cat_fruits: 'Fruits', cat_greens: 'Greens',
     currency: 'sum',  unit_kg: 'kg',
     cat_grains: 'Grains', cat_dairy: 'Dairy', cat_honey: 'Honey',
+    cat_flowers: 'Flowers', cat_seedlings: 'Seedlings', cat_melon: 'Melon crops',
+    cat_seeds: 'Seeds', cat_land: 'Land & property',
     // product detail page
     back_market: '← Back to Market',
     order_form_title: 'Place Order',

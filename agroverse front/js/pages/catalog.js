@@ -8,9 +8,19 @@ const CATEGORY_OPTIONS = [
   { value: 'Зерновые',  key: 'cat_grains',     icon: 'fi fi-rr-wheat' },
   { value: 'Молочные',  key: 'cat_dairy',      icon: 'fi fi-rr-cow' },
   { value: 'Мёд',       key: 'cat_honey',      icon: 'fi fi-rr-bee' },
+  { value: 'Цветы',     key: 'cat_flowers',    icon: 'fi fi-rr-flower' },
+  { value: 'Саженцы',   key: 'cat_seedlings',  icon: 'fi fi-rr-seedling' },
+  { value: 'Бахчевые',  key: 'cat_melon',      icon: 'fi fi-rr-apple-whole' },
+  { value: 'Семена',    key: 'cat_seeds',      icon: 'fi fi-rr-seedling' },
+  { value: 'Земля',     key: 'cat_land',       icon: 'fi fi-rr-map' },
 ];
 
-const CAT_EMOJI = { 'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf', 'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey' };
+const CAT_EMOJI = {
+  'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf',
+  'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey',
+  'Цветы': 'fi fi-sr-sakura', 'Саженцы': 'fi fi-sr-seedling', 'Бахчевые': 'fi fi-sr-fruit-watermelon',
+  'Семена': 'fi fi-sr-seedling', 'Земля': 'fi fi-sr-map',
+};
 const CAT_GRADIENT = {
   'Овощи': 'linear-gradient(135deg,#0e2918,#1a4a2e)',
   'Фрукты': 'linear-gradient(135deg,#2e1a0e,#4a2e1a)',
@@ -18,6 +28,11 @@ const CAT_GRADIENT = {
   'Зерновые': 'linear-gradient(135deg,#231a0a,#3d2e1a)',
   'Молочные': 'linear-gradient(135deg,#0a1a2e,#1a2e4a)',
   'Мёд': 'linear-gradient(135deg,#2e1e0a,#4a331a)',
+  'Цветы': 'linear-gradient(135deg,#2e0a1e,#4a1a33)',
+  'Саженцы': 'linear-gradient(135deg,#0a1e18,#1a3d2e)',
+  'Бахчевые': 'linear-gradient(135deg,#0e2918,#1a4a2e)',
+  'Семена': 'linear-gradient(135deg,#1a0e2e,#2e1a4a)',
+  'Земля': 'linear-gradient(135deg,#1a1408,#3d2e0a)',
 };
 
 const SORT_OPTIONS = [
