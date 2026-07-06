@@ -88,6 +88,7 @@ const NAV_BUYER = [
 const NAV_COURIER = [
   { path: '/courier',  icon: 'fi fi-rr-bike',            key: 'nav_courier_dashboard' },
   { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
+  { external: true, url: 'https://t.me/The1_Smurfs_Bot', icon: 'fi fi-rr-paper-plane', label: 'Связаться' },
 ];
 
 const NAV_ADMIN = [
@@ -118,6 +119,11 @@ function buildHeader() {
     const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new');
     const badge = (it.path === '/cart' && cartCount > 0)
       ? `<span class="nav-badge">${cartCount}</span>` : '';
+    if (it.external) {
+      return `<a class="nav-link" href="${it.url}" target="_blank">
+        <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${it.label}</span>
+      </a>`;
+    }
     return `<a class="nav-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
       <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${t(it.key)}</span>${badge}
     </a>`;

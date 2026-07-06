@@ -410,7 +410,7 @@ async function renderHome() {
     : `<button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shopping-cart"></i> ${t('go_market')}</button>
        <button class="btn btn-ghost btn-lg" onclick="router.go('/ai')"><i class="fi fi-rr-comment-alt"></i> ${t('ask_ai')}</button>`;
 
-  const feedbackBtn = `<button class="btn btn-ghost btn-lg" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')" style="margin-left:auto"><i class="fi fi-rr-paper-plane"></i> Оставить отзыв или идею</button>`;
+  const feedbackBtn = `<button class="btn btn-ghost btn-lg" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')"><i class="fi fi-rr-paper-plane"></i> Оставить отзыв или идею</button>`;
 
   app.innerHTML = pageShell(`
     <section class="hero-light">
@@ -574,7 +574,7 @@ async function renderHome() {
     </section>`}
 
     <!-- Footer -->
-    <footer style="background:#0f1f12;color:#fff;padding:60px 20px 30px;margin-top:60px">
+    <footer style="background:#0f1f12;color:#fff;padding:60px clamp(20px,4vw,80px) 30px;margin-top:60px">
       <div style="max-width:1200px;margin:0 auto">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;margin-bottom:40px">
 
@@ -634,6 +634,7 @@ async function renderHome() {
         </div>
       </div>
     </footer>
+    <div style="height:0;overflow:hidden"></div>
   `);
 
   // Insert courier reminder banner if needed
