@@ -167,6 +167,8 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         delivery_available=product.delivery_available or False,
         created_at=product.created_at
     )
+
+@router.post("/", response_model=ProductResponse)
 async def create_product(
     title: str = Form(...),
     description: str = Form(...),
