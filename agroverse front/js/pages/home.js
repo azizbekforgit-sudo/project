@@ -410,7 +410,7 @@ async function renderHome() {
     : `<button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shopping-cart"></i> ${t('go_market')}</button>
        <button class="btn btn-ghost btn-lg" onclick="router.go('/ai')"><i class="fi fi-rr-comment-alt"></i> ${t('ask_ai')}</button>`;
 
-  const feedbackBtn = `<button class="btn btn-ghost btn-lg" onclick="window.open('https://t.me/@The1_Smurfs_Bot','_blank')" style="margin-top:8px"><i class="fi fi-rr-paper-plane"></i> Оставить отзыв или идею</button>`;
+  const feedbackBtn = `<button class="btn btn-ghost btn-lg" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')"><i class="fi fi-rr-paper-plane"></i> Оставить отзыв или идею</button>`;
 
   app.innerHTML = pageShell(`
     <section class="hero-light">
@@ -429,8 +429,10 @@ async function renderHome() {
           <p class="hero-sub-anim" style="color:#4b7a5a;font-size:17px;margin-bottom:28px;max-width:500px;line-height:1.6;">
             ${isFarmer ? t('hero_farmer_sub') : t('hero_buyer_sub')}
           </p>
-          <div class="hero-actions hero-actions-anim">${heroCta}</div>
-          <div class="hero-actions-anim" style="margin-top:4px">${feedbackBtn}</div>
+          <div class="hero-actions hero-actions-anim" style="display:flex;flex-wrap:wrap;gap:12px">
+            ${heroCta}
+            ${feedbackBtn}
+          </div>
 
           <div style="display:flex;gap:40px;margin-top:44px;flex-wrap:wrap;">
             <div class="hero-stat-item">
