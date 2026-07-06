@@ -592,11 +592,6 @@ function _renderOnboardStep() {
                  oninput="_deliveryState.onboarding.license_info = this.value">
         </div>
         <div class="ob-field">
-          <label class="ob-label">Документы (паспорт, техпаспорт - ссылки)</label>
-          <textarea class="ob-input" id="ob-docs" placeholder="https://example.com/doc1.jpg, ..."
-                    oninput="_deliveryState.onboarding.documents = this.value.split(',').map(v=>v.trim()).filter(Boolean)">${(s.documents || []).join(', ')}</textarea>
-        </div>
-        <div class="ob-field">
           <label class="ob-label">О себе (необязательно)</label>
           <textarea class="ob-input ob-textarea" id="ob-bio" placeholder="Опыт, маршруты..."
                     oninput="_deliveryState.onboarding.bio = this.value">${s.bio}</textarea>
