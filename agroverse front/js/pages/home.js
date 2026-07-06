@@ -1,12 +1,12 @@
 /* pages/home.js — hero + scroll animations + button effects + Courier Remainder */
 
 const HOME_CATEGORIES = [
-  { value: 'Овощи',    icon: '🥦', key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
-  { value: 'Фрукты',   icon: '🍎', key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)' },
-  { value: 'Зелень',   icon: '🌿', key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)' },
-  { value: 'Зерновые', icon: '🌾', key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)' },
-  { value: 'Молочные', icon: '🥛', key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
-  { value: 'Мёд',      icon: '🍯', key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)' },
+  { value: 'Овощи',    icon: 'fi fi-sr-carrot',        key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
+  { value: 'Фрукты',   icon: 'fi fi-sr-apple-alt',     key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)' },
+  { value: 'Зелень',   icon: 'fi fi-sr-leaf',          key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)' },
+  { value: 'Зерновые', icon: 'fi fi-sr-wheat',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)' },
+  { value: 'Молочные', icon: 'fi fi-sr-milk',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
+  { value: 'Мёд',      icon: 'fi fi-sr-honey',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)' },
 ];
 
 const HOW_IT_WORKS = [
@@ -515,7 +515,7 @@ async function renderHome() {
               <img src="${c.img}" alt="${t(c.key)}" loading="lazy" onerror="this.style.opacity='0'" />
               <div class="cat-overlay"></div>
             </div>
-            <div class="cat-ic">${fe(c.icon, 20)}</div>
+            <div class="cat-ic"><i class="${c.icon}" style="font-size:20px"></i></div>
             <div class="cat-name">${t(c.key)}</div>
           </div>`).join('')}
       </div>
@@ -581,7 +581,7 @@ async function renderHome() {
           <!-- Brand -->
           <div>
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:20px">🌾</div>
+              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fi fi-sr-leaf" style="color:#fff"></i></div>
               <b style="font-size:20px">AgroVerse</b>
             </div>
             <p style="color:#9ca3af;font-size:14px;line-height:1.6">Фермерский маркетплейс без посредников. Свежие продукты прямо с полей Узбекистана.</p>
@@ -591,11 +591,11 @@ async function renderHome() {
           <div>
             <h4 style="margin-bottom:16px;font-size:15px">Навигация</h4>
             <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
-              <li><a href="#/market" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">🛒 Рынок</a></li>
-              <li><a href="#/ai" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">🤖 ИИ-помощник</a></li>
-              <li><a href="#/orders" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">📦 Мои заказы</a></li>
-              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">👤 Профиль</a></li>
-              <li><a href="https://t.me/The1_Smurfs_Bot" target="_blank" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">💬 Обратная связь</a></li>
+              <li><a href="#/market" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-shop" style="margin-right:6px"></i>Рынок</a></li>
+              <li><a href="#/ai" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-robot" style="margin-right:6px"></i>ИИ-помощник</a></li>
+              <li><a href="#/orders" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-box-open" style="margin-right:6px"></i>Мои заказы</a></li>
+              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-user" style="margin-right:6px"></i>Профиль</a></li>
+              <li><a href="https://t.me/The1_Smurfs_Bot" target="_blank" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-paper-plane" style="margin-right:6px"></i>Обратная связь</a></li>
             </ul>
           </div>
 
@@ -603,9 +603,9 @@ async function renderHome() {
           <div>
             <h4 style="margin-bottom:16px;font-size:15px">Для фермеров</h4>
             <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
-              <li><a href="#/product/new" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">➕ Добавить товар</a></li>
-              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">🌱 Мои товары</a></li>
-              <li><a href="#/wallet" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'">💰 Кошелёк</a></li>
+              <li><a href="#/product/new" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-add" style="margin-right:6px"></i>Добавить товар</a></li>
+              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-leaf" style="margin-right:6px"></i>Мои товары</a></li>
+              <li><a href="#/wallet" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-wallet" style="margin-right:6px"></i>Кошелёк</a></li>
             </ul>
           </div>
 
@@ -634,15 +634,18 @@ async function renderHome() {
         </div>
       </div>
     </footer>
-    <div style="height:0;overflow:hidden"></div>
   `);
+
+  // Убираем лишний padding-bottom у app-main чтобы футер был в конце
+  const mainEl = document.querySelector('.app-main');
+  if (mainEl) mainEl.style.paddingBottom = '0';
 
   // Insert courier reminder banner if needed
   if (isCourier && showCourierAlert) {
     const alertContainer = document.getElementById('home-dynamic-alerts');
     alertContainer.innerHTML = `
       <div class="remind-banner scroll-reveal revealed">
-        <div style="font-size: 2rem;">${fe('🚛',32)}</div>
+        <div style="font-size: 2rem;"><i class="fi fi-sr-truck-side" style="font-size:32px;color:#92400e"></i></div>
         <div class="rb-content">
           <span class="rb-title">Вы зарегистрированы как Йўлчи!</span>
           <span class="rb-text">Чтобы начать принимать заказы и зарабатывать, вам необходимо заполнить профиль перевозчика и дождаться одобрения админа.</span>
@@ -650,7 +653,7 @@ async function renderHome() {
         <div class="rb-actions">
            <button class="btn btn-primary" onclick="router.go('/profile')">Заполнить сейчас</button>
            <button class="btn btn-ghost" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')"><i class="fi fi-rr-paper-plane"></i> Связаться</button>
-           <button class="btn btn-ghost" onclick="this.closest('.remind-banner').remove(); localStorage.removeItem('courier_needs_setup_alert');">✖</button>
+           <button class="btn btn-ghost" onclick="this.closest('.remind-banner').remove(); localStorage.removeItem('courier_needs_setup_alert');"><i class="fi fi-sr-times"></i></button>
         </div>
       </div>
     `;

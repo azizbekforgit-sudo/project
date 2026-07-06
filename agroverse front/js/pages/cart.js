@@ -8,7 +8,7 @@ function renderCart() {
     app.innerHTML = pageShell(`
       <div class="page-head"><h1 class="page-title">${fe('🛍️',24)} ${t('nav_cart')}</h1></div>
       <div class="empty-state big">
-        <div class="icon">${fe('🛒',48)}</div>
+        <div class="icon"><i class="fi fi-sr-shopping-cart" style="font-size:48px"></i></div>
         <p>${t('cart_empty')}</p>
         <button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>
       </div>

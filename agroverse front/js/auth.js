@@ -87,8 +87,9 @@ const NAV_BUYER = [
 
 const NAV_COURIER = [
   { path: '/courier',  icon: 'fi fi-rr-bike',            key: 'nav_courier_dashboard' },
-  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
+  { path: '/ai',       icon: 'fi fi-rr-comment-alt',     key: 'nav_ai' },
   { external: true, url: 'https://t.me/The1_Smurfs_Bot', icon: 'fi fi-rr-paper-plane', label: 'Связаться' },
+  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
 ];
 
 const NAV_ADMIN = [

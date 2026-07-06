@@ -176,7 +176,7 @@ async function renderWallet() {
     <div class="wallet-page">
 
       <div class="page-head" style="margin-bottom:28px">
-        <h1 class="page-title">${fe('💰',24)} ${wt('title')}</h1>
+        <h1 class="page-title"><i class="fi fi-sr-wallet" style="font-size:24px"></i> ${wt('title')}</h1>
         <p class="page-desc">${wt('desc')}</p>
       </div>
 
@@ -248,10 +248,10 @@ async function renderWallet() {
       <div class="how-block">
         <h3>${fe('ℹ️',18)} ${wt('how')}</h3>
         <ul class="how-list">
-          <li>${fe('🏅',14)} ${wt('w1')}</li>
-          <li>${fe('➕',14)} ${wt('w2')}</li>
-          <li>${fe('🛒',14)} ${wt('w3')}</li>
-          <li>${fe('💸',14)} ${wt('w4')}</li>
+          <li><i class="fi fi-sr-medal" style="font-size:14px"></i> ${wt('w1')}</li>
+          <li><i class="fi fi-sr-add" style="font-size:14px"></i> ${wt('w2')}</li>
+          <li><i class="fi fi-sr-shopping-cart" style="font-size:14px"></i> ${wt('w3')}</li>
+          <li><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> ${wt('w4')}</li>
         </ul>
       </div>
     </div>
@@ -265,13 +265,13 @@ async function renderWallet() {
     const lang = (window.I18nManager && I18nManager.current) || 'uz';
     document.getElementById('wallet-hero').innerHTML = `
       <div class="wcard balance">
-        <div class="wcard-icon">${fe('💰',28)}</div>
+        <div class="wcard-icon"><i class="fi fi-sr-wallet" style="font-size:28px"></i></div>
         <div class="wcard-label">${wt('balance')}</div>
         <div class="wcard-value">${Number(me.wallet_balance || 0).toLocaleString('ru')}</div>
         <div class="wcard-sub">${wt('currency')}</div>
       </div>
       <div class="wcard points-card">
-        <div class="wcard-icon">${fe('🏅',28)}</div>
+        <div class="wcard-icon"><i class="fi fi-sr-medal" style="font-size:28px"></i></div>
         <div class="wcard-label">${wt('bonus')}</div>
         <div class="wcard-value">${me.bonus_points || 0}</div>
         <div class="wcard-sub">${wt('points')}</div>
@@ -381,7 +381,7 @@ function renderPaymentForm(amount, method) {
         <div class="pay-field">
           <label>${wt('card_holder')}</label>
           <div class="pay-input-wrap">
-            <span class="pi-icon">${fe('👤',16)}</span>
+            <span class="pi-icon"><i class="fi fi-sr-user" style="font-size:16px"></i></span>
             <input
               type="text"
               id="pf-name"

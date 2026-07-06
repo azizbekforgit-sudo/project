@@ -53,7 +53,7 @@ async function renderOrders() {
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
     <div class="page-head">
-      <h1 class="page-title">${fe('📦',24)} ${t('nav_orders')}</h1>
+      <h1 class="page-title"><i class="fi fi-sr-box-open" style="font-size:24px"></i> ${t('nav_orders')}</h1>
       <p class="page-desc">${t('orders_desc')}</p>
     </div>
     <div id="orders-wrap"><div class="spinner"></div></div>
@@ -72,7 +72,7 @@ async function loadOrdersList() {
     if (!orders?.length) {
       wrap.innerHTML = `
         <div class="empty-state big">
-          <div class="icon">${fe('📦',48)}</div>
+          <div class="icon"><i class="fi fi-sr-box-open" style="font-size:48px"></i></div>
           <p>${t('orders_empty')}</p>
           ${!isFermer ? `<button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>` : ''}
         </div>`;
@@ -97,8 +97,8 @@ function orderCardHtml(o, isFermer) {
     : '<div class="oc-ph">🥬</div>';
 
   const personLabel = isFermer
-    ? `${fe('🛒',14)} ${o.xaridor_name || t('buyer_word')}`
-    : `${fe('🌱',14)} ${o.fermer_name || t('farmer_word')}`;
+    ? `<i class="fi fi-sr-shopping-cart" style="font-size:14px"></i> ${o.xaridor_name || t('buyer_word')}`
+    : `<i class="fi fi-sr-leaf" style="font-size:14px"></i> ${o.fermer_name || t('farmer_word')}`;
 
   // Delivery request info
   let deliveryHtml = '';

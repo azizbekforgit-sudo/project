@@ -12,7 +12,7 @@ const ROLE_ICONS = {
   courier: 'fi fi-sr-truck-side',
   admin: 'fi fi-sr-crown',
 };
-const CAT_EMOJI_PROF = { 'Овощи': '🥦', 'Фрукты': '🍎', 'Зелень': '🌿', 'Зерновые': '🌾', 'Молочные': '🥛', 'Мёд': '🍯' };
+const CAT_EMOJI_PROF = { 'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf', 'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey' };
 
 async function renderProfile() {
   const app = document.getElementById('app');
@@ -203,7 +203,7 @@ async function loadFarmerProducts() {
     }
 
     list.innerHTML = products.map(p => {
-      const emoji = fe(CAT_EMOJI_PROF[p.category] || '🥬', 20);
+      const emoji = `<i class="${CAT_EMOJI_PROF[p.category] || 'fi fi-sr-leaf'}" style="font-size:20px"></i>`;
       const statusClass = p.status === 'active' ? 'ok' : p.status === 'pending' ? 'pending' : 'rejected';
       const statusText = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : 'Отклонён';
       const bg = p.status === 'active' ? 'var(--bg-card-2)' : 'var(--bg-card)';

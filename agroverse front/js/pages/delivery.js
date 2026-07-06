@@ -105,7 +105,7 @@ async function _renderFindCourier() {
     <div style="max-width:1100px;margin:0 auto;">
       <!-- Hero -->
       <div class="del-hero">
-        <div class="del-hero-title">${fe('🚛',24)} Доставка грузов</div>
+        <div class="del-hero-title"><i class="fi fi-sr-truck-side" style="font-size:24px"></i> Доставка грузов</div>
         <div class="del-hero-sub">Найдите проверенного курьера для перевозки вашего груза по всей Узбекистану</div>
       </div>
 
@@ -113,7 +113,7 @@ async function _renderFindCourier() {
       <div class="del-map-wrap">
         <div id="del-map" class="del-map"></div>
         <div class="del-map-controls">
-          <input type="text" id="del-address" class="del-map-input" placeholder="${fe('📍',14)} Введите адрес или кликните на карту..." />
+          <input type="text" id="del-address" class="del-map-input" placeholder="Введите адрес или кликните на карту..." />
           <select id="del-radius" class="del-radius-select">
             <option value="5">5 км</option>
             <option value="10">10 км</option>
@@ -134,7 +134,7 @@ async function _renderFindCourier() {
         <h2 style="font-family:var(--font-display);font-size:24px;font-weight:600;text-align:center;margin-bottom:24px;">Как это работает?</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('📍',40)}</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-marker" style="font-size:40px;color:#059669"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Укажите адрес</div>
             <div style="font-size:13px;color:var(--muted);">Кликните на карту или введите адрес</div>
           </div>
@@ -144,7 +144,7 @@ async function _renderFindCourier() {
             <div style="font-size:13px;color:var(--muted);">Сравните рейтинги и тарифы</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;">${fe('📦',40)}</div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-box-open" style="font-size:40px;color:#059669"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Закажите доставку</div>
             <div style="font-size:13px;color:var(--muted);">Быстро, надёжно, с гарантией</div>
           </div>
@@ -251,7 +251,7 @@ window._delZoneSearch = async function() {
     if (!couriers.length) {
       results.innerHTML = `
         <div style="text-align:center;padding:60px 20px;color:var(--muted);">
-          <div style="font-size:48px;margin-bottom:16px;">${fe('🚛',48)}</div>
+          <div style="font-size:48px;margin-bottom:16px;"><i class="fi fi-sr-truck-side" style="font-size:48px;color:#059669"></i></div>
           <h3 style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px;">Курьеры не найдены</h3>
           <p style="font-size:14px;">В выбранном радиусе (${radius} км) пока нет активных курьеров.<br>Попробуйте увеличить радиус поиска.</p>
         </div>`;
@@ -440,7 +440,7 @@ function _renderOnboarding() {
   app.innerHTML = `
     <div class="delivery-onboard">
       <div class="onboard-header">
-        <div class="onboard-logo">${fe('🚛',24)} AgroVerse Йўлчи</div>
+        <div class="onboard-logo"><i class="fi fi-sr-truck-side" style="font-size:24px"></i> AgroVerse Йўлчи</div>
         <p class="onboard-subtitle">Зарегистрируйтесь как курьер за 3 шага</p>
       </div>
       <div class="onboard-progress">
@@ -520,7 +520,7 @@ function _renderOnboardStep() {
         </div>
 
         <div class="ob-field" style="margin-top:16px;">
-          <label class="ob-label">${fe('📍',14)} Адрес базирования</label>
+          <label class="ob-label"><i class="fi fi-sr-marker" style="font-size:14px"></i> Адрес базирования</label>
           <input type="text" class="ob-input" id="ob-address" value="${s.address}" placeholder="Ташкент, ул. Примерная 1"
                  oninput="_deliveryState.onboarding.address = this.value">
           <span class="hint">Ваш фактический адрес (для будущих функций)</span>
@@ -697,7 +697,7 @@ function _renderDashboard() {
       <!-- Sidebar — Grouped navigation -->
       <aside class="del-sidebar">
         <div class="ds-brand">
-          <span class="ds-logo">${fe('🚛',24)}</span>
+          <span class="ds-logo"><i class="fi fi-sr-truck-side" style="font-size:24px"></i></span>
           <span class="ds-name">Йўлчи</span>
         </div>
         <nav class="ds-nav">
@@ -806,7 +806,7 @@ async function _sectionHome(main) {
       <!-- Stats row — Bento grid -->
       <div class="home-stats">
         <div class="hs-card clickable" onclick="_deliverySection('orders')">
-          <div class="hs-icon">${fe('📦',28)}</div>
+          <div class="hs-icon"><i class="fi fi-sr-box-open" style="font-size:28px"></i></div>
           <div class="hs-num" id="stat-available">—</div>
           <div class="hs-label">Доступные</div>
         </div>
@@ -821,7 +821,7 @@ async function _sectionHome(main) {
           <div class="hs-label">Рейтинг /10</div>
         </div>
         <div class="hs-card clickable" onclick="_deliverySection('wallet')">
-          <div class="hs-icon">${fe('💰',28)}</div>
+          <div class="hs-icon"><i class="fi fi-sr-wallet" style="font-size:28px"></i></div>
           <div class="hs-num" id="stat-balance">—</div>
           <div class="hs-label">Баланс</div>
         </div>
@@ -1264,7 +1264,7 @@ function _sectionTariffs(main) {
 
       <!-- Calculator -->
       <div class="tariff-calc">
-        <h3>${fe('💰',20)} Калькулятор стоимости доставки</h3>
+        <h3><i class="fi fi-sr-wallet" style="font-size:20px"></i> Калькулятор стоимости доставки</h3>
         <div class="calc-row">
           <label>Расстояние (км)</label>
           <input type="number" id="calc-dist" class="ob-input" value="50" min="1" max="2000">
@@ -1304,7 +1304,7 @@ function _sectionAI(main) {
   main.innerHTML = `
     <div class="section-ai">
       <div class="section-header">
-        <h1 class="section-title">${fe('🤖',24)} ИИ-помощник</h1>
+        <h1 class="section-title"><i class="fi fi-sr-robot" style="font-size:24px"></i> ИИ-помощник</h1>
         <p class="section-subtitle">Задайте вопрос о маршрутах, тарифах или заказах</p>
       </div>
       <div class="ai-chat" id="ai-chat">
@@ -1358,7 +1358,7 @@ async function _sectionWallet(main) {
   main.innerHTML = `
     <div class="section-wallet">
       <div class="section-header">
-        <h1 class="section-title">${fe('💰',24)} Кошелёк</h1>
+        <h1 class="section-title"><i class="fi fi-sr-wallet" style="font-size:24px"></i> Кошелёк</h1>
       </div>
       <div class="wallet-card">
         <div class="wc-label">Текущий баланс</div>
@@ -1451,7 +1451,7 @@ async function _sectionMarket(main) {
   main.innerHTML = `
     <div class="section-market">
       <div class="section-header">
-        <h1 class="section-title">${fe('🛒',24)} Рынок</h1>
+        <h1 class="section-title"><i class="fi fi-sr-shop" style="font-size:24px"></i> Рынок</h1>
         <p class="section-subtitle">Товары от фермеров, доступные для доставки</p>
       </div>
       <div id="market-list"><div class="spinner"></div></div>
@@ -1463,16 +1463,16 @@ async function _sectionMarket(main) {
     const list = document.getElementById('market-list');
     if (!list) return;
     if (!products.length) {
-      list.innerHTML = `<div class="empty-state">${fe('📦',48)} Товаров пока нет</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fi fi-sr-box-open" style="font-size:48px;color:var(--clr-primary)"></i> Товаров пока нет</div>`;
       return;
     }
     list.innerHTML = `<div class="market-grid">
       ${products.slice(0, 20).map(p => `
         <div class="market-card">
-          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder">${fe('🌾',40)}</div>`}
+          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder"><i class="fi fi-sr-wheat" style="font-size:40px;color:rgba(255,255,255,0.5)"></i></div>`}
           <div class="mc-body">
             <div class="mc-title">${p.name || 'Без названия'}</div>
-            <div class="mc-farmer">${fe('🌱',14)} ${p.fermer_name || 'Фермер'}</div>
+            <div class="mc-farmer"><i class="fi fi-sr-leaf" style="font-size:14px"></i> ${p.fermer_name || 'Фермер'}</div>
             <div class="mc-price">${Number(p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
           </div>
         </div>
@@ -1494,7 +1494,7 @@ function _sectionProfile(main) {
   main.innerHTML = `
     <div class="section-profile">
       <div class="section-header">
-        <h1 class="section-title">${fe('👤',24)} Профиль</h1>
+        <h1 class="section-title"><i class="fi fi-sr-user" style="font-size:24px"></i> Профиль</h1>
       </div>
 
       ${!approved ? `
@@ -1529,7 +1529,7 @@ function _sectionProfile(main) {
         ${_profileRow('🚛', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
         ${_profileRow('⚖️', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
         ${_profileRow(fe('🔢',16), 'Гос. номер', p.vehicle_number)}
-        ${_profileRow(fe('📍',16), 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
+        ${_profileRow('<i class="fi fi-sr-marker" style="font-size:16px"></i>', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
         ${_profileRow(fe('❄️',16), 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
         ${_profileRow('💰', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
         ${p.bio ? _profileRow('📝', 'О себе', p.bio) : ''}

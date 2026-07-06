@@ -28,8 +28,8 @@ async function renderProduct(id) {
 
   try {
     const p = await API.getProduct(id);
-    const emoji = CAT_EMOJI[p.category] || '🥬';
-    const emojiHtml = fe(emoji, 20);
+    const emoji = CAT_EMOJI[p.category] || 'fi fi-sr-leaf';
+    const emojiHtml = `<i class="${emoji}" style="font-size:20px"></i>`;
 
     // Build radio buttons conditionally
     let radiosHtml = `<label class="radio-label"><input type="radio" name="pickup" value="self" checked /> <i class="fi fi-rr-car-side"></i> ${t('pickup_self')}</label>`;

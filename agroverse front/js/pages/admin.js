@@ -13,17 +13,17 @@ async function renderAdmin() {
       <div class="page-head"><h1>${fe('📊',24)} ${t('admin_title')}</h1></div>
 
       <div class="admin-stats" id="admin-stats">
-        <div class="stat-card"><div class="stat-ic">${fe('👥',22)}</div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
-        <div class="stat-card"><div class="stat-ic">${fe('📦',22)}</div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
-        <div class="stat-card"><div class="stat-ic">${fe('🧾',22)}</div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
-        <div class="stat-card"><div class="stat-ic">${fe('🚛',22)}</div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-users" style="font-size:22px"></i></div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-box-open" style="font-size:22px"></i></div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-receipt" style="font-size:22px"></i></div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-truck-side" style="font-size:22px"></i></div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
       </div>
 
       <div class="admin-tabs">
-        <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')">${fe('🛂',16)} ${t('admin_moderation')}</button>
-        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')">${fe('🚛',16)} Йўлчи заявки</button>
-        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')">${fe('👥',16)} ${t('admin_users')}</button>
-        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')">${fe('📈',16)} ${t('admin_reports')}</button>
+        <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')"><i class="fi fi-sr-id" style="font-size:16px"></i> ${t('admin_moderation')}</button>
+        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
+        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
+        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fi fi-sr-chart-mixed" style="font-size:16px"></i> ${t('admin_reports')}</button>
       </div>
 
       <div id="admin-content"><div class="spinner"></div></div>
@@ -211,9 +211,9 @@ async function adminSwitchTab(tab) {
       const avg = ordCnt > 0 ? Math.round(totalRev / ordCnt) : 0;
       box.innerHTML = `
         <div class="admin-stats" style="margin-top:0;">
-          <div class="stat-card"><div class="stat-ic">${fe('💰',22)}</div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
-          <div class="stat-card"><div class="stat-ic">${fe('🧾',22)}</div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
-          <div class="stat-card"><div class="stat-ic">${fe('📊',22)}</div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-wallet" style="font-size:22px"></i></div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-receipt" style="font-size:22px"></i></div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-chart-mixed" style="font-size:22px"></i></div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
         </div>`;
     } catch (e) {
       box.innerHTML = `<div class="empty-state">${t('rep_none')}</div>`;
@@ -221,7 +221,7 @@ async function adminSwitchTab(tab) {
   }
 }
 
-function roleIcon(r) { return r === 'fermer' ? fe('🌱',16) : r === 'admin' ? fe('👑',16) : fe('🛍️',16); }
+function roleIcon(r) { return r === 'fermer' ? '<i class="fi fi-sr-leaf" style="font-size:16px"></i>' : r === 'admin' ? '<i class="fi fi-sr-crown" style="font-size:16px"></i>' : '<i class="fi fi-sr-shopping-bag" style="font-size:16px"></i>'; }
 
 // ─── Product moderation ────────────────────────────────────────────────────────
 
