@@ -110,7 +110,7 @@ async def upload_receipt(
         raise HTTPException(403, "Нет доступа")
 
     # Save file
-    upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads", "receipts")
+    upload_dir = os.path.join(os.getcwd(), "uploads", "receipts")
     os.makedirs(upload_dir, exist_ok=True)
     ext = file.filename.split(".")[-1] if "." in (file.filename or "") else "jpg"
     filename = f"receipt_{request_id}_{uuid.uuid4().hex[:8]}.{ext}"

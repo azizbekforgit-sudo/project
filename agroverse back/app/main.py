@@ -278,14 +278,17 @@ app = FastAPI(title="AgroVerse API", version="2.0", lifespan=lifespan)
 
 ALLOWED_ORIGINS = [
     "https://pure-strength-production.up.railway.app",
+    "https://project-production-5501.up.railway.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

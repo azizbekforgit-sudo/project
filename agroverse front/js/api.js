@@ -219,4 +219,5 @@ const API = {
 API.request = request;
 
 window.API = API;
+window.BASE_URL = BASE_URL;
 window.normalizeProduct = normalizeProduct;

@@ -1,5 +1,7 @@
-Gullar
-Ko'chatlar
-Poliz ekin
-Urug'lar
-Yer va mulk
+Access to fetch at 'https://project-production-5501.up.railway.app/api/payment/admin/topup/2/approve' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+project-production-5501.up.railway.app/api/payment/admin/topup/2/approve:1  Failed to load resource: net::ERR_FAILED
+api.js:83 API Error: TypeError: Failed to fetch
+    at request (api.js:38:23)
+    at Object.adminApproveTopup (api.js:184:30)
+    at adminApproveTopup (admin.js:360:15)
+    at HTMLButtonElement.onclick ((index):1:1)
