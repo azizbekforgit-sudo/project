@@ -87,10 +87,12 @@ async function loadOrdersList() {
 function orderCardHtml(o, isFermer) {
   const date  = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
   const total = o.total_price != null ? `${Number(o.total_price).toLocaleString()} ${t('currency')}` : '—';
+  const unit = o.quantity >= 1000 ? 'кг' : (t('pcs') || 'шт');
 
-  const canCancel   = !isFermer && ['created', 'paid'].includes(o.status);
-  const canComplete = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
+  const canCancel    = !isFermer && ['created', 'paid'].includes(o.status);
+  const canComplete  = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
   const canMarkReady = isFermer && o.status === 'paid';
+  const canPay       = !isFermer && o.status === 'created';
 
   const img = o.product_photo
     ? `<img src="${API_PHOTO(o.product_photo)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'oc-ph',textContent:'🥬'}))" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
@@ -100,6 +102,18 @@ function orderCardHtml(o, isFermer) {
     ? `<i class="fi fi-sr-shopping-cart" style="font-size:14px"></i> ${o.xaridor_name || t('buyer_word')}`
     : `<i class="fi fi-sr-leaf" style="font-size:14px"></i> ${o.fermer_name || t('farmer_word')}`;
 
+  // Status description
+  let statusNote = '';
+  if (!isFermer && o.status === 'created') {
+    statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Заказ ожидает оплаты. Нажмите "Оплатить" чтобы перевести деньги фермеру.</div>`;
+  } else if (!isFermer && o.status === 'paid') {
+    statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Оплачено. Фермер готовит ваш заказ.</div>`;
+  } else if (isFermer && o.status === 'created') {
+    statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Покупатель ещё не оплатил заказ.</div>`;
+  } else if (isFermer && o.status === 'paid') {
+    statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Заказ оплачен. Можете начать подготовку.</div>`;
+  }
+
   // Delivery request info
   let deliveryHtml = '';
   if (o.delivery_request) {
@@ -107,6 +121,7 @@ function orderCardHtml(o, isFermer) {
     const statusLabels = {
       pending: 'Ожидание драйвера',
       driver_accepted: 'Драйвер принял',
+      collecting: 'Собирается',
       in_transit: 'В пути',
       delivered: 'Доставлен',
       completed: 'Завершён',
@@ -145,15 +160,17 @@ function orderCardHtml(o, isFermer) {
         <div class="oc-meta">
           ${personLabel}
           <span class="oc-meta-dot"></span>
-          ${o.quantity} ${t('pcs')}
+          ${o.quantity} ${unit}
           <span class="oc-meta-dot"></span>
           ${fe('📅',14)} ${date}
         </div>
         ${total !== '—' ? `<div class="oc-total">${total}</div>` : ''}
+        ${statusNote}
         ${deliveryHtml}
         ${timelineHtml(o.status)}
       </div>
       <div class="oc-actions">
+        ${canPay       ? `<button class="btn btn-primary btn-sm" onclick="payOrder(${o.id}, ${o.total_price})"><i class="fi fi-sr-credit-card" style="font-size:14px"></i> Оплатить</button>` : ''}
         ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
         ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
         ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
@@ -184,7 +201,37 @@ async function markOrderReady(id) {
   catch (e) { showToast(e.message, 'error'); }
 }
 
+async function payOrder(orderId, amount) {
+  const user = Auth.getUser();
+  const balance = user?.wallet_balance || 0;
+
+  if (balance < amount) {
+    const deficit = amount - balance;
+    showToast(`Недостаточно средств! На кошельке: ${Number(balance).toLocaleString()} сум. Нужно: ${Number(amount).toLocaleString()} сум (не хватает ${Number(deficit).toLocaleString()})`, 'error');
+    setTimeout(() => {
+      if (confirm('Перейти в кошелёк для пополнения?')) {
+        router.go('/wallet');
+      }
+    }, 1500);
+    return;
+  }
+
+  if (!confirm(`Оплатить заказ на ${Number(amount).toLocaleString()} сум?\n\nСредства будут списаны с вашего кошелька и переведены фермеру.`)) return;
+
+  try {
+    await API.payOrder(orderId);
+    showToast(`✅ Заказ оплачен! ${Number(amount).toLocaleString()} сум переведено фермеру`, 'success');
+    // Update local user balance
+    const me = await API.getMe();
+    Auth.setUser(me);
+    loadOrdersList();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 window.renderOrders     = renderOrders;
 window.cancelOrder      = cancelOrder;
 window.confirmReceived  = confirmReceived;
 window.markOrderReady   = markOrderReady;
+window.payOrder         = payOrder;

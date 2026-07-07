@@ -86,6 +86,16 @@ async function renderProfile() {
       </div>
       ` : ''}
 
+      <!-- Farmer orders section -->
+      ${user.role === 'fermer' ? `
+      <div class="pr-section" id="pr-orders-section">
+        <div class="pr-section-head">
+          <h2><i class="fi fi-rr-box-open"></i> Заказы</h2>
+        </div>
+        <div id="pr-orders-list"><div class="spinner"></div></div>
+      </div>
+      ` : ''}
+
       <!-- Settings -->
       <div class="pr-section">
         <div class="pr-section-head">
@@ -162,7 +172,10 @@ async function renderProfile() {
   loadProfileStats(user);
 
   // Load farmer products
-  if (user.role === 'fermer') loadFarmerProducts();
+  if (user.role === 'fermer') {
+    loadFarmerProducts();
+    loadFarmerOrders();
+  }
 }
 
 async function loadProfileStats(user) {
@@ -270,6 +283,62 @@ async function loadFarmerProducts() {
   } catch (e) {
     if (e.message === 'BLOCKED') return;
     list.innerHTML = `<div class="form-error">${e.message}</div>`;
+  }
+}
+
+async function loadFarmerOrders() {
+  const list = document.getElementById('pr-orders-list');
+  if (!list) return;
+
+  try {
+    const data = await API.getMyOrders();
+    const orders = data?.orders || data || [];
+
+    if (!orders.length) {
+      list.innerHTML = `<div style="text-align:center;padding:20px;color:#9ca3af;font-size:14px">Нет заказов</div>`;
+      return;
+    }
+
+    const statusLabels = {
+      created: 'Не оплачен',
+      paid: 'Оплачен',
+      ready_for_pickup: 'Готов к выдаче',
+      completed: 'Завершён',
+      cancelled: 'Отменён',
+    };
+    const statusColors = {
+      created: '#f59e0b',
+      paid: '#10b981',
+      ready_for_pickup: '#3b82f6',
+      completed: '#10b981',
+      cancelled: '#ef4444',
+    };
+
+    list.innerHTML = orders.slice(0, 10).map(o => {
+      const color = statusColors[o.status] || '#6b7280';
+      const label = statusLabels[o.status] || o.status;
+      const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '';
+
+      return `
+        <div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;background:var(--bg-card)">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div style="font-weight:600;font-size:14px">${o.product_title || 'Товар'}</div>
+              <div style="font-size:12px;color:var(--txt-3);margin-top:2px">
+                👤 ${o.xaridor_name || 'Покупатель'} · ${o.quantity} шт. · ${date}
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:var(--clr-primary)">${Number(o.total_price).toLocaleString()} сум</div>
+              <span style="background:${color}20;color:${color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">${label}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    if (e.message === 'BLOCKED') return;
+    list.innerHTML = `<div style="color:#ef4444;font-size:13px">${e.message}</div>`;
   }
 }
 
@@ -979,3 +1048,4 @@ window.deleteMyProduct = deleteMyProduct;
 window.renderCourierSetupForm = renderCourierSetupForm;
 window.togglePasswordVisibility = togglePasswordVisibility;
 window.openChangePassword = openChangePassword;
+window.loadFarmerOrders = loadFarmerOrders;

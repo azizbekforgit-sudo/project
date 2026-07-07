@@ -217,13 +217,23 @@ async def pay_order(
 
     order.status = OrderStatus.PAID
 
-    bonus_txn = BonusTransaction(
+    # Record transaction for farmer
+    fermer_bonus = BonusTransaction(
         user_id=order.fermer_id,
         points=5,
-        reason=f"Продажа товара по заказу #{order_id}"
+        reason=f"Оплата покупки от {current_user.name}: {order.quantity} шт. товара #{order.product_id}, сумма {order.total_price - order.commission} сум"
     )
-    db.add(bonus_txn)
+    db.add(fermer_bonus)
     fermer.bonus_points += 5
+
+    # Record buyer transaction
+    buyer_bonus = BonusTransaction(
+        user_id=current_user.id,
+        points=2,
+        reason=f"Оплата заказа #{order_id}: {order.quantity} шт. товара #{order.product_id}, сумма {order.total_price} сум"
+    )
+    db.add(buyer_bonus)
+    current_user.bonus_points += 2
 
     await db.commit()
 

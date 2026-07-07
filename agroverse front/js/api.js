@@ -144,6 +144,7 @@ const API = {
   cancelOrder:   (id) => request('PATCH', `/api/orders/${id}/cancel`),
   completeOrder: (id) => request('PATCH', `/api/orders/${id}/complete`),
   markReady:     (id) => request('PATCH', `/api/orders/${id}/ready`),
+  payOrder:      (id) => request('PATCH', `/api/orders/${id}/pay`),
 
   // Wallet
   getWallet:     () => request('GET', '/api/payment/wallet'),
