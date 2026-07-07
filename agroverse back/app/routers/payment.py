@@ -33,7 +33,7 @@ async def deposit(
     db: AsyncSession = Depends(get_db)
 ):
     """Пополнить кошелек (заглушка для MVP)"""
-    current_user.wallet_balance += deposit_data.amount
+    current_user.wallet_balance = float(current_user.wallet_balance) + float(deposit_data.amount)
     await db.commit()
     return {
         "message": "Кошелек пополнен",
@@ -52,7 +52,7 @@ async def withdraw(
         raise HTTPException(status_code=403, detail="Только фермеры могут выводить средства")
     if current_user.wallet_balance < withdraw_data.amount:
         raise HTTPException(status_code=400, detail="Недостаточно средств")
-    current_user.wallet_balance -= withdraw_data.amount
+    current_user.wallet_balance = float(current_user.wallet_balance) - float(withdraw_data.amount)
     await db.commit()
     return {
         "message": "Запрос на вывод средств создан",
@@ -211,7 +211,9 @@ async def approve_topup(
     user_result = await db.execute(select(User).where(User.id == req.user_id))
     user = user_result.scalar_one_or_none()
     if user:
-        user.wallet_balance += req.amount
+        # FIX: wallet_balance приходит из БД как Decimal (Numeric(12,2)),
+        # а req.amount — обычный float. Decimal += float кидает TypeError.
+        user.wallet_balance = float(user.wallet_balance) + float(req.amount)
 
     await db.commit()
     return {"ok": True, "amount": req.amount, "new_balance": float(user.wallet_balance) if user else 0}
