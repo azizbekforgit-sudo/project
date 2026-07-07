@@ -187,6 +187,10 @@ const API = {
   buyerCancelDelivery: (id) => request('PATCH', `/api/delivery/request/${id}/buyer-cancel`),
   getMyDeliveryRequests: () => request('GET', '/api/delivery/request/my'),
   getBuyerDeliveryRequests: () => request('GET', '/api/delivery/request/buyer'),
+  updateDeliveryRequestStatus: (id, status) => request('PATCH', `/api/delivery/request/${id}/status`, { body: { status } }),
+  rateDeliveryRequest: (id, rating, comment) => request('PATCH', `/api/delivery/request/${id}/rate`, { body: { rating, comment } }),
+  getCompletedDeliveries: () => request('GET', '/api/delivery/request/completed'),
+  getCourierCompletedDeliveries: (userId) => request('GET', `/api/delivery/couriers/${userId}/completed`),
 };
 
 API.request = request;

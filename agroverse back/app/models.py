@@ -236,10 +236,12 @@ class DeliveryRequest(Base):
     price_per_km             = Column(Float, default=0.0)
     total_price              = Column(Float, default=0.0)
     status                   = Column(String(30), default="pending")
-    # pending -> driver_accepted -> in_transit -> delivered -> completed
+    # pending -> driver_accepted -> collecting -> in_transit -> delivered -> completed
     # pending -> cancelled_by_buyer / cancelled_by_driver
     buyer_confirmed_disclaimer  = Column(Boolean, default=False)
     driver_confirmed_disclaimer = Column(Boolean, default=False)
+    buyer_rating               = Column(Integer, nullable=True)
+    buyer_comment              = Column(Text, nullable=True)
     created_at               = Column(DateTime, server_default=func.now())
     updated_at               = Column(DateTime, onupdate=func.now())
 

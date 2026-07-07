@@ -109,25 +109,39 @@ async function _renderFindCourier() {
         <div class="del-hero-sub">Найдите проверенного курьера для перевозки вашего груза по всей Узбекистану</div>
       </div>
 
-      <!-- Google Map -->
-      <div class="del-map-wrap">
-        <div id="del-map" class="del-map"></div>
-        <div class="del-map-controls">
-          <input type="text" id="del-address" class="del-map-input" placeholder="Введите адрес или кликните на карту..." />
-          <select id="del-radius" class="del-radius-select">
-            <option value="5">5 км</option>
-            <option value="10">10 км</option>
-            <option value="25" selected>25 км</option>
-            <option value="50">50 км</option>
-            <option value="100">100 км</option>
-            <option value="500">Весь Узбекистан</option>
-          </select>
-          <button class="del-search-btn" onclick="_delZoneSearch()"><i class="fi fi-sr-search" style="font-size:16px"></i> Найти</button>
-        </div>
+      <!-- Tabs for buyers -->
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button class="btn btn-primary btn-sm" id="buyer-tab-search" onclick="_buyerTabSwitch('search')"><i class="fi fi-sr-search" style="font-size:14px"></i> Найти курьера</button>
+        <button class="btn btn-ghost btn-sm" id="buyer-tab-deliveries" onclick="_buyerTabSwitch('deliveries')"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Мои доставки</button>
       </div>
 
-      <!-- Results -->
-      <div id="del-results"></div>
+      <div id="buyer-tab-content">
+        <!-- Search tab content -->
+        <div id="buyer-search-content">
+          <!-- Google Map -->
+          <div class="del-map-wrap">
+            <div id="del-map" class="del-map"></div>
+            <div class="del-map-controls">
+              <input type="text" id="del-address" class="del-map-input" placeholder="Введите адрес или кликните на карту..." />
+              <select id="del-radius" class="del-radius-select">
+                <option value="5">5 км</option>
+                <option value="10">10 км</option>
+                <option value="25" selected>25 км</option>
+                <option value="50">50 км</option>
+                <option value="100">100 км</option>
+                <option value="500">Весь Узбекистан</option>
+              </select>
+              <button class="del-search-btn" onclick="_delZoneSearch()"><i class="fi fi-sr-search" style="font-size:16px"></i> Найти</button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="del-results"></div>
+        </div>
+
+        <!-- Deliveries tab content (hidden by default) -->
+        <div id="buyer-deliveries-content" style="display:none"></div>
+      </div>
 
       <!-- How it works -->
       <div style="margin-top:40px;">
@@ -155,6 +169,194 @@ async function _renderFindCourier() {
 
   // Init Google Map
   _initDelMap();
+}
+
+function _buyerTabSwitch(tab) {
+  const searchContent = document.getElementById('buyer-search-content');
+  const deliveriesContent = document.getElementById('buyer-deliveries-content');
+  const searchTab = document.getElementById('buyer-tab-search');
+  const deliveriesTab = document.getElementById('buyer-tab-deliveries');
+
+  if (tab === 'search') {
+    searchContent.style.display = 'block';
+    deliveriesContent.style.display = 'none';
+    searchTab.className = 'btn btn-primary btn-sm';
+    deliveriesTab.className = 'btn btn-ghost btn-sm';
+  } else {
+    searchContent.style.display = 'none';
+    deliveriesContent.style.display = 'block';
+    searchTab.className = 'btn btn-ghost btn-sm';
+    deliveriesTab.className = 'btn btn-primary btn-sm';
+    _loadBuyerDeliveries();
+  }
+}
+
+async function _loadBuyerDeliveries() {
+  const content = document.getElementById('buyer-deliveries-content');
+  if (!content) return;
+  content.innerHTML = '<div class="spinner"></div>';
+
+  try {
+    const requests = await API.getBuyerDeliveryRequests().catch(() => []);
+
+    if (!requests.length) {
+      content.innerHTML = `<div class="empty-state"><i class="fi fi-sr-inbox" style="font-size:48px;color:var(--muted)"></i> Нет заказов на доставку</div>`;
+      return;
+    }
+
+    content.innerHTML = requests.map(r => {
+      const statusLabels = {
+        'pending': 'Ожидает',
+        'driver_accepted': 'Принят курьером',
+        'collecting': 'Собирается',
+        'in_transit': 'В пути',
+        'delivered': 'Доставлен',
+        'completed': 'Завершён',
+        'cancelled_by_buyer': 'Отменён вами',
+        'cancelled_by_driver': 'Отменён курьером',
+      };
+      const statusColors = {
+        'pending': '#f59e0b',
+        'driver_accepted': '#3b82f6',
+        'collecting': '#f59e0b',
+        'in_transit': '#8b5cf6',
+        'delivered': '#10b981',
+        'completed': '#10b981',
+        'cancelled_by_buyer': '#ef4444',
+        'cancelled_by_driver': '#ef4444',
+      };
+      const status = statusLabels[r.status] || r.status;
+      const color = statusColors[r.status] || '#6b7280';
+
+      let actions = '';
+      if (r.status === 'delivered') {
+        actions = `
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-primary btn-sm" onclick="_buyerConfirmDelivery(${r.id}, true)"><i class="fi fi-sr-check-circle" style="font-size:14px"></i> Доставлено</button>
+            <button class="btn btn-ghost btn-sm" onclick="_buyerConfirmDelivery(${r.id}, false)"><i class="fi fi-sr-times-circle" style="font-size:14px"></i> Проблема</button>
+          </div>
+        `;
+      }
+
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:12px;background:#fff">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+            <div>
+              <div style="font-weight:700;font-size:15px">${r.product_title || 'Груз'}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <span style="font-size:13px;color:#6b7280"><i class="fi fi-sr-marker" style="font-size:13px"></i> ${r.route_from}</span>
+                <span style="color:#d1d5db">→</span>
+                <span style="font-size:13px;color:#6b7280"><i class="fi fi-sr-flag-checkered" style="font-size:13px"></i> ${r.route_to}</span>
+              </div>
+            </div>
+            <span style="background:${color}20;color:${color};padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700">${status}</span>
+          </div>
+          <div style="display:flex;gap:16px;font-size:13px;color:#6b7280;margin-bottom:8px">
+            <span><i class="fi fi-sr-ruler" style="font-size:13px"></i> ${r.distance_km} км</span>
+            <span style="color:#059669;font-weight:600"><i class="fi fi-sr-money-bill-wave" style="font-size:13px"></i> ${Number(r.total_price).toLocaleString()} сум</span>
+            ${r.courier_name ? `<span><i class="fi fi-sr-truck" style="font-size:13px"></i> ${r.courier_name}</span>` : ''}
+          </div>
+          ${actions}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    content.innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+async function _buyerConfirmDelivery(requestId, confirmed) {
+  if (confirmed) {
+    // Show rating modal
+    _showRatingModal(requestId);
+  } else {
+    // Report problem (rating 0)
+    if (!confirm('Сообщить о проблеме? Это снизит рейтинг курьера.')) return;
+    try {
+      await API.rateDeliveryRequest(requestId, 0, 'Проблема с доставкой');
+      showToast('Жалоба отправлена', 'info');
+      _loadBuyerDeliveries();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+}
+
+function _showRatingModal(requestId) {
+  const existing = document.getElementById('rating-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'rating-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:420px;width:95%;padding:24px">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-star" style="font-size:48px;color:#f59e0b"></i></div>
+        <h2 style="margin:0;font-size:18px;font-weight:700">Оцените доставку</h2>
+        <p style="color:#6b7280;font-size:13px;margin-top:4px">Поставьте оценку от 1 до 10</p>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+          <button class="rating-btn" data-rating="${n}" style="width:40px;height:40px;border-radius:10px;border:2px solid #e5e7eb;background:#f9fafb;font-weight:700;font-size:16px;cursor:pointer;transition:all 0.2s" onclick="_selectRating(${n})">${n}</button>
+        `).join('')}
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:13px;color:#6b7280;margin-bottom:4px;display:block">Комментарий (необязательно)</label>
+        <textarea id="rating-comment" class="pn-input" rows="3" placeholder="Расскажите о доставке..." style="width:100%;border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:14px;resize:vertical"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('rating-modal').remove()">Отмена</button>
+        <button class="btn btn-primary" style="flex:2" id="rating-submit" onclick="_submitRating(${requestId})" disabled>Отправить</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+let _selectedRating = 0;
+
+function _selectRating(n) {
+  _selectedRating = n;
+  document.querySelectorAll('.rating-btn').forEach(btn => {
+    const rating = parseInt(btn.dataset.rating);
+    if (rating <= n) {
+      btn.style.background = '#10b981';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#10b981';
+    } else {
+      btn.style.background = '#f9fafb';
+      btn.style.color = '#374151';
+      btn.style.borderColor = '#e5e7eb';
+    }
+  });
+  document.getElementById('rating-submit').disabled = false;
+}
+
+async function _submitRating(requestId) {
+  if (!_selectedRating) return;
+  const comment = document.getElementById('rating-comment')?.value.trim() || '';
+  const btn = document.getElementById('rating-submit');
+  btn.disabled = true;
+  btn.textContent = 'Отправка...';
+
+  try {
+    await API.rateDeliveryRequest(requestId, _selectedRating, comment);
+    document.getElementById('rating-modal')?.remove();
+    showToast('Спасибо за оценку!', 'success');
+    _loadBuyerDeliveries();
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Отправить';
+  }
 }
 
 // ─── Leaflet Map initialization ───────────────────────────────────────────────
@@ -1055,11 +1257,58 @@ async function _loadOrdersTab(tab) {
   try {
     let orders = [];
     if (tab === 'available') {
-      orders = await API.getAvailableOrders().catch(() => []);
-    } else {
-      const all = await API.getCourierOrders().catch(() => []);
-      const statusMap = { accepted: 'accepted', done: 'delivered', cancelled: 'cancelled' };
-      orders = all.filter(o => o.status === (statusMap[tab] || tab));
+      // Load pending delivery requests (incoming orders for this driver)
+      const requests = await API.getMyDeliveryRequests().catch(() => []);
+      orders = requests.filter(r => r.status === 'pending');
+      orders = orders.map(r => ({
+        id: r.id,
+        type: 'delivery_request',
+        cargo: r.product_title || 'Груз',
+        pickup_address: r.route_from,
+        delivery_address: r.route_to,
+        distance_km: r.distance_km,
+        price: r.total_price,
+        price_per_km: r.price_per_km,
+        product_title: r.product_title,
+        buyer_name: r.buyer_name,
+        buyer_phone: r.buyer_phone,
+        status: r.status,
+      }));
+    } else if (tab === 'accepted') {
+      // Load accepted/collecting/in_transit delivery requests
+      const requests = await API.getMyDeliveryRequests().catch(() => []);
+      orders = requests.filter(r => ['driver_accepted', 'collecting', 'in_transit'].includes(r.status));
+      orders = orders.map(r => ({
+        id: r.id,
+        type: 'delivery_request',
+        cargo: r.product_title || 'Груз',
+        pickup_address: r.route_from,
+        delivery_address: r.route_to,
+        distance_km: r.distance_km,
+        price: r.total_price,
+        price_per_km: r.price_per_km,
+        product_title: r.product_title,
+        buyer_name: r.buyer_name,
+        buyer_phone: r.buyer_phone,
+        status: r.status,
+      }));
+    } else if (tab === 'done') {
+      // Load completed deliveries with ratings
+      const completed = await API.getCompletedDeliveries().catch(() => []);
+      orders = completed.map(r => ({
+        id: r.id,
+        type: 'delivery_request',
+        cargo: r.product_title || 'Груз',
+        pickup_address: r.route_from,
+        delivery_address: r.route_to,
+        distance_km: r.distance_km,
+        price: r.total_price,
+        product_title: r.product_title,
+        buyer_name: r.buyer_name,
+        buyer_rating: r.buyer_rating,
+        buyer_comment: r.buyer_comment,
+        status: 'completed',
+      }));
     }
 
     if (!orders.length) {
@@ -1080,12 +1329,56 @@ function _orderCard(o, tab) {
   const from  = o.pickup_address  || '—';
   const to    = o.delivery_address || '—';
 
-  const actions = tab === 'available' ? `
-    <button class="btn btn-primary btn-sm" onclick="_acceptOrder(${o.id})"><i class="fi fi-sr-check" style="font-size:14px"></i> Принять</button>
-  ` : tab === 'accepted' ? `
-    <button class="btn btn-success btn-sm" onclick="_deliverOrder(${o.id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Доставлен</button>
-    <button class="btn btn-ghost btn-sm"   onclick="_cancelOrder(${o.id})">Отмена</button>
-  ` : '';
+  // Status labels for accepted orders
+  const statusLabels = {
+    'driver_accepted': 'Принят',
+    'collecting': 'Собирается',
+    'in_transit': 'В пути',
+  };
+  const statusColors = {
+    'driver_accepted': '#3b82f6',
+    'collecting': '#f59e0b',
+    'in_transit': '#8b5cf6',
+  };
+
+  let actions = '';
+  if (tab === 'available') {
+    actions = `<button class="btn btn-primary btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})"><i class="fi fi-sr-check" style="font-size:14px"></i> Принять</button>`;
+  } else if (tab === 'accepted') {
+    const status = o.status;
+    if (status === 'driver_accepted') {
+      actions = `
+        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'collecting')"><i class="fi fi-sr-box" style="font-size:14px"></i> Собирается</button>
+        <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
+      `;
+    } else if (status === 'collecting') {
+      actions = `
+        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'in_transit')"><i class="fi fi-sr-truck" style="font-size:14px"></i> В пути</button>
+        <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
+      `;
+    } else if (status === 'in_transit') {
+      actions = `
+        <button class="btn btn-success btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'delivered')"><i class="fi fi-sr-check-circle" style="font-size:14px"></i> Доставлено</button>
+        <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
+      `;
+    }
+  } else if (tab === 'done') {
+    // Show rating and comment for completed orders
+    const ratingBadge = o.buyer_rating !== null && o.buyer_rating !== undefined
+      ? `<span style="background:${o.buyer_rating >= 5 ? '#d1fae5' : o.buyer_rating === 0 ? '#fee2e2' : '#fef3c7'};color:${o.buyer_rating >= 5 ? '#065f46' : o.buyer_rating === 0 ? '#991b1b' : '#92400e'};padding:2px 8px;border-radius:99px;font-size:12px;font-weight:700">${o.buyer_rating}/10</span>`
+      : `<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:99px;font-size:12px">Без оценки</span>`;
+    const comment = o.buyer_comment ? `<div style="margin-top:8px;padding:10px;background:#f9fafb;border-radius:8px;font-size:13px;color:#374151">💬 ${o.buyer_comment}</div>` : '';
+    actions = `
+      <div style="margin-top:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:12px;color:#6b7280">Оценка:</span> ${ratingBadge}</div>
+        ${comment}
+      </div>
+    `;
+  }
+
+  const statusBadge = (tab === 'accepted' && statusLabels[o.status])
+    ? `<span style="display:inline-block;background:${statusColors[o.status]}20;color:${statusColors[o.status]};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-bottom:6px">${statusLabels[o.status]}</span>`
+    : '';
 
   return `
     <div class="order-card" id="oc-${o.id}">
@@ -1093,6 +1386,7 @@ function _orderCard(o, tab) {
         <div class="oc-cargo-icon"><i class="fi fi-sr-wheat" style="font-size:24px;color:#10b981"></i></div>
       </div>
       <div class="oc-body">
+        ${statusBadge}
         <div class="oc-title">${cargo}</div>
         <div class="oc-route">
           <span class="oc-from"><i class="fi fi-sr-marker" style="font-size:14px"></i> ${from}</span>
@@ -1100,7 +1394,6 @@ function _orderCard(o, tab) {
           <span class="oc-to"><i class="fi fi-sr-flag-checkered" style="font-size:14px"></i> ${to}</span>
         </div>
         ${dist ? `<div class="oc-dist"><i class="fi fi-sr-ruler" style="font-size:14px"></i> ${dist}</div>` : ''}
-        ${o.weight_kg ? `<div class="oc-weight"><i class="fi fi-sr-weight" style="font-size:14px"></i> ${o.weight_kg} кг</div>` : ''}
       </div>
       <div class="oc-right">
         <div class="oc-price">${price} сум</div>
@@ -1132,6 +1425,95 @@ async function _cancelOrder(id) {
     showToast('Заказ отменён', 'info');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ─── Order Details Modal ──────────────────────────────────────────────────
+
+function _showOrderDetails(order) {
+  const existing = document.getElementById('order-details-modal');
+  if (existing) existing.remove();
+
+  const profile = _deliveryState.profile || {};
+  const earnings = order.distance_km && order.price_per_km
+    ? Math.round(order.distance_km * order.price_per_km)
+    : order.price;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'order-details-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:480px;width:95%;padding:24px;max-height:80vh;overflow-y:auto">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-box-open" style="font-size:48px;color:#10b981"></i></div>
+        <h2 style="margin:0;font-size:18px;font-weight:700">Детали заказа</h2>
+      </div>
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-weight:700;font-size:16px">${order.cargo || 'Груз'}</div>
+            <div style="color:#6b7280;font-size:13px">${order.product_title || ''}</div>
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#059669">${Number(order.price || 0).toLocaleString()} сум</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700">1</span>
+          <span style="font-size:14px;font-weight:600">${order.pickup_address || '—'}</span>
+        </div>
+        <div style="width:2px;height:20px;background:#d1d5db;margin-left:11px"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700">2</span>
+          <span style="font-size:14px;font-weight:600">${order.delivery_address || '—'}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="background:#f9fafb;border-radius:10px;padding:12px;text-align:center">
+          <div style="color:#6b7280;font-size:12px;margin-bottom:4px">Расстояние</div>
+          <div style="font-weight:700;font-size:16px">${order.distance_km || '—'} км</div>
+        </div>
+        <div style="background:#f9fafb;border-radius:10px;padding:12px;text-align:center">
+          <div style="color:#6b7280;font-size:12px;margin-bottom:4px">Ваш заработок</div>
+          <div style="font-weight:700;font-size:16px;color:#059669">${earnings ? Number(earnings).toLocaleString() + ' сум' : '—'}</div>
+        </div>
+      </div>
+
+      ${order.buyer_name ? `
+      <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:16px">
+        <div style="color:#6b7280;font-size:12px;margin-bottom:4px">Покупатель</div>
+        <div style="font-weight:600;font-size:14px">${order.buyer_name}</div>
+        ${order.buyer_phone ? `<div style="color:#6b7280;font-size:13px">${order.buyer_phone}</div>` : ''}
+      </div>
+      ` : ''}
+
+      <button class="btn btn-primary btn-full" onclick="document.getElementById('order-details-modal').remove()">Закрыть</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+// ─── Update Delivery Status ──────────────────────────────────────────────
+
+async function _updateDeliveryStatus(requestId, newStatus) {
+  const statusLabels = {
+    'collecting': 'Собирается',
+    'in_transit': 'В пути',
+    'delivered': 'Доставлено',
+  };
+
+  if (!confirm(`Переключить статус на "${statusLabels[newStatus]}"?`)) return;
+
+  try {
+    await API.updateDeliveryRequestStatus(requestId, newStatus);
+    showToast(`Статус: ${statusLabels[newStatus]}`, 'success');
+    _sectionOrders(document.getElementById('delivery-main'));
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }
 
 // ─── MAP ──────────────────────────────────────────────────────────────────────
@@ -1541,12 +1923,21 @@ function _sectionProfile(main) {
         ${p.bio ? _profileRow('<i class="fi fi-sr-comment" style="font-size:16px"></i>', 'О себе', p.bio) : ''}
       </div>
 
+      <!-- Completed deliveries section -->
+      <div style="margin-top:24px">
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:12px"><i class="fi fi-sr-check-circle" style="font-size:18px;color:#10b981"></i> Выполненные заказы</h3>
+        <div id="profile-completed-list"><div class="spinner"></div></div>
+      </div>
+
       <button class="btn btn-ghost" style="margin-top:16px;width:100%;" 
               onclick="_editProfile()"><i class="fi fi-sr-pencil" style="font-size:14px"></i> Редактировать профиль</button>
       <button class="btn btn-danger-ghost" style="margin-top:8px;width:100%;" 
               onclick="Auth.logout ? Auth.logout() : (localStorage.clear(), router.go('/login'))">Выйти</button>
     </div>
   `;
+
+  // Load completed deliveries
+  _loadProfileCompleted();
 }
 
 function _profileRow(icon, label, value) {
@@ -1557,6 +1948,45 @@ function _profileRow(icon, label, value) {
       <span class="pdr-value">${value || '—'}</span>
     </div>
   `;
+}
+
+async function _loadProfileCompleted() {
+  const list = document.getElementById('profile-completed-list');
+  if (!list) return;
+
+  try {
+    const completed = await API.getCompletedDeliveries().catch(() => []);
+    if (!completed.length) {
+      list.innerHTML = `<div style="text-align:center;padding:20px;color:#9ca3af;font-size:14px">Нет выполненных заказов</div>`;
+      return;
+    }
+
+    list.innerHTML = completed.slice(0, 10).map(r => {
+      const ratingBadge = r.buyer_rating !== null && r.buyer_rating !== undefined
+        ? `<span style="background:${r.buyer_rating >= 5 ? '#d1fae5' : r.buyer_rating === 0 ? '#fee2e2' : '#fef3c7'};color:${r.buyer_rating >= 5 ? '#065f46' : r.buyer_rating === 0 ? '#991b1b' : '#92400e'};padding:2px 8px;border-radius:99px;font-size:12px;font-weight:700">${r.buyer_rating}/10</span>`
+        : '';
+      const comment = r.buyer_comment ? `<div style="font-size:12px;color:#6b7280;margin-top:4px">💬 ${r.buyer_comment}</div>` : '';
+
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:8px;background:#f9fafb">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div style="font-weight:600;font-size:14px">${r.product_title || 'Груз'}</div>
+              <div style="font-size:12px;color:#6b7280;margin-top:2px">${r.route_from} → ${r.route_to} · ${r.distance_km} км</div>
+              ${r.buyer_name ? `<div style="font-size:12px;color:#6b7280;margin-top:2px">Покупатель: ${r.buyer_name}</div>` : ''}
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:#059669">${Number(r.total_price).toLocaleString()} сум</div>
+              ${ratingBadge}
+            </div>
+          </div>
+          ${comment}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color:#ef4444;font-size:13px">${e.message}</div>`;
+  }
 }
 
 function _editProfile() {
@@ -2308,6 +2738,22 @@ function _editProfile() {
   if (!API.withdrawCourierWallet)   API.withdrawCourierWallet   = (d)     => authPost('/api/courier/wallet/withdraw', d);
   if (!API.courierAIChat)           API.courierAIChat           = (msg)   => authPost('/api/courier/ai/chat', { message: msg });
   if (!API.calculateDeliveryPrice)  API.calculateDeliveryPrice  = (t,d,w) => authGet('/api/delivery/calculate', { transport: t, distance_km: d, weight_kg: w });
+
+  const authPatch = (url, body) => {
+    const token = localStorage.getItem('access_token');
+    return fetch(base + url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }).then(r => {
+      if (!r.ok) return r.json().then(e => Promise.reject(new Error(e.detail || r.statusText)));
+      return r.json();
+    });
+  };
+
+  if (!API.updateDeliveryRequestStatus) API.updateDeliveryRequestStatus = (id, s) => authPatch(`/api/delivery/request/${id}/status`, { status: s });
+  if (!API.rateDeliveryRequest)         API.rateDeliveryRequest         = (id, r, c) => authPatch(`/api/delivery/request/${id}/rate`, { rating: r, comment: c });
+  if (!API.getCompletedDeliveries)      API.getCompletedDeliveries      = () => authGet('/api/delivery/request/completed');
 })();
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
@@ -2328,3 +2774,10 @@ window._sendAIMessage       = _sendAIMessage;
 window._withdrawModal       = _withdrawModal;
 window._doWithdraw          = _doWithdraw;
 window._editProfile         = _editProfile;
+window._showOrderDetails    = _showOrderDetails;
+window._updateDeliveryStatus = _updateDeliveryStatus;
+window._buyerTabSwitch      = _buyerTabSwitch;
+window._buyerConfirmDelivery = _buyerConfirmDelivery;
+window._selectRating        = _selectRating;
+window._submitRating        = _submitRating;
+window._loadProfileCompleted = _loadProfileCompleted;

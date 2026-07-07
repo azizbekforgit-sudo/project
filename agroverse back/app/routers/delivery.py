@@ -1112,3 +1112,200 @@ async def get_buyer_delivery_requests(
         })
 
     return out
+
+
+# ─── Delivery Request Status Update ──────────────────────────────────────
+
+class DeliveryRequestStatusUpdate(BaseModel):
+    status: str  # collecting, in_transit, delivered, completed
+
+@router.patch("/delivery/request/{request_id}/status")
+async def update_delivery_request_status(
+    request_id: int,
+    data: DeliveryRequestStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Driver updates delivery request status."""
+    from app.models import DeliveryRequest
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+
+    allowed_transitions = {
+        "driver_accepted": ["collecting"],
+        "collecting": ["in_transit"],
+        "in_transit": ["delivered"],
+        "delivered": ["completed"],
+    }
+    current = dr.status
+    if current not in allowed_transitions or data.status not in allowed_transitions[current]:
+        raise HTTPException(400, f"Невозможно перейти из '{current}' в '{data.status}'")
+
+    if dr.courier_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+
+    dr.status = data.status
+    await db.commit()
+
+    return {"ok": True, "status": dr.status}
+
+
+# ─── Delivery Request Rating ─────────────────────────────────────────────
+
+class DeliveryRequestRating(BaseModel):
+    rating: int  # 0-10
+    comment: Optional[str] = None
+
+@router.patch("/delivery/request/{request_id}/rate")
+async def rate_delivery_request(
+    request_id: int,
+    data: DeliveryRequestRating,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Buyer rates a completed delivery (0-10). Rating 0 = negative, 1-10 = positive."""
+    from app.models import DeliveryRequest, CourierProfile
+    result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
+    dr = result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(404, "Заявка не найдена")
+    if dr.buyer_id != current_user.id:
+        raise HTTPException(403, "Нет доступа")
+    if dr.status not in ("delivered",):
+        raise HTTPException(400, "Можно оценить только доставленный заказ")
+    if data.rating < 0 or data.rating > 10:
+        raise HTTPException(400, "Рейтинг от 0 до 10")
+
+    dr.buyer_rating = data.rating
+    dr.buyer_comment = data.comment
+    dr.status = "completed"
+
+    # Update courier rating (0 = decrease, 1-10 = set)
+    if data.rating == 0:
+        # Decrease rating
+        cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == dr.courier_id))
+        cp = cp_res.scalar_one_or_none()
+        if cp and cp.rating > 0:
+            cp.rating = max(0.0, round(cp.rating - 1.0, 1))
+    else:
+        # Set rating based on this delivery (1-10 scale)
+        cp_res = await db.execute(select(CourierProfile).where(CourierProfile.user_id == dr.courier_id))
+        cp = cp_res.scalar_one_or_none()
+        if cp:
+            # Simple average with existing rating
+            if cp.rating > 0:
+                cp.rating = round((cp.rating + data.rating) / 2, 1)
+            else:
+                cp.rating = float(data.rating)
+
+    await db.commit()
+    return {"ok": True, "status": dr.status, "new_rating": cp.rating if cp else None}
+
+
+# ─── Get completed deliveries for driver ─────────────────────────────────
+
+@router.get("/delivery/request/completed")
+async def get_completed_deliveries(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get completed deliveries with ratings for the driver."""
+    from app.models import DeliveryRequest, Order, Product
+    result = await db.execute(
+        select(DeliveryRequest)
+        .where(DeliveryRequest.courier_id == current_user.id)
+        .where(DeliveryRequest.status == "completed")
+        .order_by(DeliveryRequest.updated_at.desc())
+    )
+    requests = result.scalars().all()
+
+    out = []
+    for dr in requests:
+        order_result = await db.execute(select(Order).where(Order.id == dr.order_id))
+        order = order_result.scalar_one_or_none()
+        product_title = ""
+        product_photo = None
+        buyer_name = ""
+        buyer_phone = ""
+        if order:
+            prod_result = await db.execute(select(Product).where(Product.id == order.product_id))
+            prod = prod_result.scalar_one_or_none()
+            if prod:
+                product_title = prod.title
+                product_photo = (prod.photos or [None])[0] if prod.photos else None
+            buyer_result = await db.execute(select(User).where(User.id == dr.buyer_id))
+            buyer = buyer_result.scalar_one_or_none()
+            if buyer:
+                buyer_name = buyer.name
+                buyer_phone = buyer.phone
+
+        out.append({
+            "id": dr.id,
+            "order_id": dr.order_id,
+            "route_from": dr.route_from,
+            "route_to": dr.route_to,
+            "distance_km": dr.distance_km,
+            "total_price": dr.total_price,
+            "status": dr.status,
+            "product_title": product_title,
+            "product_photo": product_photo,
+            "buyer_name": buyer_name,
+            "buyer_phone": buyer_phone,
+            "buyer_rating": dr.buyer_rating,
+            "buyer_comment": dr.buyer_comment,
+            "created_at": dr.created_at.isoformat() if dr.created_at else "",
+            "updated_at": dr.updated_at.isoformat() if dr.updated_at else "",
+        })
+
+    return out
+
+
+# ─── Get driver public profile with completed deliveries ─────────────────
+
+@router.get("/delivery/couriers/{courier_user_id}/completed")
+async def get_courier_completed_deliveries(
+    courier_user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get completed deliveries for public profile view."""
+    from app.models import DeliveryRequest, Order, Product
+    result = await db.execute(
+        select(DeliveryRequest)
+        .where(DeliveryRequest.courier_id == courier_user_id)
+        .where(DeliveryRequest.status == "completed")
+        .order_by(DeliveryRequest.updated_at.desc())
+    )
+    requests = result.scalars().all()
+
+    out = []
+    for dr in requests:
+        order_result = await db.execute(select(Order).where(Order.id == dr.order_id))
+        order = order_result.scalar_one_or_none()
+        product_title = ""
+        buyer_name = ""
+        if order:
+            prod_result = await db.execute(select(Product).where(Product.id == order.product_id))
+            prod = prod_result.scalar_one_or_none()
+            if prod:
+                product_title = prod.title
+            buyer_result = await db.execute(select(User).where(User.id == dr.buyer_id))
+            buyer = buyer_result.scalar_one_or_none()
+            if buyer:
+                buyer_name = buyer.name
+
+        out.append({
+            "id": dr.id,
+            "route_from": dr.route_from,
+            "route_to": dr.route_to,
+            "distance_km": dr.distance_km,
+            "total_price": dr.total_price,
+            "product_title": product_title,
+            "buyer_name": buyer_name,
+            "buyer_rating": dr.buyer_rating,
+            "buyer_comment": dr.buyer_comment,
+            "created_at": dr.created_at.isoformat() if dr.created_at else "",
+        })
+
+    return out

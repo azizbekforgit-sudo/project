@@ -229,6 +229,10 @@ END $$;
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100)")
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS plain_password VARCHAR(255)")
 
+        # ── DeliveryRequest: rating columns ──
+        await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_rating INTEGER")
+        await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_comment TEXT")
+
         # ── Delivery Requests table ──
         await safe_exec("""
 CREATE TABLE IF NOT EXISTS delivery_requests (
