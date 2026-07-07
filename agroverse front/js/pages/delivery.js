@@ -236,6 +236,19 @@ async function _loadBuyerDeliveries() {
             <button class="btn btn-ghost btn-sm" onclick="_buyerConfirmDelivery(${r.id}, false)"><i class="fi fi-sr-times-circle" style="font-size:14px"></i> Проблема</button>
           </div>
         `;
+      } else if (r.status === 'pending' || r.status === 'driver_accepted' || r.status === 'collecting') {
+        // Check if within 30 minutes
+        const created = new Date(r.created_at);
+        const now = new Date();
+        const elapsedMinutes = (now - created) / (1000 * 60);
+        if (elapsedMinutes <= 30) {
+          actions = `
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-ghost btn-sm" onclick="_buyerCancelDelivery(${r.id})"><i class="fi fi-sr-times-circle" style="font-size:14px"></i> Отменить</button>
+              <span style="font-size:11px;color:#9ca3af;align-self:center">Можно отменить ещё ${Math.ceil(30 - elapsedMinutes)} мин</span>
+            </div>
+          `;
+        }
       }
 
       return `
@@ -279,6 +292,17 @@ async function _buyerConfirmDelivery(requestId, confirmed) {
     } catch (e) {
       showToast(e.message, 'error');
     }
+  }
+}
+
+async function _buyerCancelDelivery(requestId) {
+  if (!confirm('Отменить заказ? Это действие нельзя отменить.')) return;
+  try {
+    await API.buyerCancelDelivery(requestId);
+    showToast('Заказ отменён', 'info');
+    _loadBuyerDeliveries();
+  } catch (e) {
+    showToast(e.message, 'error');
   }
 }
 
@@ -1309,6 +1333,22 @@ async function _loadOrdersTab(tab) {
         buyer_comment: r.buyer_comment,
         status: 'completed',
       }));
+    } else if (tab === 'cancelled') {
+      // Load cancelled delivery requests (by buyer or driver)
+      const requests = await API.getMyDeliveryRequests().catch(() => []);
+      orders = requests.filter(r => ['cancelled_by_buyer', 'cancelled_by_driver'].includes(r.status));
+      orders = orders.map(r => ({
+        id: r.id,
+        type: 'delivery_request',
+        cargo: r.product_title || 'Груз',
+        pickup_address: r.route_from,
+        delivery_address: r.route_to,
+        distance_km: r.distance_km,
+        price: r.total_price,
+        product_title: r.product_title,
+        buyer_name: r.buyer_name,
+        status: r.status,
+      }));
     }
 
     if (!orders.length) {
@@ -1372,6 +1412,13 @@ function _orderCard(o, tab) {
       <div style="margin-top:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:12px;color:#6b7280">Оценка:</span> ${ratingBadge}</div>
         ${comment}
+      </div>
+    `;
+  } else if (tab === 'cancelled') {
+    const cancelledBy = o.status === 'cancelled_by_buyer' ? 'Покупатель' : 'Вы';
+    actions = `
+      <div style="margin-top:8px">
+        <span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700">Отменён (${cancelledBy})</span>
       </div>
     `;
   }
@@ -2778,6 +2825,7 @@ window._showOrderDetails    = _showOrderDetails;
 window._updateDeliveryStatus = _updateDeliveryStatus;
 window._buyerTabSwitch      = _buyerTabSwitch;
 window._buyerConfirmDelivery = _buyerConfirmDelivery;
+window._buyerCancelDelivery = _buyerCancelDelivery;
 window._selectRating        = _selectRating;
 window._submitRating        = _submitRating;
 window._loadProfileCompleted = _loadProfileCompleted;

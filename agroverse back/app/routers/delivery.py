@@ -975,8 +975,9 @@ async def buyer_cancel_order(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Buyer cancels the delivery request."""
+    """Buyer cancels the delivery request (only within 30 minutes)."""
     from app.models import DeliveryRequest
+    from datetime import datetime, timezone
     result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == request_id))
     dr = result.scalar_one_or_none()
     if not dr:
@@ -985,6 +986,14 @@ async def buyer_cancel_order(
         raise HTTPException(403, "Нет доступа")
     if dr.status in ("completed", "delivered"):
         raise HTTPException(400, "Невозможно отменить завершённый заказ")
+
+    # Check 30-minute time limit
+    if dr.created_at:
+        now = datetime.now(timezone.utc)
+        created = dr.created_at.replace(tzinfo=timezone.utc) if dr.created_at.tzinfo is None else dr.created_at
+        elapsed_minutes = (now - created).total_seconds() / 60
+        if elapsed_minutes > 30:
+            raise HTTPException(400, "Отмена возможна только в течение 30 минут после оформления заказа")
 
     dr.status = "cancelled_by_buyer"
     await db.commit()
