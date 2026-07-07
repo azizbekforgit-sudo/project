@@ -1180,6 +1180,9 @@ async function _driverAcceptDelivery(requestId) {
 
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:16px;max-width:480px;width:95%;padding:24px">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:-8px">
+        <button onclick="document.getElementById('driver-disclaimer-modal').remove()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#9ca3af">✕</button>
+      </div>
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-exclamation-triangle" style="font-size:48px;color:#f59e0b"></i></div>
         <h2 style="margin:0;font-size:18px">Внимание</h2>

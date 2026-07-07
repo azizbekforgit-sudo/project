@@ -233,6 +233,21 @@ END $$;
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_rating INTEGER")
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_comment TEXT")
 
+        # ── TopUp Requests table ──
+        await safe_exec("""
+CREATE TABLE IF NOT EXISTS topup_requests (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    amount FLOAT NOT NULL,
+    card_number VARCHAR(20) DEFAULT '',
+    receipt_url VARCHAR(500),
+    status VARCHAR(20) DEFAULT 'pending',
+    admin_comment TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
+)
+""", label="topup_requests table")
+
         # ── Delivery Requests table ──
         await safe_exec("""
 CREATE TABLE IF NOT EXISTS delivery_requests (

@@ -221,6 +221,22 @@ class CourierRatingEntry(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+# ─── Wallet Top-Up Requests ─────────────────────────────────────────────
+
+class TopUpRequest(Base):
+    __tablename__ = "topup_requests"
+
+    id            = Column(Integer, primary_key=True)
+    user_id       = Column(Integer, ForeignKey("users.id"), nullable=False)
+    amount        = Column(Float, nullable=False)
+    card_number   = Column(String(20), default="")
+    receipt_url   = Column(String(500), nullable=True)
+    status        = Column(String(20), default="pending")  # pending, approved, rejected
+    admin_comment = Column(Text, nullable=True)
+    created_at    = Column(DateTime, server_default=func.now())
+    updated_at    = Column(DateTime, onupdate=func.now())
+
+
 # ─── Delivery Request (links marketplace orders to couriers) ────
 
 class DeliveryRequest(Base):

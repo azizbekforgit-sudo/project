@@ -21,6 +21,7 @@ async function renderAdmin() {
 
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')"><i class="fi fi-sr-id" style="font-size:16px"></i> ${t('admin_moderation')}</button>
+        <button class="admin-tab" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
         <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
         <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
         <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fi fi-sr-chart-mixed" style="font-size:16px"></i> ${t('admin_reports')}</button>
@@ -93,6 +94,54 @@ async function adminSwitchTab(tab) {
               <div class="ar-actions">
                 <button class="btn-sm btn-approve" onclick="adminApprove(${p.id})">✓ ${t('approve')}</button>
                 <button class="btn-sm btn-reject" onclick="adminReject(${p.id})">✕ ${t('reject')}</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${e.message}</div>`;
+    }
+
+  } else if (tab === 'topups') {
+    // ── Пополнения кошелька ──────────────────────────────────────────────────
+    try {
+      const topups = await API.adminPendingTopups();
+      if (!topups || topups.length === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            ${fe('✅',16)} Нет заявок на пополнение
+          </div>`;
+        return;
+      }
+      box.innerHTML = `
+        <h3 style="margin-bottom:16px;">💰 Заявки на пополнение (${topups.length})</h3>
+        <div class="admin-list">
+          ${topups.map(t => `
+            <div class="admin-row" id="topup-${t.id}" style="flex-direction:column;align-items:stretch;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:start">
+                <div>
+                  <div class="ar-title" style="font-size:18px;font-weight:700">${Number(t.amount).toLocaleString()} сум</div>
+                  <div class="ar-sub">
+                    👤 ${t.user_name} · 📱 ${t.user_phone} · 📧 ${t.user_email || '—'}<br>
+                    🎭 Роль: ${t.user_role} · 📅 ${t.created_at ? new Date(t.created_at).toLocaleString('ru-RU') : ''}
+                  </div>
+                </div>
+                <span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700">На проверке</span>
+              </div>
+              ${t.receipt_url ? `
+                <div style="margin-top:8px">
+                  <a href="${BASE_URL}${t.receipt_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#059669;font-weight:600;font-size:13px;text-decoration:none">
+                    📸 Открыть чек
+                  </a>
+                </div>
+              ` : `<div style="color:#ef4444;font-size:13px">⚠️ Чек не загружен</div>`}
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="adminApproveTopup(${t.id}, ${t.amount})">
+                  ✓ Одобрить (${Number(t.amount).toLocaleString()} сум)
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="adminRejectTopup(${t.id})">
+                  ✕ Отклонить
+                </button>
               </div>
             </div>
           `).join('')}
@@ -301,6 +350,33 @@ async function adminRejectCourier(id) {
       showToast(e.message, 'error');
     }
   });
+}
+
+// ─── Admin Top-Up Actions ────────────────────────────────────────────────
+
+async function adminApproveTopup(id, amount) {
+  if (!confirm(`Одобрить пополнение на ${Number(amount).toLocaleString()} сум?`)) return;
+  try {
+    await API.adminApproveTopup(id);
+    showToast(`Одобрено! Начислено ${Number(amount).toLocaleString()} сум`, 'success');
+    adminSwitchTab('topups');
+    loadAdminStats();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function adminRejectTopup(id) {
+  const reason = prompt('Причина отклонения (необязательно):');
+  if (reason === null) return; // cancelled
+  try {
+    await API.adminRejectTopup(id, reason);
+    showToast('Заявка отклонена', 'info');
+    adminSwitchTab('topups');
+    loadAdminStats();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }
 
 // ─── Extra styles for courier rows ────────────────────────────────────────────

@@ -161,6 +161,29 @@ const API = {
   // Payment
   depositWallet: (amount) => request('POST', '/api/payment/deposit', { body: { amount } }),
 
+  // Admin-assisted top-up
+  getTopupCard: () => request('GET', '/api/payment/topup/card'),
+  createTopupRequest: (body) => request('POST', '/api/payment/topup/request', { body }),
+  uploadTopupReceipt: async (requestId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`${BASE_URL}/api/payment/topup/${requestId}/upload-receipt`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Ошибка загрузки');
+    }
+    return res.json();
+  },
+  getMyTopupRequests: () => request('GET', '/api/payment/topup/my'),
+  adminPendingTopups: () => request('GET', '/api/payment/admin/topup/pending'),
+  adminApproveTopup: (id) => request('PATCH', `/api/payment/admin/topup/${id}/approve`),
+  adminRejectTopup: (id, comment) => request('PATCH', `/api/payment/admin/topup/${id}/reject`, { body: { comment } }),
+
   // Courier profile
   getCourierProfile:   ()     => request('GET', '/api/courier/profile'),
   setupCourierProfile: (body) => request('POST', '/api/courier/profile/setup', { body }),

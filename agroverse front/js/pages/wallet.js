@@ -156,21 +156,6 @@ function wt(key) {
 async function renderWallet() {
   const app = document.getElementById('app');
 
-  const quickAmounts = [10000, 50000, 100000, 250000, 500000];
-
-  const methods = [
-    { id: 'card',   icon: '💳', label: { uz: 'Bank kartasi', ru: 'Банковская карта', en: 'Bank card' } },
-    { id: 'payme',  icon: '🟢', label: { uz: 'Payme',        ru: 'Payme',            en: 'Payme' } },
-    { id: 'click',  icon: '🔵', label: { uz: 'Click',        ru: 'Click',            en: 'Click' } },
-    { id: 'uzcard', icon: '🟡', label: { uz: 'UzCard',       ru: 'UzCard',           en: 'UzCard' } },
-  ];
-
-  const mockHistory = [
-    { type: 'in',  labelKey: 'hist_bonus', amount: '+500',    date: '15.06.2025' },
-    { type: 'out', labelKey: 'hist_order', amount: '-12 000', date: '14.06.2025' },
-    { type: 'in',  labelKey: 'hist_topup', amount: '+50 000', date: '12.06.2025' },
-  ];
-
   app.innerHTML = pageShell(`
     ${walletStyles()}
     <div class="wallet-page">
@@ -186,16 +171,16 @@ async function renderWallet() {
         <div class="wcard skeleton" style="height:140px"></div>
       </div>
 
-      <!-- Форма пополнения -->
+      <!-- Форма пополнения через админа -->
       <div class="topup-block">
         <div class="topup-head">
-          <h2>⚡ ${wt('topup_title')}</h2>
-          <p>${wt('topup_desc')}</p>
+          <h2>💰 Пополнить счёт</h2>
+          <p>Переведите деньги на карту и отправьте чек на проверку</p>
         </div>
 
         <div class="quick-label">${wt('quick')}</div>
         <div class="quick-btns" id="quick-btns">
-          ${quickAmounts.map(a => `
+          ${[10000, 50000, 100000, 250000, 500000].map(a => `
             <button class="quick-btn" onclick="selectQuickAmount(${a}, this)">
               ${a.toLocaleString('ru')} ${wt('currency')}
             </button>
@@ -210,59 +195,45 @@ async function renderWallet() {
           </div>
         </div>
 
-        <div class="method-label">${wt('method')}</div>
-        <div class="method-grid" id="method-grid">
-          ${methods.map((m, i) => {
-            const lang = (window.I18nManager && I18nManager.current) || 'uz';
-            return `
-            <div class="method-card ${i === 0 ? 'selected' : ''}" onclick="selectMethod('${m.id}', this)" data-method="${m.id}">
-              <div class="mi">${m.icon}</div>
-              <div class="mn">${m.label[lang] || m.label.uz}</div>
-            </div>`;
-          }).join('')}
-        </div>
-
-        <button class="topup-submit" id="topup-btn" onclick="goToPayment()">
-          <span>${fe('💳',16)}</span> ${wt('btn_topup')}
+        <button class="topup-submit" id="topup-btn" onclick="startTopupRequest()">
+          <span>📤</span> Отправить заявку
         </button>
+      </div>
+
+      <!-- Мои заявки -->
+      <div class="hist-block" id="my-topup-requests">
+        <h3>📋 Мои заявки на пополнение</h3>
+        <div id="topup-requests-list"><div class="spinner"></div></div>
       </div>
 
       <!-- История -->
       <div class="hist-block">
         <h3>${fe('📋',18)} ${wt('history')}</h3>
-        <div class="hist-list">
-          ${mockHistory.map(h => `
-            <div class="hist-item">
-              <div class="hist-dot ${h.type}">${h.type === 'in' ? '↑' : '↓'}</div>
-              <div class="hist-info">
-                <div class="hl">${wt(h.labelKey)}</div>
-                <div class="hd">${h.date}</div>
-              </div>
-              <div class="hist-amt ${h.type}">${h.amount} ${wt('currency')}</div>
-            </div>
-          `).join('')}
-        </div>
+        <div class="hist-list" id="wallet-history-list"><div class="spinner"></div></div>
       </div>
 
       <!-- Как работает -->
       <div class="how-block">
-        <h3>${fe('ℹ️',18)} ${wt('how')}</h3>
+        <h3>${fe('ℹ️',18)} Как это работает</h3>
         <ul class="how-list">
-          <li><i class="fi fi-sr-medal" style="font-size:14px"></i> ${wt('w1')}</li>
-          <li><i class="fi fi-sr-add" style="font-size:14px"></i> ${wt('w2')}</li>
-          <li><i class="fi fi-sr-shopping-cart" style="font-size:14px"></i> ${wt('w3')}</li>
-          <li><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> ${wt('w4')}</li>
+          <li><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> Укажите сумму пополнения</li>
+          <li><i class="fi fi-sr-credit-card" style="font-size:14px"></i> Переведите деньги на указанную карту</li>
+          <li><i class="fi fi-sr-camera" style="font-size:14px"></i> Отправьте скриншот чека</li>
+          <li><i class="fi fi-sr-check-circle" style="font-size:14px"></i> Администратор проверит и зачислит средства</li>
         </ul>
       </div>
     </div>
   `);
 
-  window._selectedMethod = 'card';
+  // Load data
+  loadWalletBalance();
+  loadMyTopupRequests();
+  loadWalletHistory();
+}
 
-  // Загрузка баланса
+async function loadWalletBalance() {
   try {
     const me = await API.getMe();
-    const lang = (window.I18nManager && I18nManager.current) || 'uz';
     document.getElementById('wallet-hero').innerHTML = `
       <div class="wcard balance">
         <div class="wcard-icon"><i class="fi fi-sr-wallet" style="font-size:28px"></i></div>
@@ -279,8 +250,210 @@ async function renderWallet() {
     `;
   } catch (e) {
     if (e.message === 'BLOCKED') return;
-    document.getElementById('wallet-hero').innerHTML =
-      `<div class="empty-state" style="grid-column:1/-1"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
+  }
+}
+
+async function loadMyTopupRequests() {
+  const list = document.getElementById('topup-requests-list');
+  if (!list) return;
+
+  try {
+    const requests = await API.getMyTopupRequests().catch(() => []);
+    if (!requests.length) {
+      list.innerHTML = `<div style="text-align:center;padding:20px;color:#9ca3af;font-size:14px">Нет заявок</div>`;
+      return;
+    }
+
+    const statusLabels = {
+      'pending': 'На проверке',
+      'approved': 'Одобрено',
+      'rejected': 'Отклонено',
+    };
+    const statusColors = {
+      'pending': '#f59e0b',
+      'approved': '#10b981',
+      'rejected': '#ef4444',
+    };
+
+    list.innerHTML = requests.map(r => {
+      const color = statusColors[r.status] || '#6b7280';
+      const label = statusLabels[r.status] || r.status;
+      const date = r.created_at ? new Date(r.created_at).toLocaleDateString('ru-RU') : '';
+
+      let extra = '';
+      if (r.status === 'rejected' && r.admin_comment) {
+        extra = `<div style="margin-top:8px;padding:10px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b">❌ ${r.admin_comment}</div>`;
+      }
+      if (r.status === 'pending') {
+        extra = `<div style="margin-top:8px;padding:10px;background:#fffbeb;border-radius:8px;font-size:13px;color:#92400e">💾 Сохраните чек на всякий случай. Пока идёт проверка.</div>`;
+      }
+
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:10px;background:#fff">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div style="font-weight:700;font-size:16px">${Number(r.amount).toLocaleString()} сум</div>
+              <div style="font-size:12px;color:#6b7280;margin-top:2px">${date}</div>
+            </div>
+            <span style="background:${color}20;color:${color};padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700">${label}</span>
+          </div>
+          ${r.status === 'rejected' ? `
+            <div style="margin-top:12px;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px">
+              <div style="font-weight:600;color:#991b1b;margin-bottom:4px">Закрыто · Отклонено</div>
+              <div style="font-size:13px;color:#991b1b">Попробуйте ещё раз</div>
+              <div style="font-size:12px;color:#6b7280;margin-top:8px">
+                📧 Telegram: @agroverse<br>
+                📱 WhatsApp: +998 XX XXX XX XX
+              </div>
+            </div>
+          ` : ''}
+          ${extra}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color:#ef4444;font-size:13px">${e.message}</div>`;
+  }
+}
+
+async function loadWalletHistory() {
+  const list = document.getElementById('wallet-history-list');
+  if (!list) return;
+
+  try {
+    const history = await API.getPaymentHistory().catch(() => []);
+    if (!history.length) {
+      list.innerHTML = `<div style="text-align:center;padding:20px;color:#9ca3af;font-size:14px">${wt('no_hist')}</div>`;
+      return;
+    }
+
+    list.innerHTML = history.slice(0, 10).map(h => {
+      const isBonus = h.type === 'bonus';
+      return `
+        <div class="hist-item">
+          <div class="hist-dot ${isBonus ? 'in' : 'out'}">${isBonus ? '↑' : '↓'}</div>
+          <div class="hist-info">
+            <div class="hl">${isBonus ? wt('hist_bonus') : wt('hist_order')}</div>
+            <div class="hd">${h.created_at ? new Date(h.created_at).toLocaleDateString('ru-RU') : ''}</div>
+          </div>
+          <div class="hist-amt ${isBonus ? 'in' : 'out'}">${isBonus ? '+' + h.points : '-' + Number(h.amount).toLocaleString()} ${isBonus ? wt('points') : wt('currency')}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div style="color:#ef4444;font-size:13px">${e.message}</div>`;
+  }
+}
+
+async function startTopupRequest() {
+  const input = document.getElementById('topup-amount');
+  const amount = parseFloat(input?.value);
+
+  if (!amount || amount < 1000) {
+    showToast(wt('err_amount'), 'warn');
+    input?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('topup-btn');
+  btn.disabled = true;
+  btn.textContent = 'Создание заявки...';
+
+  try {
+    // Get card number
+    const cardInfo = await API.getTopupCard().catch(() => ({ card_number: '1234 1234 1234 1234' }));
+
+    // Create request
+    const result = await API.createTopupRequest({ amount, card_number: cardInfo.card_number });
+
+    // Show modal with card info and receipt upload
+    showTopupModal(result.request_id, amount, cardInfo.card_number);
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>📤</span> Отправить заявку';
+  }
+}
+
+function showTopupModal(requestId, amount, cardNumber) {
+  const existing = document.getElementById('topup-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'topup-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:440px;width:95%;padding:24px;max-height:80vh;overflow-y:auto">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:-8px">
+        <button onclick="document.getElementById('topup-modal').remove()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#9ca3af">✕</button>
+      </div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:48px;margin-bottom:8px">💳</div>
+        <h2 style="margin:0;font-size:18px;font-weight:700">Переведите деньги</h2>
+      </div>
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Номер карты</div>
+        <div style="font-family:monospace;font-size:20px;font-weight:700;color:#059669;letter-spacing:0.1em">${cardNumber}</div>
+        <div style="font-size:14px;color:#059669;font-weight:600;margin-top:8px">${Number(amount).toLocaleString()} сум</div>
+      </div>
+
+      <div style="font-size:13px;color:#6b7280;margin-bottom:16px;line-height:1.6">
+        1. Переведите <b>${Number(amount).toLocaleString()} сум</b> на карту выше<br>
+        2. Сделайте скриншот чека<br>
+        3. Загрузите его ниже
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">📸 Загрузите чек</label>
+        <input type="file" id="topup-receipt-input" accept="image/*" style="width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:8px;cursor:pointer">
+      </div>
+
+      <div id="topup-modal-status" style="display:none;margin-bottom:12px;padding:10px;border-radius:8px;font-size:13px"></div>
+
+      <button class="btn btn-primary btn-full" id="topup-upload-btn" onclick="_uploadTopupReceipt(${requestId})">
+        <i class="fi fi-sr-upload" style="font-size:14px"></i> Отправить чек
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+async function _uploadTopupReceipt(requestId) {
+  const input = document.getElementById('topup-receipt-input');
+  const file = input?.files?.[0];
+  const btn = document.getElementById('topup-upload-btn');
+  const statusEl = document.getElementById('topup-modal-status');
+
+  if (!file) {
+    showToast('Выберите файл чека', 'warn');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Загрузка...';
+
+  try {
+    await API.uploadTopupReceipt(requestId, file);
+    statusEl.style.display = 'block';
+    statusEl.style.background = '#d1fae5';
+    statusEl.style.color = '#065f46';
+    statusEl.textContent = '✅ Чек отправлен! Ожидайте проверки администратором.';
+
+    setTimeout(() => {
+      document.getElementById('topup-modal')?.remove();
+      loadMyTopupRequests();
+      showToast('Заявка создана! Ожидайте проверки.', 'success');
+    }, 2000);
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '<i class="fi fi-sr-upload" style="font-size:14px"></i> Отправить чек';
   }
 }
 
@@ -769,3 +942,5 @@ window.clearQuickActive  = clearQuickActive;
 window.formatCardNumber  = formatCardNumber;
 window.updateCardName    = updateCardName;
 window.formatExpiry      = formatExpiry;
+window.startTopupRequest = startTopupRequest;
+window._uploadTopupReceipt = _uploadTopupReceipt;
