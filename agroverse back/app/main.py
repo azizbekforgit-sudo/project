@@ -225,6 +225,10 @@ END $$;
         await safe_exec("ALTER TABLE users ALTER COLUMN wallet_balance SET DEFAULT 0")
         await safe_exec("UPDATE users SET wallet_balance = 0 WHERE wallet_balance IS NULL")
 
+        # ── Новые колонки: city и plain_password ──
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100)")
+        await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS plain_password VARCHAR(255)")
+
         # ── Delivery Requests table ──
         await safe_exec("""
 CREATE TABLE IF NOT EXISTS delivery_requests (

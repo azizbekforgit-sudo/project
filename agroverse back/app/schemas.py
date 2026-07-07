@@ -10,6 +10,7 @@ class UserRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     phone: str = Field(..., pattern=r'^\+?[0-9]{10,15}$')
     email: Optional[EmailStr] = None
+    city: Optional[str] = None
     password: str = Field(..., min_length=6)
     role: str = "xaridor"
 

@@ -114,6 +114,7 @@ const API = {
   register:      (body) => request('POST', '/api/auth/register', { body }),
   getMe:         ()     => request('GET', '/api/auth/me'),
   updateProfile: (body) => request('PATCH', '/api/auth/me', { body }),
+  changePassword: (body) => request('POST', '/api/auth/change-password', { body }),
 
   // Products
   async getProducts(params) {

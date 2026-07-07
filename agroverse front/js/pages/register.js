@@ -23,6 +23,16 @@ function renderRegister() {
         </div>
 
         <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="email@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label>Город</label>
+          <input type="text" id="reg-city" placeholder="Например: Ташкент" />
+        </div>
+
+        <div class="form-group">
           <label>${t('password_label') || 'Пароль'} *</label>
           <input type="password" id="reg-password" placeholder="••••••" required />
         </div>
@@ -58,6 +68,8 @@ function renderRegister() {
     e.preventDefault();
     const name = document.getElementById('reg-name').value.trim();
     const phone = document.getElementById('reg-phone').value.trim();
+    const email = document.getElementById('reg-email').value.trim() || undefined;
+    const city = document.getElementById('reg-city').value.trim() || undefined;
     const password = document.getElementById('reg-password').value;
     const role = document.querySelector('input[name="role"]:checked')?.value || 'xaridor';
 
@@ -71,7 +83,7 @@ function renderRegister() {
     btn.textContent = "...";
 
     try {
-      const data = await API.register({ name, phone, password, role });
+      const data = await API.register({ name, phone, email, city, password, role });
       if (data.access_token) {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('av_user', JSON.stringify(data.user));

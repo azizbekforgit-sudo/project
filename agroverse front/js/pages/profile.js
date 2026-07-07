@@ -42,6 +42,7 @@ async function renderProfile() {
               <span class="pr-role-badge"><i class="${roleIcon}"></i> ${roleLabel}</span>
               <span class="pr-phone"><i class="fi fi-rr-phone"></i> ${user.phone || ''}</span>
               ${user.email ? `<span class="pr-email"><i class="fi fi-rr-envelope"></i> ${user.email}</span>` : ''}
+              ${user.city ? `<span class="pr-email"><i class="fi fi-rr-map-marker"></i> ${user.city}</span>` : ''}
             </div>
           </div>
         </div>
@@ -111,6 +112,38 @@ async function renderProfile() {
               <div class="pr-setting-value">${user.phone || ''}</div>
             </div>
             <span class="pr-setting-locked"><i class="fi fi-rr-lock"></i> ${t('phone_locked')}</span>
+          </div>
+          <div class="pr-setting-row">
+            <div class="pr-setting-info">
+              <div class="pr-setting-label">Город</div>
+              <div class="pr-setting-value" id="pr-city-display">${user.city || '—'}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('city')">${t('field_edit')}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="pr-section">
+        <div class="pr-section-head">
+          <h2><i class="fi fi-rr-shield-check"></i> Безопасность</h2>
+        </div>
+        <div class="pr-settings-card">
+          ${user.plain_password ? `
+          <div class="pr-setting-row">
+            <div class="pr-setting-info">
+              <div class="pr-setting-label">Ваш пароль</div>
+              <div class="pr-setting-value" id="pr-password-display">••••••</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility()"><i class="fi fi-rr-eye"></i></button>
+          </div>
+          ` : ''}
+          <div class="pr-setting-row">
+            <div class="pr-setting-info">
+              <div class="pr-setting-label">Смена пароля</div>
+              <div class="pr-setting-value">Изменить пароль аккаунта</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="openChangePassword()"><i class="fi fi-rr-key"></i> Изменить</button>
           </div>
         </div>
       </div>
@@ -368,10 +401,27 @@ function openProfileEdit(field) {
   if (existing) existing.remove();
 
   const user = Auth.getUser();
-  const currentVal = field === 'name' ? (user.name || '') : (user.email || '');
-  const label = field === 'name' ? 'Имя' : 'Email';
-  const type = field === 'name' ? 'text' : 'email';
-  const placeholder = field === 'name' ? 'Ваше имя' : 'email@example.com';
+  let currentVal, label, type, placeholder, icon;
+
+  if (field === 'name') {
+    currentVal = user.name || '';
+    label = 'Имя';
+    type = 'text';
+    placeholder = 'Ваше имя';
+    icon = 'user';
+  } else if (field === 'email') {
+    currentVal = user.email || '';
+    label = 'Email';
+    type = 'email';
+    placeholder = 'email@example.com';
+    icon = 'envelope';
+  } else if (field === 'city') {
+    currentVal = user.city || '';
+    label = 'Город';
+    type = 'text';
+    placeholder = 'Например: Ташкент';
+    icon = 'map-marker';
+  }
 
   const overlay = document.createElement('div');
   overlay.id = 'pr-edit-modal';
@@ -380,7 +430,7 @@ function openProfileEdit(field) {
 
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:420px">
-      <div class="modal-ic"><i class="fi fi-rr-${field === 'name' ? 'user' : 'envelope'}"></i></div>
+      <div class="modal-ic"><i class="fi fi-rr-${icon}"></i></div>
       <div class="modal-title">Изменить ${label.toLowerCase()}</div>
       <div class="form-group">
         <label>${label}</label>
@@ -618,6 +668,103 @@ function renderCourierDashboard(app, profile) {
 }
 
 /* ============================================================
+   PASSWORD FUNCTIONS
+   ============================================================ */
+function togglePasswordVisibility() {
+  const el = document.getElementById('pr-password-display');
+  const user = Auth.getUser();
+  if (!el || !user) return;
+
+  if (el.textContent === '••••••') {
+    el.textContent = user.plain_password || '—';
+  } else {
+    el.textContent = '••••••';
+  }
+}
+
+function openChangePassword() {
+  const existing = document.getElementById('pr-edit-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pr-edit-modal';
+  overlay.className = 'modal-overlay';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-ic"><i class="fi fi-rr-key"></i></div>
+      <div class="modal-title">Смена пароля</div>
+      <div class="form-group">
+        <label>Текущий пароль</label>
+        <input type="password" id="cp-current" class="pn-input" placeholder="Введите текущий пароль" />
+      </div>
+      <div class="form-group">
+        <label>Новый пароль</label>
+        <input type="password" id="cp-new" class="pn-input" placeholder="Минимум 6 символов" />
+      </div>
+      <div class="form-group">
+        <label>Повторите новый пароль</label>
+        <input type="password" id="cp-confirm" class="pn-input" placeholder="Повторите новый пароль" />
+      </div>
+      <div id="cp-error" class="form-error hidden"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="document.getElementById('pr-edit-modal').remove()">Отмена</button>
+        <button class="btn btn-primary" id="cp-save">Изменить пароль</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+  setTimeout(() => document.getElementById('cp-current')?.focus(), 100);
+
+  document.getElementById('cp-save').onclick = async () => {
+    const btn = document.getElementById('cp-save');
+    const errBox = document.getElementById('cp-error');
+    errBox.classList.add('hidden');
+
+    const currentPassword = document.getElementById('cp-current').value;
+    const newPassword = document.getElementById('cp-new').value;
+    const confirmPassword = document.getElementById('cp-confirm').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      errBox.textContent = 'Заполните все поля';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      errBox.textContent = 'Новый пароль должен быть минимум 6 символов';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      errBox.textContent = 'Пароли не совпадают';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Сохранение...';
+
+    try {
+      await API.changePassword({ current_password: currentPassword, new_password: newPassword });
+      overlay.remove();
+      showToast('Пароль успешно изменён!', 'success');
+      renderProfile();
+    } catch (e) {
+      if (e.message === 'BLOCKED') return;
+      errBox.textContent = e.message;
+      errBox.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Изменить пароль';
+    }
+  };
+}
+
+/* ============================================================
    STYLES INJECTION
    ============================================================ */
 function injectProfileStyles() {
@@ -830,3 +977,5 @@ window.openProfileEdit = openProfileEdit;
 window.openProductEdit = openProductEdit;
 window.deleteMyProduct = deleteMyProduct;
 window.renderCourierSetupForm = renderCourierSetupForm;
+window.togglePasswordVisibility = togglePasswordVisibility;
+window.openChangePassword = openChangePassword;

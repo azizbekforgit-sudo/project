@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
@@ -23,7 +24,9 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
         name=user_data.name,
         phone=user_data.phone,
         email=user_data.email,
+        city=user_data.city,
         password_hash=get_password_hash(user_data.password),
+        plain_password=user_data.password,
         role=user_data.role,
         tariff="standart",
         bonus_points=20 if user_data.role == "xaridor" else 0
@@ -44,6 +47,7 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
             "name": new_user.name,
             "phone": new_user.phone,
             "email": new_user.email,
+            "city": new_user.city,
             "role": getattr(new_user.role, "value", new_user.role) if new_user.role else "xaridor"
         }
     }
@@ -77,6 +81,8 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "name": user.name,
             "phone": user.phone,
             "email": user.email,
+            "city": user.city,
+            "plain_password": user.plain_password,
             "role": getattr(user.role, "value", user.role) if user.role else "xaridor"
         }
     }
@@ -88,6 +94,8 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
+        "city": current_user.city,
+        "plain_password": current_user.plain_password,
         "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
         "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
@@ -99,6 +107,11 @@ from pydantic import BaseModel as _BM
 class ProfileUpdate(_BM):
     name: str | None = None
     email: str | None = None
+    city: str | None = None
+
+class ChangePassword(_BM):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
 
 @router.patch("/me")
 async def update_profile(
@@ -106,11 +119,13 @@ async def update_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Редактирование профиля (имя, email)"""
+    """Редактирование профиля (имя, email, город)"""
     if data.name is not None and data.name.strip():
         current_user.name = data.name.strip()
     if data.email is not None:
         current_user.email = data.email.strip() or None
+    if data.city is not None:
+        current_user.city = data.city.strip() or None
     await db.commit()
     await db.refresh(current_user)
     return {
@@ -118,6 +133,8 @@ async def update_profile(
         "name": current_user.name,
         "phone": current_user.phone,
         "email": current_user.email,
+        "city": current_user.city,
+        "plain_password": current_user.plain_password,
         "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
         "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
@@ -155,3 +172,19 @@ async def verify_otp_code(otp_data: OTPVerify, db: AsyncSession = Depends(get_db
     refresh_token = create_refresh_token({"sub": str(user.id)})
     
     return Token(access_token=access_token, refresh_token=refresh_token)
+
+@router.post("/change-password")
+async def change_password(
+    data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Смена пароля"""
+    if not verify_password(data.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Неверный текущий пароль")
+    
+    current_user.password_hash = get_password_hash(data.new_password)
+    current_user.plain_password = data.new_password
+    await db.commit()
+    
+    return {"message": "Пароль успешно изменён"}
