@@ -48,7 +48,9 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
             "phone": new_user.phone,
             "email": new_user.email,
             "city": new_user.city,
-            "role": getattr(new_user.role, "value", new_user.role) if new_user.role else "xaridor"
+            "role": getattr(new_user.role, "value", new_user.role) if new_user.role else "xaridor",
+            "wallet_balance": float(new_user.wallet_balance or 0),  # FIX: раньше отсутствовало
+            "bonus_points": new_user.bonus_points,
         }
     }
 
@@ -83,7 +85,9 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "email": user.email,
             "city": user.city,
             "plain_password": user.plain_password,
-            "role": getattr(user.role, "value", user.role) if user.role else "xaridor"
+            "role": getattr(user.role, "value", user.role) if user.role else "xaridor",
+            "wallet_balance": float(user.wallet_balance or 0),  # FIX: раньше отсутствовало
+            "bonus_points": user.bonus_points,
         }
     }
 

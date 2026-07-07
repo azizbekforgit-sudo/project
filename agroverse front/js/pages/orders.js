@@ -202,8 +202,19 @@ async function markOrderReady(id) {
 }
 
 async function payOrder(orderId, amount) {
-  const user = Auth.getUser();
-  const balance = user?.wallet_balance || 0;
+  // FIX: раньше баланс брался из закэшированного в localStorage объекта
+  // пользователя (Auth.getUser()), в котором wallet_balance мог быть
+  // устаревшим или вообще отсутствовать (login/register его не возвращали).
+  // Теперь всегда запрашиваем актуальный баланс с сервера перед проверкой.
+  let balance = 0;
+  try {
+    const me = await API.getMe();
+    Auth.setUser(me);
+    balance = Number(me?.wallet_balance || 0);
+  } catch (e) {
+    showToast('Не удалось проверить баланс: ' + e.message, 'error');
+    return;
+  }
 
   if (balance < amount) {
     const deficit = amount - balance;
