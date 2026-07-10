@@ -12,11 +12,11 @@ function renderProductNew() {
     { value: 'Зерновые', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8M12 8C10 4 6 3 3 5c1 4 5 7 9 5M12 8c2-4 6-5 9-3-1 4-5 7-9 5"/></svg>`, labelKey: 'cat_grains' },
     { value: 'Молочные', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8l1 4H7L8 2z"/><rect x="5" y="6" width="14" height="16" rx="2"/><path d="M9 12h6M9 16h4"/></svg>`, labelKey: 'cat_dairy' },
     { value: 'Мёд',      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6h5l-4 4 2 6-6-3-6 3 2-6-4-4h5z"/></svg>`, labelKey: 'cat_honey' },
-    { value: 'Gullar',      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12c-2-3-6-3-6 1s4 4 6 1M12 12c2-3 6-3 6 1s-4 4-6 1"/><circle cx="12" cy="8" r="3"/></svg>`, labelKey: 'cat_flowers' },
-    { value: "Ko'chatlar",  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V10M12 10C12 6 9 3 5 4c0 4 3 7 7 6M12 10c0-4 3-7 7-6-1 4-3 7-7 6"/><path d="M7 22h10"/></svg>`, labelKey: 'cat_seedlings' },
-    { value: 'Poliz ekin',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5V2M12 5c-4 0-8 2-8 8M12 5c4 0 8 2 8 8M7 13h10"/></svg>`, labelKey: 'cat_melon' },
-    { value: "Urug'lar",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="14" rx="5" ry="7"/><path d="M12 7V2M9 4c0 1 3 2 3 2s3-1 3-2"/></svg>`, labelKey: 'cat_seeds' },
-    { value: 'Yer va mulk', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M3 11l4-7h10l4 7"/><path d="M12 4v3"/></svg>`, labelKey: 'cat_land' },
+    { value: 'Цветы',      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12c-2-3-6-3-6 1s4 4 6 1M12 12c2-3 6-3 6 1s-4 4-6 1"/><circle cx="12" cy="8" r="3"/></svg>`, labelKey: 'cat_flowers' },
+    { value: 'Саженцы',    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V10M12 10C12 6 9 3 5 4c0 4 3 7 7 6M12 10c0-4 3-7 7-6-1 4-3 7-7 6"/><path d="M7 22h10"/></svg>`, labelKey: 'cat_seedlings' },
+    { value: 'Бахчевые',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5V2M12 5c-4 0-8 2-8 8M12 5c4 0 8 2 8 8M7 13h10"/></svg>`, labelKey: 'cat_melon' },
+    { value: 'Семена',     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="14" rx="5" ry="7"/><path d="M12 7V2M9 4c0 1 3 2 3 2s3-1 3-2"/></svg>`, labelKey: 'cat_seeds' },
+    { value: 'Земля',      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M3 11l4-7h10l4 7"/><path d="M12 4v3"/></svg>`, labelKey: 'cat_land' },
   ];
 
   // Inject styles

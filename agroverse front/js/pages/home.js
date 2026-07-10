@@ -7,11 +7,11 @@ const HOME_CATEGORIES = [
   { value: 'Зерновые', icon: 'fi fi-sr-wheat',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)' },
   { value: 'Молочные', icon: 'fi fi-sr-milk',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
   { value: 'Мёд',      icon: 'fi fi-sr-honey',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)' },
-  { value: 'Gullar',      icon: 'fi fi-sr-sakura',        key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)' },
-  { value: "Ko'chatlar",  icon: 'fi fi-sr-seedling',      key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)' },
-  { value: 'Poliz ekin',  icon: 'fi fi-sr-fruit-watermelon', key: 'cat_melon',   tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)' },
-  { value: "Urug'lar",    icon: 'fi fi-sr-seedling',      key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
-  { value: 'Yer va mulk', icon: 'fi fi-sr-map',           key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)' },
+  { value: 'Цветы',       icon: 'fi fi-sr-sakura',           key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)' },
+  { value: 'Саженцы',     icon: 'fi fi-sr-seedling',         key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)' },
+  { value: 'Бахчевые',    icon: 'fi fi-sr-fruit-watermelon', key: 'cat_melon',      tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)' },
+  { value: 'Семена',      icon: 'fi fi-sr-seedling',         key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+  { value: 'Земля',       icon: 'fi fi-sr-map',              key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)' },
 ];
 
 const HOW_IT_WORKS = [
@@ -517,7 +517,7 @@ async function renderHome() {
         ${HOME_CATEGORIES.map(c => `
           <div class="cat-card" onclick="router.go('/market?cat=${encodeURIComponent(c.value)}')" style="--tint:${c.tint}">
             <div class="cat-card-img" style="background:${c.bg}">
-              <img src="${c.img}" alt="${t(c.key)}" loading="lazy" onerror="this.style.opacity='0'" />
+              <img src="${c.img}" alt="${t(c.key)}" loading="lazy" onerror="this.style.display='none'" />
               <div class="cat-overlay"></div>
             </div>
             <div class="cat-ic"><i class="${c.icon}" style="font-size:20px"></i></div>
