@@ -1,17 +1,39 @@
 /* pages/home.js — hero + scroll animations + button effects + Courier Remainder */
 
 const HOME_CATEGORIES = [
-  { value: 'Овощи',    icon: 'fi fi-sr-carrot',        key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)' },
-  { value: 'Фрукты',   icon: 'fi fi-sr-apple-alt',     key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)' },
-  { value: 'Зелень',   icon: 'fi fi-sr-leaf',          key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)' },
-  { value: 'Зерновые', icon: 'fi fi-sr-wheat',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)' },
-  { value: 'Молочные', icon: 'fi fi-sr-milk',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
-  { value: 'Мёд',      icon: 'fi fi-sr-honey',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)' },
-  { value: 'Цветы',       icon: 'fi fi-sr-sakura',           key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)' },
-  { value: 'Саженцы',     icon: 'fi fi-sr-seedling',         key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)' },
-  { value: 'Бахчевые',    icon: 'fi fi-sr-fruit-watermelon', key: 'cat_melon',      tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)' },
-  { value: 'Семена',      icon: 'fi fi-sr-seedling',         key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
-  { value: 'Земля',       icon: 'fi fi-sr-map',              key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)' },
+  { value: 'Овощи',    icon: 'fi fi-sr-carrot',        key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)',
+    desc: 'Свежие овощи прямо с грядок узбекских фермеров. Помидоры, огурцы, перец и баклажаны — собраны сегодня, доставлены завтра.',
+    features: ['Помидоры, огурцы, перец и баклажаны', 'Выращены без химикатов и ГМО', 'Сбор и отгрузка в один день'] },
+  { value: 'Фрукты',   icon: 'fi fi-sr-apple-alt',     key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)',
+    desc: 'Сладкие арбузы, дыни, гранаты и цитрусовые — выращенные под солнцем Узбекистана.',
+    features: ['Арбузы, дыни, гранаты и яблоки', 'Натуральная сладость без добавок', 'Спелые и сочные плоды'] },
+  { value: 'Зелень',   icon: 'fi fi-sr-leaf',          key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)',
+    desc: 'Базилик, кинза, укроп и зелёный лук — ароматная зелень для вашего стола.',
+    features: ['Базилик, кинза, укроп и перо', 'Срезка утром — доставка днём', 'Максимум витаминов и аромата'] },
+  { value: 'Зерновые', icon: 'fi fi-sr-wheat',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)',
+    desc: 'Пшеница, рис и кукуруза — качественные зерновые от проверенных фермеров.',
+    features: ['Пшеница, рис и кукуруза', 'Экологически чистые продукты', 'Основа здорового питания'] },
+  { value: 'Молочные', icon: 'fi fi-sr-milk',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)',
+    desc: 'Натуральное молоко, кефир и йогурты — свежие молочные продукты без консервантов.',
+    features: ['Молоко, кефир, сметана и творог', 'Без консервантов и добавок', 'Свежие каждый день'] },
+  { value: 'Мёд',      icon: 'fi fi-sr-honey',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)',
+    desc: 'Натуральный мёд горных пасек — жидкий, цветочный и гречишный.',
+    features: ['Жидкий, цветочный и гречишный', 'С горных пасек Узбекистана', '100% натуральный продукт'] },
+  { value: 'Цветы',       icon: 'fi fi-sr-sakura',           key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)',
+    desc: 'Букеты и цветочные композиции — свежие цветы для любого повода.',
+    features: ['Розы, тюльпаны и хризантемы', 'Авторские букеты и композиции', 'Свежая срезка дня'] },
+  { value: 'Саженцы',     icon: 'fi fi-sr-seedling',         key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)',
+    desc: 'Рассада и саженцы плодовых деревьев — начните свой сад с нами.',
+    features: ['Рассада овощей и трав', 'Плодовые и декоративные деревья', 'Проверенная приживаемость'] },
+  { value: 'Бахчевые',    icon: 'fi fi-sr-fruit-watermelon', key: 'cat_melon',      tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)',
+    desc: 'Арбузы, дыни и тыквы — сладкие бахчевые прямо с полей Хорезма.',
+    features: ['Арбузы и дыни из Хорезма', 'Сахарные и идеально спелые', 'Сезонный вкус лета'] },
+  { value: 'Семена',      icon: 'fi fi-sr-seedling',         key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)',
+    desc: 'Качественные семена овощей и цветов — для вашего будущего урожая.',
+    features: ['Семена овощей и цветов', 'Проверенные узбекские сорта', 'Высокая всхожесть 95%+'] },
+  { value: 'Земля',       icon: 'fi fi-sr-map',              key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)',
+    desc: 'Плодородная земля и удобрения — для здорового роста ваших растений.',
+    features: ['Плодородный грунт и компост', 'Минеральные и органические удобрения', 'Для теплиц, полей и садов'] },
 ];
 
 const HOW_IT_WORKS = [
@@ -187,14 +209,14 @@ function injectStyles() {
     .delay-6 { transition-delay: 0.3s !important; }
 
     /* How-card, tip, benefit, promo scroll reveal */
-    .how-card, .tip-card, .benefit-card, .promo {
+    .hm-card, .tip-card, .bn-card, .promo-modern {
       opacity: 0;
       transition: opacity 0.5s ease, transform 0.5s ease;
     }
-    .how-card.revealed, .tip-card.revealed, .benefit-card.revealed, .promo.revealed {
+    .hm-card.revealed, .tip-card.revealed, .bn-card.revealed, .promo-modern.revealed {
       opacity: 1; transform: translateY(0) translateX(0);
     }
-    .how-card.fade-out, .tip-card.fade-out, .benefit-card.fade-out, .promo.fade-out {
+    .hm-card.fade-out, .tip-card.fade-out, .bn-card.fade-out, .promo-modern.fade-out {
       opacity: 0; transition: opacity 0.3s ease;
     }
     .section-head { opacity: 0; transform: translateY(16px); transition: opacity 0.4s ease, transform 0.4s ease; }
@@ -211,6 +233,251 @@ function injectStyles() {
     .rb-title { font-weight: 700; margin-bottom: 4px; display: block; font-size: 1rem; }
     .rb-text { font-size: 0.9rem; line-height: 1.4; opacity: 0.9; }
     .rb-actions { display: flex; gap: 10px; }
+
+    /* ── Category Carousel ── */
+    .cc-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      align-items: stretch;
+    }
+    @media (max-width: 900px) {
+      .cc-layout { grid-template-columns: 1fr; }
+      .cc-detail { min-height: auto !important; }
+    }
+    .cc-viewport {
+      overflow: hidden;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(5,150,105,0.03) 100%);
+      border: 1px solid rgba(16,185,129,0.12);
+      padding: 28px 0;
+      position: relative;
+    }
+    .cc-viewport::before, .cc-viewport::after {
+      content: ''; position: absolute; top: 0; bottom: 0; width: 80px; z-index: 2; pointer-events: none;
+    }
+    .cc-viewport::before { left: 0; background: linear-gradient(to right, rgba(240,253,244,0.95), transparent); }
+    .cc-viewport::after { right: 0; background: linear-gradient(to left, rgba(240,253,244,0.95), transparent); }
+
+    .cc-track {
+      display: flex;
+      animation: ccScroll 35s linear infinite;
+      width: max-content;
+    }
+    .cc-viewport:hover .cc-track { animation-play-state: paused; }
+
+    .cc-group {
+      display: flex;
+      gap: 16px;
+      padding-right: 16px;
+    }
+    @keyframes ccScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .cc-item {
+      flex-shrink: 0;
+      width: 130px;
+      height: 160px;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, opacity 0.4s;
+      text-align: center;
+      position: relative;
+      border: 2px solid transparent;
+      overflow: hidden;
+    }
+    .cc-item::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: inherit; z-index: 0; opacity: 0.92;
+    }
+    .cc-item:hover {
+      transform: scale(1.15) translateY(-6px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      z-index: 3;
+      border-color: rgba(255,255,255,0.5);
+    }
+    .cc-item.dimmed {
+      opacity: 0.25;
+      transform: scale(0.88);
+      pointer-events: none;
+    }
+
+    .cc-item-ic {
+      width: 52px; height: 52px; border-radius: 15px;
+      display: grid; place-items: center; font-size: 24px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      position: relative; z-index: 1;
+    }
+    .cc-item-name {
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 700;
+      color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+      position: relative; z-index: 1;
+    }
+
+    /* Detail panel */
+    .cc-detail {
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 20px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.07);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+      min-height: 380px;
+    }
+    .cc-detail.empty {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 30px;
+    }
+    .cc-ph { text-align: center; color: #94a3b8; }
+    .cc-ph-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.4; }
+    .cc-ph-text { font-size: 15px; font-weight: 500; line-height: 1.5; }
+
+    .cd-head {
+      padding: 28px 26px 20px;
+      display: flex; align-items: center; gap: 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .cd-icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: grid; place-items: center; font-size: 28px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+    .cd-titles { flex: 1; }
+    .cd-name {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 3px;
+    }
+    .cd-count { font-size: 13px; color: #64748b; font-weight: 500; }
+
+    .cd-body { padding: 22px 26px 26px; flex: 1; display: flex; flex-direction: column; }
+    .cd-desc { font-size: 15px; line-height: 1.7; color: #334155; margin-bottom: 18px; }
+    .cd-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .cd-feat { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569; }
+    .cd-feat i { color: #10b981; font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+    .cd-action { margin-top: auto; }
+
+    /* Timer bar */
+    .cd-timer-wrap { padding: 0 26px 14px; }
+    .cd-timer {
+      height: 3px; background: #e2e8f0; border-radius: 2px; overflow: hidden;
+    }
+    .cd-timer-fill {
+      height: 100%; background: linear-gradient(90deg, #10b981, #34d399);
+      border-radius: 2px; transition: width 1s linear;
+    }
+
+    /* ── How it works modern ── */
+    .how-modern {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+    .how-modern::before {
+      content: '';
+      position: absolute; top: 52px; left: 14%; right: 14%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(16,185,129,0.25), transparent);
+      z-index: 0;
+    }
+    @media (max-width: 900px) {
+      .how-modern { grid-template-columns: repeat(2, 1fr); }
+      .how-modern::before { display: none; }
+    }
+    @media (max-width: 500px) {
+      .how-modern { grid-template-columns: 1fr; }
+    }
+
+    .hm-card {
+      text-align: center; padding: 32px 18px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 20px; position: relative; z-index: 1;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .hm-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); }
+    .hm-num {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff; font-size: 17px; font-weight: 800;
+      display: grid; place-items: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+    }
+    .hm-icon {
+      width: 54px; height: 54px; border-radius: 15px;
+      background: rgba(16,185,129,0.1);
+      display: grid; place-items: center;
+      margin: 0 auto 14px; font-size: 24px; color: #10b981;
+    }
+    .hm-label { font-size: 15px; font-weight: 700; color: #0f172a; }
+
+    /* ── AI Promo modern ── */
+    .promo-modern {
+      background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(52,211,153,0.04) 100%);
+      border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 20px;
+      padding: 36px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .promo-modern-left { display: flex; align-items: center; gap: 18px; }
+    .promo-modern-ic {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: grid; place-items: center; font-size: 24px; color: #fff;
+      box-shadow: 0 6px 20px rgba(16,185,129,0.3);
+      flex-shrink: 0;
+    }
+    .promo-modern h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .promo-modern p { font-size: 14px; color: #64748b; margin: 0; }
+
+    /* ── Benefits / Tips modern ── */
+    .benefits-modern {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 700px) {
+      .benefits-modern { grid-template-columns: 1fr; }
+    }
+    .bn-card {
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 18px;
+      padding: 28px 24px;
+      display: flex; gap: 16px; align-items: flex-start;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    .bn-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.08); }
+    .bn-ic {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: grid; place-items: center; font-size: 22px;
+      flex-shrink: 0;
+    }
+    .bn-text h4 { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .bn-text p { font-size: 13px; color: #64748b; margin: 0; line-height: 1.5; }
   `;
   document.head.appendChild(style);
 }
@@ -333,9 +600,9 @@ function animateDashboard() {
 /* ── Scroll Reveal via IntersectionObserver ── */
 function initScrollReveal() {
   const staggerGroups = [
-    { sel: '.how-card',      baseDelay: 0 },
+    { sel: '.hm-card',       baseDelay: 0 },
+    { sel: '.bn-card',       baseDelay: 0 },
     { sel: '.tip-card',      baseDelay: 0 },
-    { sel: '.benefit-card',  baseDelay: 0 },
   ];
 
   staggerGroups.forEach(({ sel, baseDelay }) => {
@@ -353,7 +620,7 @@ function initScrollReveal() {
     });
   });
 
-  const otherSelectors = ['.cat-card', '.product-card', '.section-head'];
+  const otherSelectors = ['.product-card', '.section-head'];
   otherSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach((el, i) => {
       if (!el.classList.contains('scroll-reveal')) {
@@ -365,7 +632,7 @@ function initScrollReveal() {
 
   const allRevealEls = document.querySelectorAll(
     '.scroll-reveal, .scroll-reveal-left, .scroll-reveal-scale, ' +
-    '.how-card, .tip-card, .benefit-card, .promo, .section-head'
+    '.hm-card, .bn-card, .tip-card, .promo-modern, .section-head'
   );
 
   const obs = new IntersectionObserver((entries) => {
@@ -397,6 +664,94 @@ function initScrollReveal() {
     obs.observe(el);
   });
 }
+
+/* ── Category Carousel ── */
+let _ccTimer = null;
+let _ccReturnTimer = null;
+
+function _buildCarouselItems() {
+  const items = HOME_CATEGORIES.map(c => {
+    return `<div class="cc-item" style="background:${c.bg}" data-value="${c.value}" onclick="window._ccSelect('${c.value}')">
+      <div class="cc-item-ic"><i class="${c.icon}" style="color:${c.tint}"></i></div>
+      <div class="cc-item-name">${t(c.key)}</div>
+    </div>`;
+  }).join('');
+  return items;
+}
+
+function _ccSelect(value) {
+  const cat = HOME_CATEGORIES.find(c => c.value === value);
+  if (!cat) return;
+
+  const detail = document.getElementById('ccDetail');
+  const allItems = document.querySelectorAll('.cc-item');
+
+  allItems.forEach(el => {
+    if (el.dataset.value === value) el.classList.add('dimmed');
+    else el.classList.remove('dimmed');
+  });
+
+  detail.classList.remove('empty');
+  detail.innerHTML = `
+    <div class="cd-head">
+      <div class="cd-icon" style="background:${cat.bg}"><i class="${cat.icon}" style="color:#fff"></i></div>
+      <div class="cd-titles">
+        <div class="cd-name">${t(cat.key)}</div>
+        <div class="cd-count">${cat.value}</div>
+      </div>
+    </div>
+    <div class="cd-body">
+      <div class="cd-desc">${cat.desc}</div>
+      <div class="cd-features">
+        ${cat.features.map(f => `<div class="cd-feat"><i class="fi fi-sr-check-circle"></i>${f}</div>`).join('')}
+      </div>
+      <div class="cd-action">
+        <button class="btn btn-primary btn-full" onclick="router.go('/market?cat=${encodeURIComponent(cat.value)}')">
+          <i class="fi fi-rr-shopping-cart"></i> Смотреть товары
+        </button>
+      </div>
+    </div>
+    <div class="cd-timer-wrap">
+      <div class="cd-timer"><div class="cd-timer-fill" id="ccTimerFill"></div></div>
+    </div>
+  `;
+
+  // Animate timer bar from 100% to 0% over 15 seconds
+  const fill = document.getElementById('ccTimerFill');
+  if (fill) {
+    requestAnimationFrame(() => {
+      fill.style.width = '100%';
+      requestAnimationFrame(() => { fill.style.transition = 'width 15s linear'; fill.style.width = '0%'; });
+    });
+  }
+
+  // Clear previous timers
+  clearTimeout(_ccReturnTimer);
+
+  // After 15 seconds: stop carousel, return item, resume
+  _ccReturnTimer = setTimeout(() => {
+    const track = document.getElementById('ccTrack');
+    if (track) track.style.animationPlayState = 'paused';
+
+    allItems.forEach(el => el.classList.remove('dimmed'));
+
+    setTimeout(() => {
+      // Reset detail
+      if (detail) {
+        detail.classList.add('empty');
+        detail.innerHTML = `
+          <div class="cc-ph">
+            <div class="cc-ph-icon">👆</div>
+            <div class="cc-ph-text">Нажмите на категорию,<br>чтобы узнать подробнее</div>
+          </div>`;
+      }
+      // Resume carousel
+      if (track) track.style.animationPlayState = 'running';
+    }, 600);
+  }, 15000);
+}
+
+window._ccSelect = _ccSelect;
 
 async function renderHome() {
   injectStyles();
@@ -508,24 +863,29 @@ async function renderHome() {
     <!-- Dynamic alert container (for courier reminder) -->
     <div class="container" id="home-dynamic-alerts"></div>
 
+    <!-- ═══ CATEGORY CAROUSEL ═══ -->
     <section class="section">
       <div class="section-head">
         <h2>${t('categories')}</h2>
         <a class="link-more" onclick="router.go('/market')">${t('all_market')} <i class="fi fi-rr-arrow-right"></i></a>
       </div>
-      <div class="cat-grid">
-        ${HOME_CATEGORIES.map(c => `
-          <div class="cat-card" onclick="router.go('/market?cat=${encodeURIComponent(c.value)}')" style="--tint:${c.tint}">
-            <div class="cat-card-img" style="background:${c.bg}">
-              <img src="${c.img}" alt="${t(c.key)}" loading="lazy" onerror="this.style.display='none'" />
-              <div class="cat-overlay"></div>
-            </div>
-            <div class="cat-ic"><i class="${c.icon}" style="font-size:20px"></i></div>
-            <div class="cat-name">${t(c.key)}</div>
-          </div>`).join('')}
+      <div class="cc-layout">
+        <div class="cc-viewport">
+          <div class="cc-track" id="ccTrack">
+            <div class="cc-group">${_buildCarouselItems()}</div>
+            <div class="cc-group">${_buildCarouselItems()}</div>
+          </div>
+        </div>
+        <div class="cc-detail empty" id="ccDetail">
+          <div class="cc-ph">
+            <div class="cc-ph-icon">👆</div>
+            <div class="cc-ph-text">Нажмите на категорию,<br>чтобы узнать подробнее</div>
+          </div>
+        </div>
       </div>
     </section>
 
+    <!-- ═══ PRODUCTS ═══ -->
     <section class="section">
       <div class="section-head">
         <h2>${isFarmer ? t('fresh_on_market') : t('popular_now')}</h2>
@@ -534,22 +894,24 @@ async function renderHome() {
       <div id="home-products" class="products-grid v2"><div class="spinner"></div></div>
     </section>
 
-    <section class="section how-section">
+    <!-- ═══ HOW IT WORKS ═══ -->
+    <section class="section">
       <div class="section-head"><h2>${t('how_it_works')}</h2></div>
-      <div class="how-grid">
+      <div class="how-modern">
         ${HOW_IT_WORKS.map((h, i) => `
-          <div class="how-card">
-            <div class="how-num">${i + 1}</div>
-            <div class="how-ic"><i class="${h.icon}"></i></div>
-            <div class="how-label">${t(h.key)}</div>
+          <div class="hm-card">
+            <div class="hm-num">${i + 1}</div>
+            <div class="hm-icon"><i class="${h.icon}"></i></div>
+            <div class="hm-label">${t(h.key)}</div>
           </div>`).join('')}
       </div>
     </section>
 
+    <!-- ═══ AI PROMO ═══ -->
     <section class="section">
-      <div class="promo v2">
-        <div class="promo-left">
-          <div class="promo-ic"><i class="fi fi-sr-sparkles"></i></div>
+      <div class="promo-modern">
+        <div class="promo-modern-left">
+          <div class="promo-modern-ic"><i class="fi fi-sr-sparkles"></i></div>
           <div>
             <h3>${t('ai_promo_title')}</h3>
             <p>${isFarmer ? t('ai_promo_farmer') : t('ai_promo_buyer')}</p>
@@ -559,22 +921,23 @@ async function renderHome() {
       </div>
     </section>
 
+    <!-- ═══ BENEFITS / FARMER TIPS ═══ -->
     ${!isFarmer ? `
     <section class="section">
       <div class="section-head"><h2>${t('why_agroverse')}</h2></div>
-      <div class="benefits-grid">
-        <div class="benefit-card"><i class="fi fi-sr-leaf"></i><h4>${t('benefit_fresh')}</h4><p>${t('benefit_fresh_desc')}</p></div>
-        <div class="benefit-card"><i class="fi fi-sr-shield-check"></i><h4>${t('benefit_safe')}</h4><p>${t('benefit_safe_desc')}</p></div>
-        <div class="benefit-card"><i class="fi fi-sr-bolt"></i><h4>${t('benefit_fast')}</h4><p>${t('benefit_fast_desc')}</p></div>
-        <div class="benefit-card"><i class="fi fi-sr-piggy-bank"></i><h4>${t('benefit_cheap')}</h4><p>${t('benefit_cheap_desc')}</p></div>
+      <div class="benefits-modern">
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="fi fi-sr-leaf"></i></div><div class="bn-text"><h4>${t('benefit_fresh')}</h4><p>${t('benefit_fresh_desc')}</p></div></div>
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="fi fi-sr-shield-check"></i></div><div class="bn-text"><h4>${t('benefit_safe')}</h4><p>${t('benefit_safe_desc')}</p></div></div>
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(245,158,11,0.1);color:#f59e0b"><i class="fi fi-sr-bolt"></i></div><div class="bn-text"><h4>${t('benefit_fast')}</h4><p>${t('benefit_fast_desc')}</p></div></div>
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(139,92,246,0.1);color:#8b5cf6"><i class="fi fi-sr-piggy-bank"></i></div><div class="bn-text"><h4>${t('benefit_cheap')}</h4><p>${t('benefit_cheap_desc')}</p></div></div>
       </div>
     </section>` : `
     <section class="section">
       <div class="section-head"><h2>${t('farmer_tips_title')}</h2></div>
-      <div class="tips-grid">
-        <div class="tip-card"><i class="fi fi-sr-chart-line-up"></i><h4>${t('tip_price')}</h4><p>${t('tip_price_desc')}</p></div>
-        <div class="tip-card"><i class="fi fi-sr-camera"></i><h4>${t('tip_photo')}</h4><p>${t('tip_photo_desc')}</p></div>
-        <div class="tip-card"><i class="fi fi-sr-star"></i><h4>${t('tip_rating')}</h4><p>${t('tip_rating_desc')}</p></div>
+      <div class="benefits-modern">
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="fi fi-sr-chart-line-up"></i></div><div class="bn-text"><h4>${t('tip_price')}</h4><p>${t('tip_price_desc')}</p></div></div>
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(245,158,11,0.1);color:#f59e0b"><i class="fi fi-sr-camera"></i></div><div class="bn-text"><h4>${t('tip_photo')}</h4><p>${t('tip_photo_desc')}</p></div></div>
+        <div class="bn-card"><div class="bn-ic" style="background:rgba(236,72,153,0.1);color:#ec4899"><i class="fi fi-sr-star"></i></div><div class="bn-text"><h4>${t('tip_rating')}</h4><p>${t('tip_rating_desc')}</p></div></div>
       </div>
     </section>`}
 
@@ -690,7 +1053,7 @@ async function renderHome() {
 
   // Load real products
   try {
-    const products = await API.getProducts({ limit: 8 });
+    const products = await API.getProducts({ limit: 6 });
 
     animateCounter(document.getElementById('stat-products'), products.length, 1200);
     animateCounter(document.getElementById('stat-100'), 100, 1400, '%');
@@ -710,7 +1073,7 @@ async function renderHome() {
       </div>`;
       return;
     }
-    grid.innerHTML = products.slice(0, 8).map(productCardHtml).join('');
+    grid.innerHTML = products.slice(0, 6).map(productCardHtml).join('');
     setTimeout(initScrollReveal, 50);
   } catch (e) {
     if (e.message === 'BLOCKED') return;
