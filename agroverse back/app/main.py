@@ -12,7 +12,7 @@ print("========== ВЕРСИЯ ФАЙЛА: MARKER-7788 ==========")
 
 from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.config import settings
-from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery
+from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery, chats
 from app.models import User, Product
 from app.schemas import ProductResponse, ProductListResponse
 from app.dependencies import get_current_user
@@ -163,6 +163,7 @@ async def lifespan(app: FastAPI):
             ("products", "delivery_available", "BOOLEAN DEFAULT FALSE"),
             ("courier_profiles", "price_per_km", "FLOAT DEFAULT 0"),
             ("orders", "delivery_request_id", "INTEGER"),
+            ("orders", "driver_candidate_id", "INTEGER"),
         ]
         for table, column, coltype in missing_columns:
             async with conn.begin_nested():
@@ -268,6 +269,38 @@ CREATE TABLE IF NOT EXISTS delivery_requests (
 )
 """, label="delivery_requests table")
 
+        # ── Chats table ──
+        await safe_exec("""
+CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id),
+    type VARCHAR(20) NOT NULL,
+    participant_a_id INTEGER REFERENCES users(id),
+    participant_b_id INTEGER REFERENCES users(id),
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT NOW()
+)
+""", label="chats table")
+
+        # ── Chat Messages table ──
+        await safe_exec("""
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER REFERENCES chats(id),
+    sender_id INTEGER REFERENCES users(id),
+    type VARCHAR(20) DEFAULT 'text',
+    content TEXT NOT NULL,
+    is_blocked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+)
+""", label="chat_messages table")
+
+        # ── Chat indexes ──
+        await safe_exec("CREATE INDEX IF NOT EXISTS idx_chats_order ON chats(order_id)")
+        await safe_exec("CREATE INDEX IF NOT EXISTS idx_chats_participant_a ON chats(participant_a_id)")
+        await safe_exec("CREATE INDEX IF NOT EXISTS idx_chats_participant_b ON chats(participant_b_id)")
+        await safe_exec("CREATE INDEX IF NOT EXISTS idx_chat_messages_chat ON chat_messages(chat_id)")
+
     await seed_admin()
     print("🌾 AgroVerse API запущен")
     yield
@@ -336,6 +369,7 @@ app.include_router(bonus.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
 app.include_router(delivery.router)
+app.include_router(chats.router)
 
 
 @app.get("/api/my/products")

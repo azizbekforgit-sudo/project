@@ -116,6 +116,8 @@ class OrderResponse(BaseModel):
     pickup_method: str
     status: OrderStatus
     delivery_request: Optional[dict] = None
+    driver_candidate_id: Optional[int] = None
+    driver_candidate_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -184,3 +186,72 @@ class DeliveryRequestResponse(BaseModel):
     order_quantity: Optional[float] = None
     order_total_price: Optional[float] = None
     created_at: datetime
+
+
+# ── Chat schemas ────────────────────────────────────────────────────────────
+
+class ChatCreate(BaseModel):
+    order_id: int
+    type: str = Field(..., pattern="^(buyer_farmer|buyer_driver|driver_farmer)$")
+
+
+class ChatParticipant(BaseModel):
+    id: int
+    name: str
+    role: str
+    phone: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    id: int
+    order_id: int
+    type: str
+    participant_a: ChatParticipant
+    participant_b: ChatParticipant
+    status: str
+    last_message: Optional[dict] = None
+    unread_count: int = 0
+    order_product_title: Optional[str] = None
+    order_product_photo: Optional[str] = None
+    created_at: datetime
+
+
+class MessageCreate(BaseModel):
+    type: str = Field(default="text", pattern="^(text|photo|voice|location)$")
+    content: str = Field(..., min_length=1, max_length=5000)
+
+
+class ChatMessageResponse(BaseModel):
+    id: int
+    chat_id: int
+    sender_id: int
+    sender_name: str
+    type: str
+    content: str
+    is_blocked: bool
+    created_at: datetime
+
+
+class DriverCandidateRequest(BaseModel):
+    courier_user_id: int
+
+
+class OrderResponseExtended(BaseModel):
+    id: int
+    product_id: int
+    product_title: str
+    product_photo: Optional[str] = None
+    xaridor_id: int
+    xaridor_name: str
+    fermer_id: int
+    fermer_name: str
+    quantity: float
+    total_price: float
+    commission: float
+    pickup_method: str
+    status: OrderStatus
+    delivery_request: Optional[dict] = None
+    driver_candidate_id: Optional[int] = None
+    driver_candidate_name: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime

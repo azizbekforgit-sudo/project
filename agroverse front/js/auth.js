@@ -68,6 +68,7 @@ const NAV_FARMER = [
   { path: '/home',        icon: 'fi fi-rr-home',         key: 'nav_home' },
   { path: '/market',      icon: 'fi fi-rr-shop',         key: 'nav_market' },
   { path: '/product/new', icon: 'fi fi-rr-add',          key: 'nav_add_product' },
+  { path: '/chats',       icon: 'fi fi-rr-comment',      key: 'nav_chats' },
   { path: '/delivery',    icon: 'fi fi-rr-truck-side',   key: 'nav_delivery' },
   { path: '/tariffs',     icon: 'fi fi-rr-star',         key: 'nav_tariffs' },
   { path: '/wallet',      icon: 'fi fi-rr-wallet',       key: 'nav_wallet' },
@@ -78,6 +79,7 @@ const NAV_BUYER = [
   { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
   { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
   { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
+  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
   { path: '/delivery', icon: 'fi fi-rr-truck-side',      key: 'nav_delivery' },
   { path: '/cart',     icon: 'fi fi-rr-shopping-cart',   key: 'nav_cart' },
   { path: '/tariffs',  icon: 'fi fi-rr-star',            key: 'nav_tariffs' },
@@ -87,6 +89,7 @@ const NAV_BUYER = [
 
 const NAV_COURIER = [
   { path: '/courier',  icon: 'fi fi-rr-bike',            key: 'nav_courier_dashboard' },
+  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
   { path: '/ai',       icon: 'fi fi-rr-comment-alt',     key: 'nav_ai' },
   { external: true, url: 'https://t.me/The1_Smurfs_Bot', icon: 'fi fi-rr-paper-plane', label: 'Связаться' },
   { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
@@ -94,6 +97,7 @@ const NAV_COURIER = [
 
 const NAV_ADMIN = [
   { path: '/admin',   icon: 'fi fi-rr-dashboard',        key: 'nav_admin' },
+  { path: '/chats',   icon: 'fi fi-rr-comment',          key: 'nav_chats' },
   { path: '/market',  icon: 'fi fi-rr-shop',             key: 'nav_market' },
   { path: '/tariffs', icon: 'fi fi-rr-star',             key: 'nav_tariffs' },
 ];

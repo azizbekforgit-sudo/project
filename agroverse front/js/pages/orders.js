@@ -93,6 +93,8 @@ function orderCardHtml(o, isFermer) {
   const canComplete  = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
   const canMarkReady = isFermer && o.status === 'paid';
   const canPay       = !isFermer && o.status === 'created';
+  const canChatFarmer = !isFermer && ['created', 'paid'].includes(o.status) && o.pickup_method !== 'self';
+  const canChatDriver = !isFermer && o.driver_candidate_id && o.pickup_method === 'external';
 
   const img = o.product_photo
     ? `<img src="${API_PHOTO(o.product_photo)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'oc-ph',textContent:'🥬'}))" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
@@ -112,6 +114,22 @@ function orderCardHtml(o, isFermer) {
     statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Покупатель ещё не оплатил заказ.</div>`;
   } else if (isFermer && o.status === 'paid') {
     statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Заказ оплачен. Можете начать подготовку.</div>`;
+  }
+
+  // Driver candidate info
+  let candidateHtml = '';
+  if (o.driver_candidate_id && !o.delivery_request) {
+    candidateHtml = `
+      <div style="background:#eff6ff;border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <b style="font-size:13px">🚗 Кандидат-драйвер</b>
+          <span style="color:#2563eb;font-size:12px;font-weight:600">Ожидает подтверждения</span>
+        </div>
+        <div style="font-size:13px;color:#374151">
+          👤 ${o.driver_candidate_name || 'Драйвер'}
+        </div>
+      </div>
+    `;
   }
 
   // Delivery request info
@@ -166,6 +184,7 @@ function orderCardHtml(o, isFermer) {
         </div>
         ${total !== '—' ? `<div class="oc-total">${total}</div>` : ''}
         ${statusNote}
+        ${candidateHtml}
         ${deliveryHtml}
         ${timelineHtml(o.status)}
       </div>
@@ -174,6 +193,8 @@ function orderCardHtml(o, isFermer) {
         ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
         ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
         ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
+        ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
+        ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
       </div>
     </div>
   `;
@@ -241,8 +262,20 @@ async function payOrder(orderId, amount) {
   }
 }
 
+async function openOrderChat(orderId, chatType) {
+  try {
+    const chat = await API.createChat({ order_id: orderId, type: chatType });
+    if (chat?.id) {
+      router.go(`/chats/${chat.id}`);
+    }
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 window.renderOrders     = renderOrders;
 window.cancelOrder      = cancelOrder;
 window.confirmReceived  = confirmReceived;
 window.markOrderReady   = markOrderReady;
 window.payOrder         = payOrder;
+window.openOrderChat    = openOrderChat;

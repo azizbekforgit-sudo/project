@@ -403,26 +403,12 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
         pickup_method: 'external',
       });
 
-      // 2. Create delivery request
+      // 2. Select driver as candidate (soft action — no DeliveryRequest created)
       const orderId = order.id || order.order_id;
-      const drResult = await API.createDeliveryRequest({
-        order_id: orderId,
-        courier_user_id: courier.user_id,
-        route_from: from,
-        route_to: to,
-        distance_km: distance,
-        price_per_km: courier.price_per_km || 0,
-        total_price: totalPrice,
-      });
-
-      // 3. Buyer confirms disclaimer
-      const drId = drResult.delivery_request_id;
-      if (drId) {
-        await API.buyerConfirmDelivery(drId);
-      }
+      await API.selectDriverCandidate(orderId, { courier_user_id: courier.user_id });
 
       overlay.remove();
-      showToast('Заказ оформлен! Ожидание подтверждения драйвера.');
+      showToast('Заказ создан! Драйвер выбран как кандидат. Обсудите детали в чате.');
       router.go('/orders');
     } catch (e) {
       showToast(e.message, 'error');

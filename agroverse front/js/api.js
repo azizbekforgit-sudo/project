@@ -215,6 +215,28 @@ const API = {
   rateDeliveryRequest: (id, rating, comment) => request('PATCH', `/api/delivery/request/${id}/rate`, { body: { rating, comment } }),
   getCompletedDeliveries: () => request('GET', '/api/delivery/request/completed'),
   getCourierCompletedDeliveries: (userId) => request('GET', `/api/delivery/couriers/${userId}/completed`),
+
+  // Chats
+  getChats: () => request('GET', '/api/chats'),
+  createChat: (body) => request('POST', '/api/chats', { body }),
+  getChatMessages: (chatId, params) => request('GET', `/api/chats/${chatId}/messages`, { params }),
+  sendMessage: (chatId, body) => request('POST', `/api/chats/${chatId}/messages`, { body }),
+  uploadChatFile: async (chatId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`${BASE_URL}/api/chats/${chatId}/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Ошибка загрузки файла');
+    return res.json();
+  },
+
+  // Driver candidate
+  selectDriverCandidate: (orderId, body) => request('POST', `/api/orders/${orderId}/select-driver-candidate`, { body }),
+  assignDriver: (orderId) => request('POST', `/api/orders/${orderId}/assign-driver`),
 };
 
 API.request = request;

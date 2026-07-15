@@ -35,6 +35,11 @@ class PickupMethod(str, enum.Enum):
     FARMER = "farmer"
     EXTERNAL = "external"
 
+class ChatType(str, enum.Enum):
+    BUYER_FARMER = "buyer_farmer"
+    BUYER_DRIVER = "buyer_driver"
+    DRIVER_FARMER = "driver_farmer"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -94,11 +99,13 @@ class Order(Base):
     pickup_method = Column(String(20), default=PickupMethod.SELF.value)
     status = Column(String(20), default=OrderStatus.CREATED.value)
     delivery_request_id = Column(Integer, ForeignKey("delivery_requests.id"), nullable=True)
+    driver_candidate_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
     xaridor = relationship("User", foreign_keys=[xaridor_id], back_populates="orders_as_xaridor")
     fermer = relationship("User", foreign_keys=[fermer_id], back_populates="orders_as_fermer")
+    driver_candidate = relationship("User", foreign_keys=[driver_candidate_id])
     product = relationship("Product", back_populates="orders")
     review = relationship("Review", back_populates="order", uselist=False)
     delivery_request = relationship(
@@ -270,6 +277,40 @@ class DeliveryRequest(Base):
     buyer   = relationship("User", foreign_keys=[buyer_id])
 
 
+# ─── Chat models ─────────────────────────────────────────────────
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    type = Column(String(20), nullable=False)
+    participant_a_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    participant_b_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String(20), default="active")
+    created_at = Column(DateTime, server_default=func.now())
+
+    order = relationship("Order")
+    participant_a = relationship("User", foreign_keys=[participant_a_id])
+    participant_b = relationship("User", foreign_keys=[participant_b_id])
+    messages = relationship("ChatMessage", back_populates="chat", order_by="ChatMessage.created_at")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(String(20), default="text")
+    content = Column(Text, nullable=False)
+    is_blocked = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    chat = relationship("Chat", back_populates="messages")
+    sender = relationship("User")
+
+
 # Индексы для производительности
 Index("idx_products_status", Product.status)
 Index("idx_products_category", Product.category)
@@ -277,3 +318,7 @@ Index("idx_orders_xaridor", Order.xaridor_id)
 Index("idx_orders_fermer", Order.fermer_id)
 Index("idx_orders_status", Order.status)
 Index("idx_users_role", User.role)
+Index("idx_chats_order", Chat.order_id)
+Index("idx_chats_participant_a", Chat.participant_a_id)
+Index("idx_chats_participant_b", Chat.participant_b_id)
+Index("idx_chat_messages_chat", ChatMessage.chat_id)

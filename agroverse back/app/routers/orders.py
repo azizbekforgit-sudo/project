@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.database import get_db
 from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest
-from app.schemas import OrderCreate, OrderResponse
+from app.schemas import OrderCreate, OrderResponse, DriverCandidateRequest
 from app.dependencies import get_current_user
 from datetime import datetime
 
@@ -127,6 +127,14 @@ async def get_my_orders(
                     "driver_confirmed_disclaimer": dr.driver_confirmed_disclaimer,
                 }
 
+        # Load driver candidate if set
+        driver_candidate_name = None
+        if order.driver_candidate_id:
+            dc_result = await db.execute(select(User).where(User.id == order.driver_candidate_id))
+            dc_user = dc_result.scalar_one_or_none()
+            if dc_user:
+                driver_candidate_name = dc_user.name
+
         orders_response.append(OrderResponse(
             id=order.id,
             product_id=product.id,
@@ -142,6 +150,8 @@ async def get_my_orders(
             pickup_method=getattr(order.pickup_method, "value", order.pickup_method),
             status=order.status,
             delivery_request=delivery_info,
+            driver_candidate_id=order.driver_candidate_id,
+            driver_candidate_name=driver_candidate_name,
             created_at=order.created_at,
             updated_at=order.updated_at
         ))
@@ -321,3 +331,74 @@ async def cancel_order(
     await db.commit()
 
     return {"message": "Заказ отменен", "status": "cancelled"}
+
+
+@router.post("/{order_id}/select-driver-candidate")
+async def select_driver_candidate(
+    order_id: int,
+    data: DriverCandidateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != UserRole.XARIDOR:
+        raise HTTPException(status_code=403, detail="Только покупатель может выбирать кандидата")
+
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order or order.xaridor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+
+    if order.pickup_method != PickupMethod.EXTERNAL:
+        raise HTTPException(status_code=400, detail="Выбор драйвера доступен только для внешней доставки")
+
+    # Verify driver exists and has courier profile
+    driver_result = await db.execute(select(User).where(User.id == data.courier_user_id))
+    driver = driver_result.scalar_one_or_none()
+    if not driver or driver.role != UserRole.COURIER:
+        raise HTTPException(status_code=400, detail="Указан неверный драйвер")
+
+    order.driver_candidate_id = data.courier_user_id
+    await db.commit()
+
+    return {"message": "Драйвер выбран как кандидат", "driver_candidate_id": data.courier_user_id}
+
+
+@router.post("/{order_id}/assign-driver")
+async def assign_driver(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != UserRole.XARIDOR:
+        raise HTTPException(status_code=403, detail="Только покупатель может назначать драйвера")
+
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order or order.xaridor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+
+    if not order.driver_candidate_id:
+        raise HTTPException(status_code=400, detail="Кандидат-драйвер не выбран")
+
+    if order.delivery_request_id:
+        raise HTTPException(status_code=400, detail="Драйвер уже назначен на этот заказ")
+
+    # Create DeliveryRequest (simplified — without route details, those should come from the chat context)
+    dr = DeliveryRequest(
+        order_id=order.id,
+        courier_id=order.driver_candidate_id,
+        buyer_id=current_user.id,
+        route_from="",
+        route_to="",
+        distance_km=0,
+        price_per_km=0,
+        total_price=0,
+        status="pending"
+    )
+    db.add(dr)
+    await db.flush()
+
+    order.delivery_request_id = dr.id
+    await db.commit()
+
+    return {"message": "Драйвер назначен на заказ", "delivery_request_id": dr.id}

@@ -18,6 +18,9 @@ const ROUTES = {
   '/delivery':    { render: renderDelivery,         auth: true },
   '/yulchi':      { render: renderDelivery, auth: true },
   '/courier':     { render: renderDelivery, auth: true },
+
+  // Чаты
+  '/chats':       { render: renderChats,      auth: true },
 };
 
 function getPath() {
@@ -50,6 +53,15 @@ function dispatch() {
     return;
   }
 
+  // Динамический роут чата /chats/:id
+  const chatMatch = path.match(/^\/chats\/([^/]+)$/);
+  if (chatMatch) {
+    if (!Auth.isLoggedIn()) { navigate('/login'); return; }
+    renderChatDetail(chatMatch[1]);
+    afterRender();
+    return;
+  }
+
   const route = ROUTES[path];
 
   if (!route) {
@@ -77,7 +89,7 @@ function dispatch() {
 
   // админа держим в его зоне (главная для админа — /admin)
   if (Auth.isAdmin && Auth.isAdmin()) {
-    const adminAllowed = ['/admin', '/market', '/tariffs'];
+    const adminAllowed = ['/admin', '/market', '/tariffs', '/chats'];
     if (!adminAllowed.includes(path) && !path.startsWith('/product/')) {
       navigate('/admin');
       return;

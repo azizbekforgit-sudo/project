@@ -24,6 +24,7 @@ async function renderAdmin() {
         <button class="admin-tab" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
         <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
         <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
+        <button class="admin-tab" data-tab="chats" onclick="adminSwitchTab('chats')"><i class="fi fi-rr-comment" style="font-size:16px"></i> Чаты</button>
         <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fi fi-sr-chart-mixed" style="font-size:16px"></i> ${t('admin_reports')}</button>
       </div>
 
@@ -248,6 +249,40 @@ async function adminSwitchTab(tab) {
       box.innerHTML = `<div class="empty-state">${e.message}</div>`;
     }
 
+  } else if (tab === 'chats') {
+    // ── Чаты (админ) ──────────────────────────────────────────────────
+    try {
+      const chats = await API.request('GET', '/api/admin/chats');
+      if (!chats || chats.length === 0) {
+        box.innerHTML = `<div class="empty-state">💬 Нет чатов</div>`;
+        return;
+      }
+
+      const typeLabels = { buyer_farmer: 'Покупатель ↔ Фермер', buyer_driver: 'Покупатель ↔ Драйвер', driver_farmer: 'Драйвер ↔ Фермер' };
+
+      box.innerHTML = `
+        <h3 style="margin-bottom:16px;">💬 Чаты (${chats.length})</h3>
+        <div class="admin-list">
+          ${chats.map(c => `
+            <div class="admin-row" style="flex-direction:column;align-items:stretch;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div class="ar-title">${typeLabels[c.type] || c.type} · Заказ #${c.order_id}</div>
+                  <div class="ar-sub">
+                    ${c.participant_a.name} (${c.participant_a.role}) ↔ ${c.participant_b.name} (${c.participant_b.role})
+                    ${c.order_product_title ? ' · ' + c.order_product_title : ''}
+                  </div>
+                  ${c.last_message ? `<div class="ar-sub" style="margin-top:4px;font-style:italic">💬 ${c.last_message.sender_name}: ${(c.last_message.content || '').substring(0, 60)}</div>` : ''}
+                </div>
+                <button class="btn-sm btn-approve" onclick="adminViewChat(${c.id})">👁️ Смотреть</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${e.message}</div>`;
+    }
+
   } else if (tab === 'reports') {
     try {
       const [ordersRes, revenueRes] = await Promise.all([
@@ -440,6 +475,40 @@ async function adminUnblock(id) {
   } catch (e) { showToast(e.message, 'error'); }
 }
 
+async function adminViewChat(chatId) {
+  try {
+    const messages = await API.request('GET', `/api/admin/chats/${chatId}/messages`);
+    const overlay = document.createElement('div');
+    overlay.id = 'admin-chat-modal';
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);animation:fadeIn .2s';
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    const msgHtml = messages.length
+      ? messages.map(m => `
+        <div style="margin-bottom:8px;padding:8px 12px;border-radius:8px;background:${m.sender_id === messages[0]?.sender_id ? '#f0fdf4' : '#f9fafb'}">
+          <div style="font-size:12px;color:#6b7280;margin-bottom:2px"><b>${m.sender_name}</b> · ${m.created_at ? new Date(m.created_at).toLocaleString('ru-RU') : ''}</div>
+          <div style="font-size:14px">${m.is_blocked ? '⚠️ [заблокировано]' : (m.type === 'photo' ? '📷 Фото' : m.type === 'voice' ? '🎤 Голос' : m.content)}</div>
+        </div>
+      `).join('')
+      : '<p style="color:#9ca3af;text-align:center">Нет сообщений</p>';
+
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:600px;width:95%;max-height:80vh;overflow-y:auto;padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h2 style="margin:0;font-size:18px">💬 Просмотр чата #${chatId}</h2>
+          <button onclick="document.getElementById('admin-chat-modal').remove()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+        </div>
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:12px">Режим просмотра (read-only)</div>
+        ${msgHtml}
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 window.renderAdmin          = renderAdmin;
 window.adminSwitchTab       = adminSwitchTab;
 window.adminApprove         = adminApprove;
@@ -449,3 +518,4 @@ window.adminSetRating       = adminSetRating;
 window.adminRejectCourier   = adminRejectCourier;
 window.adminBlock           = adminBlock;
 window.adminUnblock         = adminUnblock;
+window.adminViewChat        = adminViewChat;
