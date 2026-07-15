@@ -234,6 +234,11 @@ window.startBlockHeartbeat = startBlockHeartbeat;
 /* WebSocket handler для unread badge в навбаре */
 function initChatBadgeWS() {
   if (typeof ChatWS === 'undefined') return;
+  // afterRender() вызывается на каждой навигации — без этого флага сюда
+  // навешивался бы новый обработчик 'new_message' при каждом переходе
+  // между страницами, и бейдж пересчитывался бы по многу раз на одно сообщение.
+  if (window.__chatBadgeWsInit) return;
+  window.__chatBadgeWsInit = true;
 
   // Обновляем бейдж при новом сообщении
   ChatWS.on('new_message', (data) => {

@@ -213,7 +213,7 @@ async def create_product(
         unit=unit,
         quantity_available=quantity_available,
         delivery_available=delivery_available,
-        status=ProductStatus.PENDING
+        status=ProductStatus.ACTIVE
     )
     db.add(new_product)
     await db.commit()

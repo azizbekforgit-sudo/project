@@ -20,8 +20,7 @@ async function renderAdmin() {
       </div>
 
       <div class="admin-tabs">
-        <button class="admin-tab active" data-tab="moderation" onclick="adminSwitchTab('moderation')"><i class="fi fi-sr-id" style="font-size:16px"></i> ${t('admin_moderation')}</button>
-        <button class="admin-tab" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
+        <button class="admin-tab active" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
         <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
         <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
         <button class="admin-tab" data-tab="chats" onclick="adminSwitchTab('chats')"><i class="fi fi-rr-comment" style="font-size:16px"></i> Чаты</button>
@@ -33,7 +32,7 @@ async function renderAdmin() {
   `);
 
   loadAdminStats();
-  adminSwitchTab('moderation');
+  adminSwitchTab('topups');
 }
 
 async function loadAdminStats() {
@@ -75,35 +74,7 @@ async function adminSwitchTab(tab) {
   const box = document.getElementById('admin-content');
   box.innerHTML = '<div class="spinner"></div>';
 
-  if (tab === 'moderation') {
-    try {
-      const res = await API.adminPendingProducts();
-      const pending = res?.products ?? (Array.isArray(res) ? res : []);
-      if (!pending || pending.length === 0) {
-        box.innerHTML = `<div class="empty-state">${fe('✅',40)} ${t('no_pending')}</div>`;
-        return;
-      }
-      box.innerHTML = `
-        <h3 style="margin-bottom:16px;">${t('pending_products')}</h3>
-        <div class="admin-list">
-          ${pending.map(p => `
-            <div class="admin-row" id="prow-${p.id}">
-              <div class="ar-main">
-                <div class="ar-title">${p.title}</div>
-                <div class="ar-sub">${p.category || ''} · ${p.price_per_unit ?? p.price ?? 0} ${t('currency')} · ${fe('🌱',14)} ${p.fermer_name || ''}</div>
-              </div>
-              <div class="ar-actions">
-                <button class="btn-sm btn-approve" onclick="adminApprove(${p.id})">✓ ${t('approve')}</button>
-                <button class="btn-sm btn-reject" onclick="adminReject(${p.id})">✕ ${t('reject')}</button>
-              </div>
-            </div>
-          `).join('')}
-        </div>`;
-    } catch (e) {
-      box.innerHTML = `<div class="empty-state">${e.message}</div>`;
-    }
-
-  } else if (tab === 'topups') {
+  if (tab === 'topups') {
     // ── Пополнения кошелька ──────────────────────────────────────────────────
     try {
       const topups = await API.adminPendingTopups();
@@ -307,26 +278,6 @@ async function adminSwitchTab(tab) {
 
 function roleIcon(r) { return r === 'fermer' ? '<i class="fi fi-sr-leaf" style="font-size:16px"></i>' : r === 'admin' ? '<i class="fi fi-sr-crown" style="font-size:16px"></i>' : '<i class="fi fi-sr-shopping-bag" style="font-size:16px"></i>'; }
 
-// ─── Product moderation ────────────────────────────────────────────────────────
-
-async function adminApprove(id) {
-  try {
-    await API.adminApproveProduct(id);
-    document.getElementById('prow-' + id)?.remove();
-    showToast(t('approve') + ' ✓', 'success');
-    loadAdminStats();
-  } catch (e) { showToast(e.message, 'error'); }
-}
-
-async function adminReject(id) {
-  try {
-    await API.adminRejectProduct(id);
-    document.getElementById('prow-' + id)?.remove();
-    showToast(t('reject') + ' ✓', 'success');
-    loadAdminStats();
-  } catch (e) { showToast(e.message, 'error'); }
-}
-
 // ─── Courier approval ─────────────────────────────────────────────────────────
 
 async function adminApproveCourier(id) {
@@ -511,8 +462,6 @@ async function adminViewChat(chatId) {
 
 window.renderAdmin          = renderAdmin;
 window.adminSwitchTab       = adminSwitchTab;
-window.adminApprove         = adminApprove;
-window.adminReject          = adminReject;
 window.adminApproveCourier  = adminApproveCourier;
 window.adminSetRating       = adminSetRating;
 window.adminRejectCourier   = adminRejectCourier;

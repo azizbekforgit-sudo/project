@@ -263,8 +263,15 @@ const ChatWS = {
     const token = Auth.getToken();
     if (!token) return;
 
-    const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${location.host}/ws?token=${token}`;
+    // ВАЖНО: сокет должен идти на адрес БЭКЕНДА (BASE_URL), а не на адрес
+    // страницы фронтенда (location.host). Раньше подключались к location.host,
+    // из-за чего при открытии index.html как файла (file://) или при раздаче
+    // фронта с другого хоста/порта сокет уходил в никуда, и сообщения
+    // появлялись только после ручной перезагрузки (обычный fetch с BASE_URL
+    // при этом работал нормально, поэтому баг был незаметен на первый взгляд).
+    const wsProtocol = BASE_URL.startsWith('https') ? 'wss:' : 'ws:';
+    const wsHost = BASE_URL.replace(/^https?:\/\//, '');
+    const wsUrl = `${wsProtocol}//${wsHost}/ws?token=${token}`;
 
     try {
       this.socket = new WebSocket(wsUrl);
