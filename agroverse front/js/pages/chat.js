@@ -4,6 +4,7 @@ let _chatPollingInterval = null;
 let _chatCurrentId = null;
 let _chatLastMessageId = 0;
 let _chatWsHandler = null;
+let _chatPollTimer = null;
 
 async function renderChatDetail(chatId) {
   _chatCurrentId = chatId;
@@ -280,9 +281,15 @@ function setupChatInput(chatId, chat) {
 }
 
 function startChatPolling(chatId) {
-  // WebSocket handler для новых сообщений в этом чате
+  // Останавливаем предыдущий polling
   stopChatPolling();
 
+  // --- HTTP-polling: подтягиваем новые сообщения каждые 3 сек ---
+  _chatPollTimer = setInterval(() => {
+    if (_chatCurrentId) loadNewMessages(_chatCurrentId);
+  }, 3000);
+
+  // --- WebSocket handler для мгновенной доставки ---
   function onNewMessage(data) {
     if (data.chat_id != _chatCurrentId) return;
     const user = Auth.getUser();
@@ -299,9 +306,15 @@ function startChatPolling(chatId) {
     const empty = container.querySelector('.chat-empty');
     if (empty) empty.remove();
 
+    // Проверяем не дублируем ли (polling мог уже подтянуть)
+    if (msg.id && msg.id <= _chatLastMessageId) return;
+
     const html = messageHtml(msg, false);
     container.insertAdjacentHTML('beforeend', html);
     container.scrollTop = container.scrollHeight;
+
+    // Обновляем last ID чтобы polling не задублил
+    if (msg.id) _chatLastMessageId = Math.max(_chatLastMessageId, msg.id);
   }
 
   _chatWsHandler = onNewMessage;
@@ -311,6 +324,12 @@ function startChatPolling(chatId) {
 }
 
 function stopChatPolling() {
+  // Останавливаем HTTP-polling
+  if (_chatPollTimer) {
+    clearInterval(_chatPollTimer);
+    _chatPollTimer = null;
+  }
+  // Отписываем WS handler
   if (_chatWsHandler && typeof ChatWS !== 'undefined') {
     ChatWS.off('new_message', _chatWsHandler);
   }

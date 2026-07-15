@@ -6,6 +6,7 @@ from app.models import User, Product, Order, BonusTransaction, UserRole, OrderSt
 from app.schemas import OrderCreate, OrderResponse, DriverCandidateRequest
 from app.dependencies import get_current_user
 from datetime import datetime
+from decimal import Decimal
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -448,16 +449,17 @@ async def pay_driver(
         raise HTTPException(status_code=400, detail="Стоимость доставки не указана")
 
     # Проверяем баланс покупателя
-    if current_user.wallet_balance < dr.total_price:
+    price = Decimal(str(dr.total_price))
+    if current_user.wallet_balance < price:
         raise HTTPException(status_code=400, detail=f"Недостаточно средств. Нужно: {dr.total_price} сум")
 
     # Списываем с покупателя
-    current_user.wallet_balance -= dr.total_price
+    current_user.wallet_balance -= price
 
     # Начисляем драйверу
     driver_result = await db.execute(select(User).where(User.id == dr.courier_id))
     driver = driver_result.scalar_one()
-    driver.wallet_balance += dr.total_price
+    driver.wallet_balance += price
 
     # Бонусы
     buyer_bonus = BonusTransaction(
