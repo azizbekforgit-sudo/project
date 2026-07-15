@@ -66,7 +66,7 @@ class User(Base):
 
 class Product(Base):
     __tablename__ = "products"
-    
+
     id = Column(Integer, primary_key=True)
     fermer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String(200), nullable=False)
@@ -76,6 +76,7 @@ class Product(Base):
     unit = Column(String(20), nullable=False)
     quantity_available = Column(Numeric(10, 2), nullable=False)
     delivery_available = Column(Boolean, default=False)
+    pickup_location = Column(String(300), nullable=True)
     photos = Column(JSON, default=list)
     certificates = Column(JSON, default=list)
     status = Column(String(20), default=ProductStatus.PENDING.value)

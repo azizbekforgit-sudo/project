@@ -30,66 +30,123 @@ async function renderProduct(id) {
     const p = await API.getProduct(id);
     const emoji = CAT_EMOJI[p.category] || 'fi fi-sr-leaf';
     const emojiHtml = `<i class="${emoji}" style="font-size:20px"></i>`;
+    const photos = p.images || p.photos || [];
+    const hasPhotos = photos.length > 0;
+    const photoSrc = hasPhotos ? (photos[0].startsWith('http') ? photos[0] : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + photos[0]) : '';
 
-    // Build radio buttons conditionally
+    // Pickup location
+    const locationHtml = p.pickup_location ? `
+      <div class="pd-info-row">
+        <div class="pd-info-icon"><i class="fi fi-rr-map-marker"></i></div>
+        <div>
+          <div class="pd-info-label">Место получения</div>
+          <div class="pd-info-value">${p.pickup_location}</div>
+        </div>
+      </div>
+    ` : '';
+
+    // Delivery available badge
+    const deliveryBadge = p.delivery_available
+      ? `<span class="pd-badge pd-badge-green"><i class="fi fi-rr-truck-side"></i> Доставка от фермера</span>`
+      : '';
+
+    // Build radio buttons for pickup
     let radiosHtml = `<label class="radio-label"><input type="radio" name="pickup" value="self" checked /> <i class="fi fi-rr-car-side"></i> ${t('pickup_self')}</label>`;
     if (p.delivery_available) {
       radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="farmer" /> <i class="fi fi-rr-tractor"></i> ${t('pickup_farmer')}</label>`;
     }
     radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="external" /> <i class="fi fi-rr-box-alt"></i> ${t('pickup_ext')}</label>`;
 
+    // Farmer info card
+    const farmerHtml = `
+      <div class="pd-farmer-card">
+        <div class="pd-farmer-avatar">
+          <i class="fi fi-sr-leaf"></i>
+        </div>
+        <div class="pd-farmer-info">
+          <div class="pd-farmer-label">Фермер</div>
+          <div class="pd-farmer-name">${p.fermer_name || 'Фермер'}</div>
+          <div class="pd-farmer-rating">${starsHtml(p.rating)} <span>${p.rating ? p.rating.toFixed(1) : '0.0'}</span></div>
+        </div>
+      </div>
+    `;
+
+    // Order panel for buyer
     const orderPanel = isBuyer ? `
-      <div class="order-panel card">
-        <h3>${t('order_form_title')}</h3>
-        <div id="order-error" class="form-error hidden"></div>
-        <div class="form-group">
-          <label for="qty">${t('qty_label')} (${p.unit || t('unit_kg') || 'kg'})</label>
-          <input type="number" id="qty" value="1" min="1" max="${p.quantity || 9999}" />
+      <div class="pd-order-panel">
+        <div class="pd-order-title">Оформление заказа</div>
+        <div class="pd-order-row">
+          <label>Количество (${p.unit || 'кг'})</label>
+          <input type="number" id="qty" value="1" min="1" max="${p.quantity || 9999}" class="pd-qty-input" />
         </div>
-        <div class="form-group">
-          <label>${t('pickup_label')}</label>
-          <div class="radio-col">
-            ${radiosHtml}
-          </div>
+        <div class="pd-order-row">
+          <label>Способ получения</label>
+          <div class="pd-radio-col">${radiosHtml}</div>
         </div>
-        <div class="order-total">
-          <span>${t('order_total')}</span>
-          <b id="total-price">${Number(p.price).toLocaleString('ru')} ${t('currency') || 'sum'}</b>
+        <div class="pd-order-total">
+          <span>Итого</span>
+          <b id="total-price">${Number(p.price).toLocaleString('ru')} ${t('currency') || 'сум'}</b>
         </div>
-        <button class="btn btn-primary btn-full" id="order-btn">${t('btn_order')}</button>
-        <button class="btn btn-ghost btn-full" id="cart-btn"><i class="fi fi-rr-shopping-bag"></i> ${t('btn_cart')}</button>
+        <button class="btn btn-primary btn-full pd-btn-main" id="order-btn">
+          <i class="fi fi-sr-credit-card"></i> Оплатить
+        </button>
+        <button class="btn btn-ghost btn-full pd-btn-cart" id="cart-btn">
+          <i class="fi fi-rr-shopping-bag"></i> В корзину
+        </button>
       </div>
     ` : `
-      <div class="order-panel card">
-        <h3>${t('product_info_title')}</h3>
-        <div class="meta-row"><span><i class="fi fi-rr-box-alt"></i> ${t('in_stock')}</span><b>${p.quantity} ${p.unit || 'kg'}</b></div>
-        <div class="meta-row"><span><i class="fi fi-rr-chart-histogram"></i> ${t('item_status_label')}</span><b>${p.status === 'pending' ? t('item_status_pending') : t('item_status_active')}</b></div>
-        <div class="meta-row"><span><i class="fi fi-rr-tag"></i> ${t('category') || 'Kategoriya'}</span><b>${p.category || '—'}</b></div>
-        <p class="hint" style="margin-top:14px">${t('farmer_hint')}</p>
+      <div class="pd-order-panel">
+        <div class="pd-order-title">Информация о товаре</div>
+        <div class="pd-info-row">
+          <div class="pd-info-icon"><i class="fi fi-rr-box-alt"></i></div>
+          <div>
+            <div class="pd-info-label">В наличии</div>
+            <div class="pd-info-value">${p.quantity} ${p.unit || 'кг'}</div>
+          </div>
+        </div>
+        <div class="pd-info-row">
+          <div class="pd-info-icon"><i class="fi fi-rr-tag"></i></div>
+          <div>
+            <div class="pd-info-label">Категория</div>
+            <div class="pd-info-value">${p.category || '—'}</div>
+          </div>
+        </div>
+        ${locationHtml}
       </div>
     `;
 
     content.innerHTML = `
-      <div class="product-detail-layout">
-        <div class="product-gallery">
-          ${p.images?.length
-            ? `<img src="${p.images[0]}" alt="${p.name}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'gallery-ph'}))" />`
-            : `<div class="gallery-ph">${emojiHtml}</div>`}
+      <div class="pd-layout">
+        <!-- Левая колонка: инфо -->
+        <div class="pd-main">
+          <!-- Фото -->
+          <div class="pd-photo-block">
+            ${hasPhotos
+              ? `<img src="${photoSrc}" alt="${p.name}" class="pd-photo" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pd-photo-placeholder'}))" />`
+              : `<div class="pd-photo-placeholder">${emojiHtml}</div>`}
+            <span class="pd-cat-badge">${emojiHtml} ${p.category || ''}</span>
+          </div>
 
-          <span class="pi-cat">${emojiHtml} ${p.category || ''}</span>
-          <h1>${p.name}</h1>
-          <div class="price-big">${Number(p.price).toLocaleString('ru')} <small>${t('currency') || 'sum'} / ${p.unit || 'kg'}</small></div>
-          <div class="pi-rating">${starsHtml(p.rating)}</div>
-          <p class="description">${p.description || t('no_desc')}</p>
-          <div class="farmer-block">
-            <div class="fb-ava"><i class="fi fi-sr-leaf"></i></div>
-            <div>
-              <div class="fb-label">${t('farmer_label')}</div>
-              <div class="fb-name">${p.fermer_name || t('farmer_label')}</div>
+          <!-- Инфо о товаре -->
+          <div class="pd-info-block">
+            <h1 class="pd-title">${p.name}</h1>
+            <div class="pd-price-row">
+              <div class="pd-price">${Number(p.price).toLocaleString('ru')} <small>${t('currency') || 'сум'} / ${p.unit || 'кг'}</small></div>
+              ${deliveryBadge}
             </div>
+            <div class="pd-desc">
+              <div class="pd-desc-title">Описание</div>
+              <p>${p.description || 'Описание не указано'}</p>
+            </div>
+            ${locationHtml}
+            ${farmerHtml}
           </div>
         </div>
-        ${orderPanel}
+
+        <!-- Правая колонка: заказ / инфо -->
+        <div class="pd-sidebar">
+          ${orderPanel}
+        </div>
       </div>
     `;
 
@@ -98,7 +155,7 @@ async function renderProduct(id) {
       document.getElementById('qty')?.addEventListener('input', () => {
         const qty = parseFloat(document.getElementById('qty').value) || 1;
         document.getElementById('total-price').textContent =
-          `${(qty * Number(p.price)).toLocaleString('ru')} ${t('currency') || 'sum'}`;
+          `${(qty * Number(p.price)).toLocaleString('ru')} ${t('currency') || 'сум'}`;
       });
 
       // Add to cart
@@ -112,10 +169,8 @@ async function renderProduct(id) {
       document.getElementById('order-btn')?.addEventListener('click', async () => {
         const quantity = parseInt(document.getElementById('qty').value) || 1;
         const pickup_method = document.querySelector('input[name="pickup"]:checked')?.value || 'self';
-        const errBox = document.getElementById('order-error');
         const btn = document.getElementById('order-btn');
 
-        // If external delivery selected, open driver picker instead
         if (pickup_method === 'external') {
           showDriverPickerModal(p, quantity);
           return;
@@ -123,16 +178,14 @@ async function renderProduct(id) {
 
         btn.disabled = true;
         btn.textContent = t('ordering_btn');
-        errBox.classList.add('hidden');
         try {
           await API.createOrder({ product_id: Number(id), quantity, pickup_method });
           showToast(t('order_success'));
           router.go('/orders');
         } catch (e) {
-          errBox.textContent = e.message;
-          errBox.classList.remove('hidden');
+          showToast(e.message, 'error');
           btn.disabled = false;
-          btn.textContent = t('btn_order');
+          btn.textContent = 'Оплатить';
         }
       });
     }
@@ -252,14 +305,12 @@ function driverCardHtml(c, from, to, product, quantity) {
 // ─── Driver Profile Modal + Calculator ──────────────────────────────────
 
 async function showDriverProfileModal(courier, from, to, product, quantity) {
-  // Remove picker modal
   const picker = document.getElementById('driver-picker-modal');
   if (picker) picker.remove();
 
   const existing = document.getElementById('driver-profile-modal');
   if (existing) existing.remove();
 
-  // Calculate distance
   let distance = 0;
   let totalPrice = 0;
   try {
@@ -325,7 +376,6 @@ async function showDriverProfileModal(courier, from, to, product, quantity) {
 
   document.body.appendChild(overlay);
 
-  // Select driver → show disclaimer
   document.getElementById('dp-select-btn').addEventListener('click', () => {
     showDisclaimerModal(courier, from, to, product, quantity, distance, totalPrice);
   });
@@ -396,12 +446,10 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
     confirmBtn.textContent = 'Оформление...';
 
     try {
-      // Проверяем, это смена драйвера для существующего заказа?
       const existingOrderId = sessionStorage.getItem('av_change_driver_order_id');
 
       let orderId;
       if (existingOrderId) {
-        // Обновляем кандидата в существующем заказе
         orderId = parseInt(existingOrderId);
         await API.selectDriverCandidate(orderId, {
           courier_user_id: courier.user_id,
@@ -414,7 +462,6 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
         overlay.remove();
         showToast('Новый драйвер выбран! Обсудите детали в чате.');
       } else {
-        // Создаём новый заказ
         const order = await API.createOrder({
           product_id: product.id,
           quantity: quantity,

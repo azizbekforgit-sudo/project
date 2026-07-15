@@ -94,6 +94,7 @@ async def get_products(
             rating=product.rating,
             status=product.status,
             delivery_available=product.delivery_available or False,
+            pickup_location=getattr(product, 'pickup_location', '') or '',
             created_at=product.created_at
         ))
 
@@ -131,6 +132,7 @@ async def get_my_products(
             rating=product.rating,
             status=product.status,
             delivery_available=product.delivery_available or False,
+            pickup_location=getattr(product, 'pickup_location', '') or '',
             created_at=product.created_at
         ))
 
@@ -165,6 +167,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         rating=product.rating,
         status=product.status,
         delivery_available=product.delivery_available or False,
+        pickup_location=getattr(product, 'pickup_location', '') or '',
         created_at=product.created_at
     )
 
@@ -177,6 +180,7 @@ async def create_product(
     unit: str = Form(...),
     quantity_available: float = Form(...),
     delivery_available: bool = Form(False),
+    pickup_location: str = Form(""),
     photos: List[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_fermer),
     db: AsyncSession = Depends(get_db)
@@ -213,6 +217,7 @@ async def create_product(
         unit=unit,
         quantity_available=quantity_available,
         delivery_available=delivery_available,
+        pickup_location=pickup_location or "",
         status=ProductStatus.ACTIVE
     )
     db.add(new_product)
@@ -292,6 +297,7 @@ async def update_product(
         rating=product.rating,
         status=product.status,
         delivery_available=product.delivery_available or False,
+        pickup_location=getattr(product, 'pickup_location', '') or '',
         created_at=product.created_at
     )
 

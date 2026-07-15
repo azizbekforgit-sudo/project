@@ -372,6 +372,11 @@ function renderProductNew() {
               <label>${t('pn_qty')} <span class="req">*</span></label>
               <input type="number" id="pn-quantity" placeholder="0" min="0" class="pn-input" />
             </div>
+            <div class="pn-field">
+              <label>${t('pn_location') || 'Место откуда забирать'} <span class="req">*</span></label>
+              <input type="text" id="pn-location" placeholder="${t('pn_location_ph') || 'Например: Ташкент, Яккасарайский р-н, ул. Бабура 45'}" class="pn-input" maxlength="200" />
+              <span class="pn-hint">${t('pn_location_hint') || 'Город и адрес, где покупатель сможет забрать товар'}</span>
+            </div>
             <div class="pn-field" style="margin-top:12px">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
                 <input type="checkbox" id="pn-delivery" style="width:18px;height:18px;accent-color:#059669" />
@@ -491,7 +496,7 @@ function renderProductNew() {
   });
 
   // Input error clear
-  ['pn-name','pn-price','pn-quantity'].forEach(id => {
+  ['pn-name','pn-price','pn-quantity','pn-location'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', (e) => e.target.classList.remove('error'));
   });
 
@@ -522,6 +527,7 @@ function renderProductNew() {
     if (!name)     { document.getElementById('pn-name').classList.add('error'); valid = false; }
     if (!price)    { document.getElementById('pn-price').classList.add('error'); valid = false; }
     if (!quantity) { document.getElementById('pn-quantity').classList.add('error'); valid = false; }
+    if (!document.getElementById('pn-location')?.value.trim()) { document.getElementById('pn-location').classList.add('error'); valid = false; }
     if (!category) {
       document.querySelectorAll('.pn-cat-chip').forEach(c => {
         c.classList.add('error-pulse');
@@ -548,6 +554,7 @@ function renderProductNew() {
       fd.append('unit', unit);
       fd.append('quantity_available', parseInt(quantity));
       fd.append('delivery_available', document.getElementById('pn-delivery')?.checked || false);
+      fd.append('pickup_location', document.getElementById('pn-location')?.value?.trim() || '');
       Array.from(files).forEach(f => fd.append('photos', f));
 
       await API.createProduct(fd);

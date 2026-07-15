@@ -83,6 +83,7 @@ class ProductResponse(BaseModel):
     rating: float
     status: ProductStatus
     delivery_available: bool = False
+    pickup_location: str = ""
     created_at: datetime
 
 

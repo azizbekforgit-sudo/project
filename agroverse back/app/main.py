@@ -234,6 +234,9 @@ END $$;
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100)")
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS plain_password VARCHAR(255)")
 
+        # ── Product: pickup_location ──
+        await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_location VARCHAR(300) DEFAULT ''")
+
         # ── DeliveryRequest: rating columns ──
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_rating INTEGER")
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_comment TEXT")
