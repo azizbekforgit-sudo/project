@@ -152,6 +152,10 @@ async def get_my_orders(
             delivery_request=delivery_info,
             driver_candidate_id=order.driver_candidate_id,
             driver_candidate_name=driver_candidate_name,
+            delivery_route_from=order.delivery_route_from,
+            delivery_route_to=order.delivery_route_to,
+            delivery_distance_km=order.delivery_distance_km,
+            delivery_price=order.delivery_price,
             created_at=order.created_at,
             updated_at=order.updated_at
         ))
@@ -358,6 +362,10 @@ async def select_driver_candidate(
         raise HTTPException(status_code=400, detail="Указан неверный драйвер")
 
     order.driver_candidate_id = data.courier_user_id
+    order.delivery_route_from = data.route_from
+    order.delivery_route_to = data.route_to
+    order.delivery_distance_km = data.distance_km
+    order.delivery_price = data.total_price
     await db.commit()
 
     return {"message": "Драйвер выбран как кандидат", "driver_candidate_id": data.courier_user_id}
@@ -402,3 +410,30 @@ async def assign_driver(
     await db.commit()
 
     return {"message": "Драйвер назначен на заказ", "delivery_request_id": dr.id}
+
+
+@router.post("/{order_id}/clear-driver-candidate")
+async def clear_driver_candidate(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != UserRole.XARIDOR:
+        raise HTTPException(status_code=403, detail="Только покупатель может менять кандидата")
+
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order or order.xaridor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+
+    if order.delivery_request_id:
+        raise HTTPException(status_code=400, detail="Нельзя сменить драйвера — уже назначен на доставку")
+
+    order.driver_candidate_id = None
+    order.delivery_route_from = None
+    order.delivery_route_to = None
+    order.delivery_distance_km = None
+    order.delivery_price = None
+    await db.commit()
+
+    return {"message": "Кандидат-драйвер снят"}

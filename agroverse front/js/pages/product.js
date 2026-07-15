@@ -405,7 +405,13 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
 
       // 2. Select driver as candidate (soft action — no DeliveryRequest created)
       const orderId = order.id || order.order_id;
-      await API.selectDriverCandidate(orderId, { courier_user_id: courier.user_id });
+      await API.selectDriverCandidate(orderId, {
+        courier_user_id: courier.user_id,
+        route_from: from,
+        route_to: to,
+        distance_km: distance,
+        total_price: totalPrice
+      });
 
       overlay.remove();
       showToast('Заказ создан! Драйвер выбран как кандидат. Обсудите детали в чате.');

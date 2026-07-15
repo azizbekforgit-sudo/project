@@ -119,6 +119,14 @@ function orderCardHtml(o, isFermer) {
   // Driver candidate info
   let candidateHtml = '';
   if (o.driver_candidate_id && !o.delivery_request) {
+    const routeInfo = o.delivery_route_from && o.delivery_route_to
+      ? `<div style="font-size:13px;color:#374151;margin-top:6px">
+           📍 ${o.delivery_route_from} → ${o.delivery_route_to}
+           ${o.delivery_distance_km ? ` &nbsp;|&nbsp; 📏 ${o.delivery_distance_km} км` : ''}
+         </div>
+         ${o.delivery_price ? `<div style="font-size:13px;color:#059669;font-weight:600;margin-top:4px">💰 ${Number(o.delivery_price).toLocaleString()} сум</div>` : ''}`
+      : '';
+
     candidateHtml = `
       <div style="background:#eff6ff;border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-top:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -128,6 +136,7 @@ function orderCardHtml(o, isFermer) {
         <div style="font-size:13px;color:#374151">
           👤 ${o.driver_candidate_name || 'Драйвер'}
         </div>
+        ${routeInfo}
       </div>
     `;
   }
@@ -195,6 +204,7 @@ function orderCardHtml(o, isFermer) {
         ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
         ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
         ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
+        ${(!isFermer && o.driver_candidate_id && !o.delivery_request && o.pickup_method === 'external') ? `<button class="btn btn-ghost btn-sm" onclick="changeDriver(${o.id})"><i class="fi fi-rr-refresh" style="font-size:14px"></i> Сменить драйвера</button>` : ''}
       </div>
     </div>
   `;
@@ -273,9 +283,21 @@ async function openOrderChat(orderId, chatType) {
   }
 }
 
+async function changeDriver(orderId) {
+  if (!confirm('Снять текущего кандидата-драйвера? Вы сможете выбрать нового через карточку товара.')) return;
+  try {
+    await API.clearDriverCandidate(orderId);
+    showToast('Кандидат-драйвер снят. Выберите нового через "Заказать доставку"');
+    loadOrdersList();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 window.renderOrders     = renderOrders;
 window.cancelOrder      = cancelOrder;
 window.confirmReceived  = confirmReceived;
 window.markOrderReady   = markOrderReady;
 window.payOrder         = payOrder;
 window.openOrderChat    = openOrderChat;
+window.changeDriver     = changeDriver;

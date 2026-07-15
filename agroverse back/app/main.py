@@ -164,6 +164,10 @@ async def lifespan(app: FastAPI):
             ("courier_profiles", "price_per_km", "FLOAT DEFAULT 0"),
             ("orders", "delivery_request_id", "INTEGER"),
             ("orders", "driver_candidate_id", "INTEGER"),
+            ("orders", "delivery_route_from", "VARCHAR(200)"),
+            ("orders", "delivery_route_to", "VARCHAR(200)"),
+            ("orders", "delivery_distance_km", "FLOAT"),
+            ("orders", "delivery_price", "FLOAT"),
         ]
         for table, column, coltype in missing_columns:
             async with conn.begin_nested():

@@ -100,6 +100,10 @@ class Order(Base):
     status = Column(String(20), default=OrderStatus.CREATED.value)
     delivery_request_id = Column(Integer, ForeignKey("delivery_requests.id"), nullable=True)
     driver_candidate_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    delivery_route_from = Column(String(200), nullable=True)
+    delivery_route_to = Column(String(200), nullable=True)
+    delivery_distance_km = Column(Float, nullable=True)
+    delivery_price = Column(Float, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     

@@ -238,6 +238,7 @@ const API = {
   // Driver candidate
   selectDriverCandidate: (orderId, body) => request('POST', `/api/orders/${orderId}/select-driver-candidate`, { body }),
   assignDriver: (orderId) => request('POST', `/api/orders/${orderId}/assign-driver`),
+  clearDriverCandidate: (orderId) => request('POST', `/api/orders/${orderId}/clear-driver-candidate`),
 };
 
 API.request = request;

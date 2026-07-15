@@ -118,6 +118,10 @@ class OrderResponse(BaseModel):
     delivery_request: Optional[dict] = None
     driver_candidate_id: Optional[int] = None
     driver_candidate_name: Optional[str] = None
+    delivery_route_from: Optional[str] = None
+    delivery_route_to: Optional[str] = None
+    delivery_distance_km: Optional[float] = None
+    delivery_price: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 
@@ -234,6 +238,10 @@ class ChatMessageResponse(BaseModel):
 
 class DriverCandidateRequest(BaseModel):
     courier_user_id: int
+    route_from: Optional[str] = None
+    route_to: Optional[str] = None
+    distance_km: Optional[float] = None
+    total_price: Optional[float] = None
 
 
 class OrderResponseExtended(BaseModel):
