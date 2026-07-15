@@ -5,6 +5,7 @@ let _chatCurrentId = null;
 let _chatLastMessageId = 0;
 let _chatWsHandler = null;
 let _chatPollTimer = null;
+let _chatIsRefreshing = false;
 
 async function renderChatDetail(chatId) {
   _chatCurrentId = chatId;
@@ -160,31 +161,56 @@ async function loadMessages(chatId, before = null) {
   }
 }
 
-async function loadNewMessages(chatId) {
+async function softRefreshChat(chatId) {
+  if (_chatIsRefreshing) return;
   const container = document.getElementById('chat-messages');
   if (!container) return;
 
+  _chatIsRefreshing = true;
   try {
     const messages = await API.getChatMessages(chatId, { limit: 50 });
-    if (!messages?.length) return;
+    if (!messages?.length) {
+      _chatIsRefreshing = false;
+      return;
+    }
 
     const user = Auth.getUser();
+    const html = messages.map(m => messageHtml(m, m.sender_id === user.id)).join('');
 
-    // Filter messages that are newer than our last known message
-    const newMessages = _chatLastMessageId > 0
-      ? messages.filter(m => m.id > _chatLastMessageId)
-      : [];
+    // Сохраняем состояние до обновления
+    const input = document.getElementById('chat-input');
+    const savedValue = input ? input.value : '';
+    const savedSelectionStart = input ? input.selectionStart : 0;
+    const savedSelectionEnd = input ? input.selectionEnd : 0;
+    const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+    const prevScrollTop = container.scrollTop;
 
-    if (newMessages.length === 0) return;
+    // Обновляем DOM
+    container.innerHTML = html;
 
-    const html = newMessages.map(m => messageHtml(m, m.sender_id === user.id)).join('');
-    container.insertAdjacentHTML('beforeend', html);
-    container.scrollTop = container.scrollHeight;
+    // Восстанавливаем скролл
+    if (wasAtBottom) {
+      container.scrollTop = container.scrollHeight;
+    } else {
+      container.scrollTop = prevScrollTop;
+    }
 
-    // Update the last known message ID
-    _chatLastMessageId = Math.max(...messages.map(m => m.id));
+    // Восстанавливаем ввод
+    if (input && savedValue) {
+      input.value = savedValue;
+      try {
+        input.setSelectionRange(savedSelectionStart, savedSelectionEnd);
+      } catch (_) {}
+    }
+
+    // Обновляем last ID
+    if (messages.length) {
+      _chatLastMessageId = Math.max(...messages.map(m => m.id));
+    }
   } catch (e) {
-    // Silent fail for polling
+    // тихий fail
+  } finally {
+    _chatIsRefreshing = false;
   }
 }
 
@@ -281,40 +307,24 @@ function setupChatInput(chatId, chat) {
 }
 
 function startChatPolling(chatId) {
-  // Останавливаем предыдущий polling
   stopChatPolling();
 
-  // --- HTTP-polling: подтягиваем новые сообщения каждые 3 сек ---
+  // Soft-refresh каждые 2 секунды — перезагружает все сообщения,
+  // сохраняя ввод и позицию скролла
   _chatPollTimer = setInterval(() => {
-    if (_chatCurrentId) loadNewMessages(_chatCurrentId);
-  }, 3000);
+    if (_chatCurrentId) softRefreshChat(_chatCurrentId);
+  }, 2000);
 
-  // --- WebSocket handler для мгновенной доставки ---
+  // WebSocket handler для мгновенной доставки (бонус)
   function onNewMessage(data) {
     if (data.chat_id != _chatCurrentId) return;
     const user = Auth.getUser();
     const msg = data.message;
     if (!msg) return;
-
-    // Не дублируем自己的 сообщения (они уже отрисованы optimistically)
     if (msg.sender_id === user?.id) return;
 
-    const container = document.getElementById('chat-messages');
-    if (!container) return;
-
-    // Убираем "Начните общение" если есть
-    const empty = container.querySelector('.chat-empty');
-    if (empty) empty.remove();
-
-    // Проверяем не дублируем ли (polling мог уже подтянуть)
-    if (msg.id && msg.id <= _chatLastMessageId) return;
-
-    const html = messageHtml(msg, false);
-    container.insertAdjacentHTML('beforeend', html);
-    container.scrollTop = container.scrollHeight;
-
-    // Обновляем last ID чтобы polling не задублил
-    if (msg.id) _chatLastMessageId = Math.max(_chatLastMessageId, msg.id);
+    // При WS-событии тоже делаем soft-refresh для надёжности
+    softRefreshChat(_chatCurrentId);
   }
 
   _chatWsHandler = onNewMessage;
