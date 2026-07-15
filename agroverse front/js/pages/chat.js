@@ -2,9 +2,11 @@
 
 let _chatPollingInterval = null;
 let _chatCurrentId = null;
+let _chatLastMessageId = 0;
 
 async function renderChatDetail(chatId) {
   _chatCurrentId = chatId;
+  _chatLastMessageId = 0;
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
     <div class="chat-page">
@@ -42,13 +44,18 @@ async function renderChatDetail(chatId) {
   try {
     const chat = await API.getChat(chatId);
     renderChatHeader(chat);
+    // Small delay to ensure DOM is ready
+    await new Promise(r => setTimeout(r, 50));
     await loadMessages(chatId);
     setupChatInput(chatId, chat);
     startChatPolling(chatId);
   } catch (e) {
-    document.getElementById('chat-messages').innerHTML = `
-      <div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>
-    `;
+    const container = document.getElementById('chat-messages');
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>
+      `;
+    }
   }
 }
 
@@ -138,10 +145,47 @@ async function loadMessages(chatId, before = null) {
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
     }
+
+    // Track last message ID for polling
+    if (messages?.length) {
+      const maxId = Math.max(...messages.map(m => m.id));
+      if (maxId > _chatLastMessageId) {
+        _chatLastMessageId = maxId;
+      }
+    }
   } catch (e) {
     if (!before) {
       container.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
     }
+  }
+}
+
+async function loadNewMessages(chatId) {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  try {
+    // Only load messages newer than last known
+    const params = { limit: 50 };
+    const messages = await API.getChatMessages(chatId, params);
+    if (!messages?.length) return;
+
+    const user = Auth.getUser();
+    const newMessages = messages.filter(m => m.id > _chatLastMessageId);
+
+    if (newMessages.length === 0) return;
+
+    const html = newMessages.map(m => messageHtml(m, m.sender_id === user.id)).join('');
+    container.insertAdjacentHTML('beforeend', html);
+    container.scrollTop = container.scrollHeight;
+
+    // Update last message ID
+    const maxId = Math.max(...messages.map(m => m.id));
+    if (maxId > _chatLastMessageId) {
+      _chatLastMessageId = maxId;
+    }
+  } catch (e) {
+    // Silent fail for polling
   }
 }
 
@@ -241,7 +285,7 @@ function startChatPolling(chatId) {
   stopChatPolling();
   _chatPollingInterval = setInterval(() => {
     if (_chatCurrentId == chatId) {
-      loadMessages(chatId);
+      loadNewMessages(chatId);
     }
   }, 3000);
 }

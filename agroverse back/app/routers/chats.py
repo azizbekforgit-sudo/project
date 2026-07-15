@@ -373,13 +373,12 @@ async def _build_chat_response(chat: Chat, current_user_id: int, db: AsyncSessio
     b_user = b_result.scalar_one()
 
     # Get order info
+    from app.models import Product
     order_result = await db.execute(select(Order).where(Order.id == chat.order_id))
     order = order_result.scalar_one()
-    product_result = await db.execute(select(Order).where(Order.id == chat.order_id))
     product_title = None
     product_photo = None
     if order:
-        from app.models import Product
         p_result = await db.execute(select(Product).where(Product.id == order.product_id))
         product = p_result.scalar_one_or_none()
         if product:
