@@ -23,6 +23,7 @@ async function renderAdmin() {
         <button class="admin-tab active" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
         <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
         <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
+        <button class="admin-tab" data-tab="products" onclick="adminSwitchTab('products')"><i class="fi fi-sr-box-open" style="font-size:16px"></i> Товары</button>
         <button class="admin-tab" data-tab="chats" onclick="adminSwitchTab('chats')"><i class="fi fi-rr-comment" style="font-size:16px"></i> Чаты</button>
         <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fi fi-sr-chart-mixed" style="font-size:16px"></i> ${t('admin_reports')}</button>
       </div>
@@ -215,6 +216,33 @@ async function adminSwitchTab(tab) {
               </div>
             </div>`
           }).join('')}
+        </div>`;
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">${e.message}</div>`;
+    }
+
+  } else if (tab === 'products') {
+    try {
+      const res = await API.getProducts({});
+      const products = Array.isArray(res) ? res : (res?.products || []);
+      if (!products.length) {
+        box.innerHTML = `<div class="empty-state">Нет товаров</div>`;
+        return;
+      }
+      box.innerHTML = `
+        <div class="admin-list">
+          ${products.map(p => `
+            <div class="admin-row" id="prow-${p.id}">
+              <div class="ar-main">
+                <div class="ar-title">📦 ${p.title}</div>
+                <div class="ar-sub">${p.category} · ${Number(p.price_per_unit).toLocaleString()} сум/${p.unit} · ${p.quantity_available} ${p.unit}</div>
+                <div class="ar-sub" style="color:#6b7280">Фермер: ${p.fermer_name || '—'} · ${p.status}</div>
+              </div>
+              <div class="ar-actions">
+                <button class="btn-sm btn-reject" onclick="adminDeleteProduct(${p.id}, '${p.title.replace(/'/g, "\\'")}')">🗑 Удалить</button>
+              </div>
+            </div>
+          `).join('')}
         </div>`;
     } catch (e) {
       box.innerHTML = `<div class="empty-state">${e.message}</div>`;
@@ -460,6 +488,23 @@ async function adminViewChat(chatId) {
   }
 }
 
+async function adminDeleteProduct(id, name) {
+  if (!confirm(`Удалить товар «${name}»? Это действие необратимо.`)) return;
+  try {
+    await API.deleteProduct(id);
+    const row = document.getElementById(`prow-${id}`);
+    if (row) {
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(20px)';
+      row.style.transition = 'all 0.3s ease';
+      setTimeout(() => row.remove(), 300);
+    }
+    showToast('Товар удалён', 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
 window.renderAdmin          = renderAdmin;
 window.adminSwitchTab       = adminSwitchTab;
 window.adminApproveCourier  = adminApproveCourier;
@@ -467,4 +512,5 @@ window.adminSetRating       = adminSetRating;
 window.adminRejectCourier   = adminRejectCourier;
 window.adminBlock           = adminBlock;
 window.adminUnblock         = adminUnblock;
+window.adminDeleteProduct   = adminDeleteProduct;
 window.adminViewChat        = adminViewChat;
