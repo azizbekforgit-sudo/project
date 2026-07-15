@@ -239,7 +239,7 @@ async function adminSwitchTab(tab) {
                 <div class="ar-sub" style="color:#6b7280">Фермер: ${p.fermer_name || '—'} · ${p.status}</div>
               </div>
               <div class="ar-actions">
-                <button class="btn-sm btn-reject" onclick="adminDeleteProduct(${p.id}, '${p.title.replace(/'/g, "\\'")}')">🗑 Удалить</button>
+                <button class="btn-sm btn-reject" onclick="adminDeleteProduct(${p.id}, '${(p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить</button>
               </div>
             </div>
           `).join('')}
