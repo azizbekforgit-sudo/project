@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.database import get_db
-from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest
+from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest, CourierProfile, CourierTransaction
 from app.schemas import OrderCreate, OrderResponse, DriverCandidateRequest
 from app.dependencies import get_current_user
 from datetime import datetime
@@ -456,10 +456,27 @@ async def pay_driver(
     # Списываем с покупателя
     current_user.wallet_balance -= price
 
-    # Начисляем драйверу
+    # Начисляем драйверу на User.wallet_balance
     driver_result = await db.execute(select(User).where(User.id == dr.courier_id))
     driver = driver_result.scalar_one()
     driver.wallet_balance += price
+
+    # Начисляем драйверу на CourierProfile.balance (для раздела "Кошелёк" в дашборде)
+    cp_result = await db.execute(select(CourierProfile).where(CourierProfile.user_id == driver.id))
+    cp = cp_result.scalar_one_or_none()
+    if cp:
+        cp.balance = (cp.balance or 0) + price
+
+    # Записываем транзакцию в CourierTransaction
+    ct = CourierTransaction(
+        courier_id=driver.id,
+        amount=float(price),
+        type="income",
+        desc=f"Оплата доставки заказа #{order_id}",
+        method="wallet",
+        status="completed"
+    )
+    db.add(ct)
 
     # Бонусы
     buyer_bonus = BonusTransaction(

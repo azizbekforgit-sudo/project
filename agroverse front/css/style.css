@@ -3700,8 +3700,8 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
   .ai-fab-btn i { font-size: 20px; }
   .ai-fab-chat { width: 100%; max-width: 320px; border-radius: 16px; }
 
-  /* ── ORDERS ── */
-  .orders-list { max-width: 100%; }
+  /* ── ORDERS (mobile) ── */
+  .orders-list { max-width: 100%; gap: 10px; }
   .order-card {
     grid-template-columns: 1fr;
     border-radius: 14px;
@@ -3709,20 +3709,29 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
   }
   .oc-img { display: none; }
   .oc-ph { display: none; }
-  .oc-main { padding: 14px; }
-  .oc-name { font-size: 14px; }
-  .oc-meta { font-size: 12px; }
+  .oc-main { padding: 14px; gap: 8px; }
+  .oc-top { gap: 6px; }
+  .oc-name { font-size: 14px; white-space: normal; }
+  .oc-meta { font-size: 12px; gap: 4px; }
   .oc-total { font-size: 15px; }
   .oc-actions {
     border-left: none;
     border-top: 1px solid var(--hairline);
     padding: 12px 14px;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
     min-width: auto;
-    gap: 6px;
+    gap: 8px;
   }
-  .oc-actions .btn { flex: 1; min-width: 0; font-size: 12px; padding: 8px 10px; }
+  .oc-actions .btn { width: 100%; font-size: 13px; padding: 10px 14px; justify-content: center; }
+
+  /* Status notes & delivery blocks on mobile */
+  .order-card > .oc-main > div[style*="background:#"] {
+    padding: 10px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    margin-top: 8px;
+  }
 
   /* Order tabs */
   .orders-tabs { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; scrollbar-width: none; }
@@ -3864,6 +3873,7 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
   .ds-nav { flex-direction: row; overflow-x: auto; gap: 2px; flex-wrap: nowrap; scrollbar-width: none; }
   .ds-nav::-webkit-scrollbar { display: none; }
   .ds-nav-item { padding: 9px 12px; font-size: 13px; white-space: nowrap; flex-shrink: 0; border-radius: 10px; gap: 8px; }
+  .ds-nav-group-label { display: none; }
   .ds-footer { border-top: 1px solid var(--hairline); padding-top: 10px; }
   .ds-courier-info { padding: 6px 10px; }
 
@@ -4032,6 +4042,53 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
 
   .del-onb-grid { grid-template-columns: 1fr; }
   .truck-chips { grid-template-columns: 1fr; }
+
+  /* ── ORDERS (small phone) ── */
+  .order-card { border-radius: 12px; }
+  .oc-main { padding: 12px; }
+  .oc-name { font-size: 13px; }
+  .oc-meta { font-size: 11px; }
+  .oc-total { font-size: 14px; }
+  .oc-actions { padding: 10px 12px; gap: 6px; }
+  .oc-actions .btn { font-size: 12px; padding: 9px 12px; }
+  .oc-timeline { overflow-x: auto; }
+  .oct-label { font-size: 8px; }
+
+  /* ── DELIVERY CHATS (small phone) ── */
+  .section-chats .chat-item { padding: 10px; gap: 8px; }
+  .section-chats .chat-item-avatar { width: 38px; height: 38px; font-size: 16px; }
+  .section-chats .chat-item-name { font-size: 13px; }
+  .section-chats .chat-item-type { display: none; }
+  .section-chats .chat-item-order { font-size: 11px; }
+  .section-chats .chat-item-preview { font-size: 11px; }
+  .section-chats .chat-item-time { font-size: 10px; }
+
+  /* ── DELIVERY WALLET (small phone) ── */
+  .section-wallet .wc-balance { font-size: 22px; }
+  .section-wallet .wallet-card { padding: 16px; }
+}
+
+/* ── DELIVERY CHATS (mobile 768px) ── */
+@media (max-width: 768px) {
+  .section-chats { padding: 0; }
+  .section-chats .section-header { padding: 0 4px; }
+  .section-chats .chat-list { gap: 4px; }
+  .section-chats .chat-item { padding: 12px; border-radius: 14px; gap: 10px; }
+  .section-chats .chat-item-avatar { width: 42px; height: 42px; font-size: 18px; }
+  .section-chats .chat-item-name { font-size: 14px; }
+  .section-chats .chat-item-type { font-size: 11px; padding: 2px 6px; }
+  .section-chats .chat-item-order { font-size: 12px; }
+  .section-chats .chat-item-preview { font-size: 12px; max-width: 60%; }
+
+  /* ── DELIVERY WALLET (mobile) ── */
+  .section-wallet .wallet-card { padding: 20px 16px; border-radius: 16px; }
+  .section-wallet .wc-balance { font-size: 26px; }
+  .section-wallet .wallet-history h3 { font-size: 15px; }
+  .section-wallet .tx-item { padding: 12px; gap: 10px; }
+  .section-wallet .tx-amount { font-size: 14px; }
+
+  /* ── DELIVERY MARKET (mobile) ── */
+  .section-market .products-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 
 /* ─── Chat List ─────────────────────────────────────────────────────────── */

@@ -17,6 +17,7 @@ const TRUCK_TYPES = [
 const SECTIONS = [
   { id: 'home',    icon: '<i class="fi fi-sr-home"></i>', label: 'Главная' },
   { id: 'orders',  icon: '<i class="fi fi-sr-box-open"></i>', label: 'Заказы' },
+  { id: 'chats',   icon: '<i class="fi fi-sr-comment"></i>', label: 'Чаты' },
   { id: 'map',     icon: '<i class="fi fi-sr-map-marker-alt"></i>', label: 'Карта' },
   { id: 'tariffs', icon: '<i class="fi fi-sr-credit-card"></i>', label: 'Тарифы' },
   { id: 'ai',      icon: '<i class="fi fi-sr-robot"></i>', label: 'ИИ' },
@@ -985,6 +986,7 @@ function _deliverySection(id) {
   switch (id) {
     case 'home':    _sectionHome(main);    break;
     case 'orders':  _sectionOrders(main);  break;
+    case 'chats':   _sectionChats(main);   break;
     case 'map':     _sectionMap(main);     break;
     case 'tariffs': _sectionTariffs(main); break;
     case 'ai':      _sectionAI(main);      break;
@@ -1563,6 +1565,73 @@ async function _updateDeliveryStatus(requestId, newStatus) {
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) {
     showToast(e.message, 'error');
+  }
+}
+
+// ─── CHATS ───────────────────────────────────────────────────────────────────
+
+async function _sectionChats(main) {
+  main.innerHTML = `
+    <div class="section-chats">
+      <div class="section-header">
+        <h1 class="section-title"><i class="fi fi-sr-comment" style="font-size:24px"></i> Чаты</h1>
+      </div>
+      <div id="delivery-chats-list"><div class="spinner"></div></div>
+    </div>
+  `;
+
+  try {
+    const chats = await API.getChats();
+    const wrap = document.getElementById('delivery-chats-list');
+    if (!wrap) return;
+
+    if (!chats?.length) {
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <div class="icon"><i class="fi fi-sr-comment" style="font-size:48px"></i></div>
+          <p>У вас пока нет чатов</p>
+          <p style="color:#9ca3af;font-size:14px;margin-top:8px">Чаты появятся после начала работы с заказами</p>
+        </div>`;
+      return;
+    }
+
+    const user = Auth.getUser();
+    wrap.innerHTML = `<div class="chat-list">${chats.map(c => {
+      const isParticipantA = c.participant_a.id === user.id;
+      const other = isParticipantA ? c.participant_b : c.participant_a;
+      const lastMsg = c.last_message;
+      const lastMsgText = lastMsg
+        ? (lastMsg.type === 'photo' ? '📷 Фото' : lastMsg.type === 'voice' ? '🎤 Голос' : (lastMsg.content || '...').substring(0, 50))
+        : 'Нет сообщений';
+      const lastMsgTime = lastMsg?.created_at
+        ? new Date(lastMsg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+        : '';
+      const unread = c.unread_count || 0;
+      const typeLabels = { buyer_farmer: 'Покупатель ↔ Фермер', buyer_driver: 'Покупатель ↔ Драйвер', driver_farmer: 'Драйвер ↔ Фермер' };
+      const typeIcons = { buyer_farmer: '🥬', buyer_driver: '🚗', driver_farmer: '🚜' };
+
+      return `
+        <div class="chat-item ${unread > 0 ? 'chat-item-unread' : ''}" onclick="router.go('/chats/${c.id}')">
+          <div class="chat-item-avatar">${typeIcons[c.type] || '💬'}</div>
+          <div class="chat-item-body">
+            <div class="chat-item-top">
+              <span class="chat-item-name">${other.name}</span>
+              <span class="chat-item-type">${typeLabels[c.type] || c.type}</span>
+            </div>
+            <div class="chat-item-order">Заказ #${c.order_id}${c.order_product_title ? ' — ' + c.order_product_title : ''}</div>
+            <div class="chat-item-bottom">
+              <span class="chat-item-preview ${lastMsg && lastMsg.sender_name !== user?.name ? 'chat-item-preview-new' : ''}">${lastMsgText}</span>
+              <div class="chat-item-meta">
+                ${lastMsgTime ? `<span class="chat-item-time">${lastMsgTime}</span>` : ''}
+                ${unread > 0 ? `<span class="chat-item-badge">${unread}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('')}</div>`;
+  } catch (e) {
+    const wrap = document.getElementById('delivery-chats-list');
+    if (wrap) wrap.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
   }
 }
 
