@@ -1225,9 +1225,9 @@ async function _driverAcceptDelivery(requestId) {
       const result = await API.driverAcceptDelivery(requestId);
       overlay.remove();
       if (result.both_confirmed) {
-        showToast(`Заказ принят! Телефон покупателя: ${result.buyer_phone}`, 'success');
+        showToast(`Заказ принят! Теперь вы можете начать сборку заказа.`, 'success');
       } else {
-        showToast('Заказ принят! Ожидание подтверждения покупателя.', 'success');
+        showToast('Заказ принят! Ожидание подтверждения покупателя.', 'info');
       }
       // Refresh dashboard
       _renderDashboard();

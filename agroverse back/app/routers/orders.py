@@ -407,7 +407,8 @@ async def assign_driver(
         distance_km=distance_km,
         price_per_km=price_per_km,
         total_price=total_price,
-        status="pending"
+        status="pending",
+        buyer_confirmed_disclaimer=True  # Покупатель уже подтвердил нажатием "Заказать этого драйвера"
     )
     db.add(dr)
     await db.flush()
