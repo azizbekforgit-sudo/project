@@ -391,16 +391,22 @@ async def assign_driver(
     if order.delivery_request_id:
         raise HTTPException(status_code=400, detail="Драйвер уже назначен на этот заказ")
 
-    # Create DeliveryRequest (simplified — without route details, those should come from the chat context)
+    # Копируем маршрут из заказа в DeliveryRequest
+    route_from = order.delivery_route_from or ""
+    route_to = order.delivery_route_to or ""
+    distance_km = order.delivery_distance_km or 0
+    total_price = order.delivery_price or 0
+    price_per_km = round(total_price / distance_km, 2) if distance_km > 0 else 0
+
     dr = DeliveryRequest(
         order_id=order.id,
         courier_id=order.driver_candidate_id,
         buyer_id=current_user.id,
-        route_from="",
-        route_to="",
-        distance_km=0,
-        price_per_km=0,
-        total_price=0,
+        route_from=route_from,
+        route_to=route_to,
+        distance_km=distance_km,
+        price_per_km=price_per_km,
+        total_price=total_price,
         status="pending"
     )
     db.add(dr)
@@ -410,6 +416,71 @@ async def assign_driver(
     await db.commit()
 
     return {"message": "Драйвер назначен на заказ", "delivery_request_id": dr.id}
+
+
+@router.post("/{order_id}/pay-driver")
+async def pay_driver(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != UserRole.XARIDOR:
+        raise HTTPException(status_code=403, detail="Только покупатель может оплачивать доставку")
+
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order or order.xaridor_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+
+    if not order.delivery_request_id:
+        raise HTTPException(status_code=400, detail="Доставка не назначена")
+
+    dr_result = await db.execute(select(DeliveryRequest).where(DeliveryRequest.id == order.delivery_request_id))
+    dr = dr_result.scalar_one_or_none()
+    if not dr:
+        raise HTTPException(status_code=404, detail="Заявка на доставку не найдена")
+
+    if dr.status != "delivered":
+        raise HTTPException(status_code=400, detail="Доставка ещё не завершена")
+
+    if dr.total_price <= 0:
+        raise HTTPException(status_code=400, detail="Стоимость доставки не указана")
+
+    # Проверяем баланс покупателя
+    if current_user.wallet_balance < dr.total_price:
+        raise HTTPException(status_code=400, detail=f"Недостаточно средств. Нужно: {dr.total_price} сум")
+
+    # Списываем с покупателя
+    current_user.wallet_balance -= dr.total_price
+
+    # Начисляем драйверу
+    driver_result = await db.execute(select(User).where(User.id == dr.courier_id))
+    driver = driver_result.scalar_one()
+    driver.wallet_balance += dr.total_price
+
+    # Бонусы
+    buyer_bonus = BonusTransaction(
+        user_id=current_user.id,
+        points=2,
+        reason=f"Оплата доставки заказа #{order_id}: {dr.total_price} сум"
+    )
+    db.add(buyer_bonus)
+    current_user.bonus_points += 2
+
+    driver_bonus = BonusTransaction(
+        user_id=driver.id,
+        points=5,
+        reason=f"Оплата доставки заказа #{order_id}: {dr.total_price} сум"
+    )
+    db.add(driver_bonus)
+    driver.bonus_points += 5
+
+    # Обновляем статус доставки
+    dr.status = "completed"
+
+    await db.commit()
+
+    return {"message": f"Оплачено {dr.total_price} сум. Драйверу начислено на баланс."}
 
 
 @router.post("/{order_id}/clear-driver-candidate")

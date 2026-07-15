@@ -95,6 +95,7 @@ function orderCardHtml(o, isFermer) {
   const canPay       = !isFermer && o.status === 'created';
   const canChatFarmer = !isFermer && ['created', 'paid'].includes(o.status) && o.pickup_method !== 'self';
   const canChatDriver = !isFermer && o.driver_candidate_id && o.pickup_method === 'external';
+  const canPayDriver = !isFermer && o.delivery_request && o.delivery_request.status === 'delivered';
 
   const img = o.product_photo
     ? `<img src="${API_PHOTO(o.product_photo)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'oc-ph',textContent:'🥬'}))" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
@@ -114,6 +115,13 @@ function orderCardHtml(o, isFermer) {
     statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Покупатель ещё не оплатил заказ.</div>`;
   } else if (isFermer && o.status === 'paid') {
     statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Заказ оплачен. Можете начать подготовку.</div>`;
+  }
+
+  // Delivery delivered note
+  if (!isFermer && o.delivery_request && o.delivery_request.status === 'delivered') {
+    statusNote += `<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#1e40af">🚗 Драйвер доставил заказ. Нажмите "Оплатить драйверу" чтобы перевести деньги.</div>`;
+  } else if (!isFermer && o.delivery_request && o.delivery_request.status === 'completed') {
+    statusNote += `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Доставка оплачена. Драйвер получил оплату.</div>`;
   }
 
   // Driver candidate info
@@ -202,6 +210,7 @@ function orderCardHtml(o, isFermer) {
         ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
         ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
         ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
+        ${canPayDriver ? `<button class="btn btn-primary btn-sm" onclick="payDriverOrder(${o.id}, ${o.delivery_request.total_price})"><i class="fi fi-sr-credit-card" style="font-size:14px"></i> Оплатить драйверу ${Number(o.delivery_request.total_price).toLocaleString()} сум</button>` : ''}
         ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
         ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
         ${(!isFermer && o.driver_candidate_id && !o.delivery_request && o.pickup_method === 'external') ? `<button class="btn btn-ghost btn-sm" onclick="changeDriver(${o.id})"><i class="fi fi-rr-refresh" style="font-size:14px"></i> Сменить драйвера</button>` : ''}
@@ -293,13 +302,45 @@ async function changeDriver(orderId) {
     const orders = await API.getMyOrders();
     const order = (orders || []).find(o => o.id === orderId);
     if (order) {
-      // Сохраняем ID заказа для обновления而不是 создания нового
       sessionStorage.setItem('av_change_driver_order_id', orderId);
-      // Переходим на страницу товара
       router.go(`/product/${order.product_id}`);
     } else {
       loadOrdersList();
     }
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function payDriverOrder(orderId, amount) {
+  let balance = 0;
+  try {
+    const me = await API.getMe();
+    Auth.setUser(me);
+    balance = Number(me?.wallet_balance || 0);
+  } catch (e) {
+    showToast('Не удалось проверить баланс: ' + e.message, 'error');
+    return;
+  }
+
+  if (balance < amount) {
+    showToast(`Недостаточно средств! На кошельке: ${Number(balance).toLocaleString()} сум. Нужно: ${Number(amount).toLocaleString()} сум`, 'error');
+    setTimeout(() => {
+      if (confirm('Перейти в кошелёк для пополнения?')) {
+        router.go('/wallet');
+      }
+    }, 1500);
+    return;
+  }
+
+  if (!confirm(`Оплатить доставку драйверу ${Number(amount).toLocaleString()} сум?\n\nСредства будут списаны с вашего кошелька и переведены драйверу.`)) return;
+
+  try {
+    await API.payDriver(orderId);
+    showToast(`✅ Доставка оплачена! ${Number(amount).toLocaleString()} сум переведено драйверу`, 'success');
+    const me = await API.getMe();
+    Auth.setUser(me);
+    loadOrdersList();
   } catch (e) {
     showToast(e.message, 'error');
   }
@@ -312,3 +353,4 @@ window.markOrderReady   = markOrderReady;
 window.payOrder         = payOrder;
 window.openOrderChat    = openOrderChat;
 window.changeDriver     = changeDriver;
+window.payDriverOrder   = payDriverOrder;
