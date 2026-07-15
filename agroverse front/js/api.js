@@ -218,6 +218,7 @@ const API = {
 
   // Chats
   getChats: () => request('GET', '/api/chats'),
+  getChat: (chatId) => request('GET', `/api/chats/${chatId}`),
   createChat: (body) => request('POST', '/api/chats', { body }),
   getChatMessages: (chatId, params) => request('GET', `/api/chats/${chatId}/messages`, { params }),
   sendMessage: (chatId, body) => request('POST', `/api/chats/${chatId}/messages`, { body }),
