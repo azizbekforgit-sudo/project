@@ -245,3 +245,106 @@ API.request = request;
 window.API = API;
 window.BASE_URL = BASE_URL;
 window.normalizeProduct = normalizeProduct;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WebSocket — реалтайм-доставка сообщений
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const ChatWS = {
+  socket: null,
+  _handlers: {},
+  _reconnectTimer: null,
+  _reconnectDelay: 2000,
+
+  connect() {
+    if (!Auth.isLoggedIn()) return;
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) return;
+
+    const token = Auth.getToken();
+    if (!token) return;
+
+    const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${location.host}/ws?token=${token}`;
+
+    try {
+      this.socket = new WebSocket(wsUrl);
+    } catch (e) {
+      console.error('WS connect error:', e);
+      this._scheduleReconnect();
+      return;
+    }
+
+    this.socket.onopen = () => {
+      console.log('[WS] Connected');
+      this._reconnectDelay = 2000;
+    };
+
+    this.socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // Отвечаем на ping от сервера
+        if (data.type === 'ping') {
+          this.socket.send('pong');
+          return;
+        }
+        this._dispatch(data);
+      } catch (e) {
+        console.error('[WS] Parse error:', e);
+      }
+    };
+
+    this.socket.onclose = () => {
+      console.log('[WS] Disconnected');
+      this._scheduleReconnect();
+    };
+
+    this.socket.onerror = (e) => {
+      console.error('[WS] Error:', e);
+    };
+  },
+
+  disconnect() {
+    if (this._reconnectTimer) {
+      clearTimeout(this._reconnectTimer);
+      this._reconnectTimer = null;
+    }
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+  },
+
+  _scheduleReconnect() {
+    if (this._reconnectTimer) return;
+    this._reconnectTimer = setTimeout(() => {
+      this._reconnectTimer = null;
+      this.connect();
+    }, this._reconnectDelay);
+    // Увеличиваем задержку при реконнекте (экспоненциально, до 30 сек)
+    this._reconnectDelay = Math.min(this._reconnectDelay * 1.5, 30000);
+  },
+
+  on(type, handler) {
+    if (!this._handlers[type]) this._handlers[type] = [];
+    this._handlers[type].push(handler);
+  },
+
+  off(type, handler) {
+    if (!this._handlers[type]) return;
+    this._handlers[type] = this._handlers[type].filter(h => h !== handler);
+  },
+
+  _dispatch(data) {
+    const handlers = this._handlers[data.type] || [];
+    handlers.forEach(h => {
+      try { h(data); } catch (e) { console.error('[WS] Handler error:', e); }
+    });
+    // Глобальный обработчик
+    const allHandlers = this._handlers['*'] || [];
+    allHandlers.forEach(h => {
+      try { h(data); } catch (e) { console.error('[WS] Global handler error:', e); }
+    });
+  }
+};
+
+window.ChatWS = ChatWS;

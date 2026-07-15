@@ -231,31 +231,44 @@ function startBlockHeartbeat() {
 window.showBlockedScreen = showBlockedScreen;
 window.startBlockHeartbeat = startBlockHeartbeat;
 
-/* Глобальный poller для unread badge в навбаре */
-let _globalChatPoller = null;
-function startGlobalChatPoller() {
-  if (_globalChatPoller) clearInterval(_globalChatPoller);
-  _globalChatPoller = setInterval(async () => {
-    if (!Auth.isLoggedIn()) return;
-    try {
-      const chats = await API.getChats();
-      const total = (chats || []).reduce((sum, c) => sum + (c.unread_count || 0), 0);
-      window._globalChatsUnread = total;
-      // Update badge if element exists
-      const chatLink = document.querySelector('a[onclick*="/chats"]');
-      if (chatLink) {
-        const existing = chatLink.querySelector('.nav-badge');
-        if (total > 0) {
-          if (existing) existing.textContent = total;
-          else chatLink.insertAdjacentHTML('beforeend', `<span class="nav-badge">${total}</span>`);
-        } else if (existing) {
-          existing.remove();
-        }
-      }
-    } catch (e) { /* silent */ }
-  }, 5000);
+/* WebSocket handler для unread badge в навбаре */
+function initChatBadgeWS() {
+  if (typeof ChatWS === 'undefined') return;
+
+  // Обновляем бейдж при новом сообщении
+  ChatWS.on('new_message', (data) => {
+    // Если это не наше сообщение — обновляем бейдж
+    const user = Auth.getUser();
+    if (data.message && data.message.sender_id !== user?.id) {
+      updateChatBadge();
+    }
+  });
+
+  // Также обновляем бейдж при подключении WS
+  ChatWS.on('*', () => {});
 }
-window.startGlobalChatPoller = startGlobalChatPoller;
+
+function updateChatBadge() {
+  if (!Auth.isLoggedIn()) return;
+  // Просто перерисовываем навбар с обновлённым бейджем
+  // Для этого нужно пересчитать unread — делаем это через API один раз
+  API.getChats().then(chats => {
+    const total = (chats || []).reduce((sum, c) => sum + (c.unread_count || 0), 0);
+    window._globalChatsUnread = total;
+    const chatLink = document.querySelector('a[onclick*="/chats"]');
+    if (chatLink) {
+      const existing = chatLink.querySelector('.nav-badge');
+      if (total > 0) {
+        if (existing) existing.textContent = total;
+        else chatLink.insertAdjacentHTML('beforeend', `<span class="nav-badge">${total}</span>`);
+      } else if (existing) {
+        existing.remove();
+      }
+    }
+  }).catch(() => {});
+}
+window.initChatBadgeWS = initChatBadgeWS;
+window.updateChatBadge = updateChatBadge;
 
 window.Auth = Auth;
 window.showToast = showToast;

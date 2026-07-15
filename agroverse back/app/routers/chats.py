@@ -11,6 +11,7 @@ from app.schemas import (
     MessageCreate, ChatMessageResponse
 )
 from app.dependencies import get_current_user, get_current_admin
+from app.ws_manager import manager
 import re
 import os
 import uuid
@@ -221,6 +222,24 @@ async def send_message(
     db.add(new_msg)
     await db.commit()
     await db.refresh(new_msg)
+
+    # Push via WebSocket to recipient
+    recipient_id = chat.participant_b_id if chat.participant_a_id == current_user.id else chat.participant_a_id
+    msg_data = {
+        "type": "new_message",
+        "chat_id": chat_id,
+        "message": {
+            "id": new_msg.id,
+            "chat_id": new_msg.chat_id,
+            "sender_id": new_msg.sender_id,
+            "sender_name": current_user.name,
+            "type": new_msg.type,
+            "content": "" if is_blocked else new_msg.content,
+            "is_blocked": is_blocked,
+            "created_at": new_msg.created_at.isoformat() if new_msg.created_at else None
+        }
+    }
+    await manager.send_to_user(recipient_id, msg_data)
 
     if is_blocked:
         return ChatMessageResponse(

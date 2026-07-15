@@ -116,8 +116,11 @@ function afterRender() {
   if (msg) setTimeout(() => showToast(msg), 100);
   // следим за блокировкой аккаунта в фоне
   if (Auth.isLoggedIn() && typeof startBlockHeartbeat === 'function') startBlockHeartbeat();
-  // глобальный poller для unread badge чатов
-  if (Auth.isLoggedIn() && typeof startGlobalChatPoller === 'function') startGlobalChatPoller();
+  // WebSocket для реалтайм-сообщений
+  if (Auth.isLoggedIn() && typeof ChatWS !== 'undefined') {
+    ChatWS.connect();
+    if (typeof initChatBadgeWS === 'function') initChatBadgeWS();
+  }
   // floating AI bubble (init on every page for non-admin users)
   setTimeout(() => { if (typeof initAIBubble === 'function') initAIBubble(); }, 300);
 }

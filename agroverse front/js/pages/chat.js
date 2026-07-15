@@ -3,6 +3,7 @@
 let _chatPollingInterval = null;
 let _chatCurrentId = null;
 let _chatLastMessageId = 0;
+let _chatWsHandler = null;
 
 async function renderChatDetail(chatId) {
   _chatCurrentId = chatId;
@@ -279,19 +280,41 @@ function setupChatInput(chatId, chat) {
 }
 
 function startChatPolling(chatId) {
+  // WebSocket handler для новых сообщений в этом чате
   stopChatPolling();
-  _chatPollingInterval = setInterval(() => {
-    if (_chatCurrentId == chatId) {
-      loadNewMessages(chatId);
-    }
-  }, 3000);
+
+  function onNewMessage(data) {
+    if (data.chat_id != _chatCurrentId) return;
+    const user = Auth.getUser();
+    const msg = data.message;
+    if (!msg) return;
+
+    // Не дублируем自己的 сообщения (они уже отрисованы optimistically)
+    if (msg.sender_id === user?.id) return;
+
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+
+    // Убираем "Начните общение" если есть
+    const empty = container.querySelector('.chat-empty');
+    if (empty) empty.remove();
+
+    const html = messageHtml(msg, false);
+    container.insertAdjacentHTML('beforeend', html);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  _chatWsHandler = onNewMessage;
+  if (typeof ChatWS !== 'undefined') {
+    ChatWS.on('new_message', onNewMessage);
+  }
 }
 
 function stopChatPolling() {
-  if (_chatPollingInterval) {
-    clearInterval(_chatPollingInterval);
-    _chatPollingInterval = null;
+  if (_chatWsHandler && typeof ChatWS !== 'undefined') {
+    ChatWS.off('new_message', _chatWsHandler);
   }
+  _chatWsHandler = null;
   _chatCurrentId = null;
 }
 

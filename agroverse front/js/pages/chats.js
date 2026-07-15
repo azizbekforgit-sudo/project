@@ -1,7 +1,6 @@
-/* pages/chats.js — Список чатов с автообновлением */
+/* pages/chats.js — Список чатов с WebSocket */
 
-let _chatsPollingInterval = null;
-let _chatsLastKnown = {}; // chatId -> { content, created_at, sender_name }
+let _chatsWsHandler = null;
 
 async function renderChats() {
   stopChatsPolling();
@@ -33,17 +32,6 @@ async function loadChatsList() {
       return;
     }
 
-    // Save initial state for change detection
-    chats.forEach(c => {
-      if (c.last_message) {
-        _chatsLastKnown[c.id] = {
-          content: c.last_message.content,
-          created_at: c.last_message.created_at,
-          sender_name: c.last_message.sender_name
-        };
-      }
-    });
-
     wrap.innerHTML = `<div class="chat-list">${chats.map(c => chatItemHtml(c)).join('')}</div>`;
   } catch (e) {
     wrap.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
@@ -52,53 +40,42 @@ async function loadChatsList() {
 
 function startChatsPolling() {
   stopChatsPolling();
-  _chatsPollingInterval = setInterval(async () => {
+
+  // WebSocket handler — обновляем список при новом сообщении
+  function onNewMessage(data) {
     const wrap = document.getElementById('chats-wrap');
-    if (!wrap) { stopChatsPolling(); return; }
+    if (!wrap) return;
 
-    try {
-      const chats = await API.getChats();
-      if (!chats?.length) return;
+    const msg = data.message;
+    if (!msg) return;
 
-      const currentUser = Auth.getUser();
+    const user = Auth.getUser();
+    const isFromMe = msg.sender_id === user?.id;
 
-      // Check for new messages and show notifications
-      chats.forEach(c => {
-        const lastMsg = c.last_message;
-        if (!lastMsg) return;
+    // Toast для сообщений от других
+    if (!isFromMe) {
+      const preview = msg.type === 'photo' ? '📷 Фото' :
+                    msg.type === 'voice' ? '🎤 Голос' :
+                    msg.type === 'location' ? '📍 Локация' :
+                    (msg.content || '').substring(0, 50);
+      showToast(`💬 ${msg.sender_name}: ${preview}`, 'info', 4000);
+    }
 
-        const known = _chatsLastKnown[c.id];
-        const isNew = !known ||
-                      lastMsg.created_at !== known.created_at ||
-                      lastMsg.content !== known.content;
+    // Перезагружаем список чтобы обновить last_message и порядок
+    loadChatsList();
+  }
 
-        // Show toast for messages from OTHER users
-        if (isNew && lastMsg.sender_name !== currentUser?.name) {
-          const preview = lastMsg.type === 'photo' ? '📷 Фото' :
-                        lastMsg.type === 'voice' ? '🎤 Голос' :
-                        lastMsg.type === 'location' ? '📍 Локация' :
-                        (lastMsg.content || '').substring(0, 50);
-          showToast(`💬 ${lastMsg.sender_name}: ${preview}`, 'info', 4000);
-        }
-
-        _chatsLastKnown[c.id] = {
-          content: lastMsg.content,
-          created_at: lastMsg.created_at,
-          sender_name: lastMsg.sender_name
-        };
-      });
-
-      // Re-render list
-      wrap.innerHTML = `<div class="chat-list">${chats.map(c => chatItemHtml(c)).join('')}</div>`;
-    } catch (e) { /* silent */ }
-  }, 2000);
+  _chatsWsHandler = onNewMessage;
+  if (typeof ChatWS !== 'undefined') {
+    ChatWS.on('new_message', onNewMessage);
+  }
 }
 
 function stopChatsPolling() {
-  if (_chatsPollingInterval) {
-    clearInterval(_chatsPollingInterval);
-    _chatsPollingInterval = null;
+  if (_chatsWsHandler && typeof ChatWS !== 'undefined') {
+    ChatWS.off('new_message', _chatsWsHandler);
   }
+  _chatsWsHandler = null;
 }
 
 function chatItemHtml(chat) {
