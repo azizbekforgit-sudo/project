@@ -308,22 +308,19 @@ function setupChatInput(chatId, chat) {
 
 function startChatPolling(chatId) {
   stopChatPolling();
+  _chatCurrentId = chatId;
 
-  // Soft-refresh каждые 2 секунды — перезагружает все сообщения,
-  // сохраняя ввод и позицию скролла
+  // Soft-refresh: подтягиваем новые сообщения каждые 2 сек
   _chatPollTimer = setInterval(() => {
     if (_chatCurrentId) softRefreshChat(_chatCurrentId);
   }, 2000);
 
-  // WebSocket handler для мгновенной доставки (бонус)
+  // WebSocket — при получении сообщения тоже обновляем
   function onNewMessage(data) {
     if (data.chat_id != _chatCurrentId) return;
     const user = Auth.getUser();
     const msg = data.message;
-    if (!msg) return;
-    if (msg.sender_id === user?.id) return;
-
-    // При WS-событии тоже делаем soft-refresh для надёжности
+    if (!msg || msg.sender_id === user?.id) return;
     softRefreshChat(_chatCurrentId);
   }
 
