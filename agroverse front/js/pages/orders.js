@@ -284,11 +284,22 @@ async function openOrderChat(orderId, chatType) {
 }
 
 async function changeDriver(orderId) {
-  if (!confirm('Снять текущего кандидата-драйвера? Вы сможете выбрать нового через карточку товара.')) return;
+  if (!confirm('Снять текущего кандидата-драйвера и выбрать нового?')) return;
   try {
     await API.clearDriverCandidate(orderId);
-    showToast('Кандидат-драйвер снят. Выберите нового через "Заказать доставку"');
-    loadOrdersList();
+    showToast('Кандидат снят. Выбираем нового драйвера...');
+
+    // Получаем данные заказа чтобы открыть выбор драйвера
+    const orders = await API.getMyOrders();
+    const order = (orders || []).find(o => o.id === orderId);
+    if (order) {
+      // Сохраняем ID заказа для обновления而不是 создания нового
+      sessionStorage.setItem('av_change_driver_order_id', orderId);
+      // Переходим на страницу товара
+      router.go(`/product/${order.product_id}`);
+    } else {
+      loadOrdersList();
+    }
   } catch (e) {
     showToast(e.message, 'error');
   }

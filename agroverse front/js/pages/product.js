@@ -370,7 +370,7 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
       </div>
 
       <button class="btn btn-primary btn-full" id="discl-confirm-btn" disabled style="opacity:0.5">
-        Оформить заказ
+        ${sessionStorage.getItem('av_change_driver_order_id') ? 'Выбрать этого драйвера' : 'Оформить заказ'}
       </button>
     </div>
   `;
@@ -396,25 +396,44 @@ function showDisclaimerModal(courier, from, to, product, quantity, distance, tot
     confirmBtn.textContent = 'Оформление...';
 
     try {
-      // 1. Create order
-      const order = await API.createOrder({
-        product_id: product.id,
-        quantity: quantity,
-        pickup_method: 'external',
-      });
+      // Проверяем, это смена драйвера для существующего заказа?
+      const existingOrderId = sessionStorage.getItem('av_change_driver_order_id');
 
-      // 2. Select driver as candidate (soft action — no DeliveryRequest created)
-      const orderId = order.id || order.order_id;
-      await API.selectDriverCandidate(orderId, {
-        courier_user_id: courier.user_id,
-        route_from: from,
-        route_to: to,
-        distance_km: distance,
-        total_price: totalPrice
-      });
+      let orderId;
+      if (existingOrderId) {
+        // Обновляем кандидата в существующем заказе
+        orderId = parseInt(existingOrderId);
+        await API.selectDriverCandidate(orderId, {
+          courier_user_id: courier.user_id,
+          route_from: from,
+          route_to: to,
+          distance_km: distance,
+          total_price: totalPrice
+        });
+        sessionStorage.removeItem('av_change_driver_order_id');
+        overlay.remove();
+        showToast('Новый драйвер выбран! Обсудите детали в чате.');
+      } else {
+        // Создаём новый заказ
+        const order = await API.createOrder({
+          product_id: product.id,
+          quantity: quantity,
+          pickup_method: 'external',
+        });
 
-      overlay.remove();
-      showToast('Заказ создан! Драйвер выбран как кандидат. Обсудите детали в чате.');
+        orderId = order.id || order.order_id;
+        await API.selectDriverCandidate(orderId, {
+          courier_user_id: courier.user_id,
+          route_from: from,
+          route_to: to,
+          distance_km: distance,
+          total_price: totalPrice
+        });
+
+        overlay.remove();
+        showToast('Заказ создан! Драйвер выбран как кандидат. Обсудите детали в чате.');
+      }
+
       router.go('/orders');
     } catch (e) {
       showToast(e.message, 'error');
