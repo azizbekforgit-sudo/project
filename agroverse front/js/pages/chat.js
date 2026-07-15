@@ -133,6 +133,7 @@ async function loadMessages(chatId, before = null) {
           <p>Начните общение</p>
         </div>
       `;
+      _chatLastMessageId = 0;
       return;
     }
 
@@ -146,12 +147,9 @@ async function loadMessages(chatId, before = null) {
       container.scrollTop = container.scrollHeight;
     }
 
-    // Track last message ID for polling
+    // Track the highest message ID
     if (messages?.length) {
-      const maxId = Math.max(...messages.map(m => m.id));
-      if (maxId > _chatLastMessageId) {
-        _chatLastMessageId = maxId;
-      }
+      _chatLastMessageId = Math.max(...messages.map(m => m.id));
     }
   } catch (e) {
     if (!before) {
@@ -165,13 +163,15 @@ async function loadNewMessages(chatId) {
   if (!container) return;
 
   try {
-    // Only load messages newer than last known
-    const params = { limit: 50 };
-    const messages = await API.getChatMessages(chatId, params);
+    const messages = await API.getChatMessages(chatId, { limit: 50 });
     if (!messages?.length) return;
 
     const user = Auth.getUser();
-    const newMessages = messages.filter(m => m.id > _chatLastMessageId);
+
+    // Filter messages that are newer than our last known message
+    const newMessages = _chatLastMessageId > 0
+      ? messages.filter(m => m.id > _chatLastMessageId)
+      : [];
 
     if (newMessages.length === 0) return;
 
@@ -179,11 +179,8 @@ async function loadNewMessages(chatId) {
     container.insertAdjacentHTML('beforeend', html);
     container.scrollTop = container.scrollHeight;
 
-    // Update last message ID
-    const maxId = Math.max(...messages.map(m => m.id));
-    if (maxId > _chatLastMessageId) {
-      _chatLastMessageId = maxId;
-    }
+    // Update the last known message ID
+    _chatLastMessageId = Math.max(...messages.map(m => m.id));
   } catch (e) {
     // Silent fail for polling
   }
