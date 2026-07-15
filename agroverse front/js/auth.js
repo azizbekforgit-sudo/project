@@ -119,11 +119,16 @@ function buildHeader() {
   const path = currentPath();
   const items = getNavItems();
   const cartCount = getCartCount();
+  const chatsUnread = window._globalChatsUnread || 0;
 
   const links = items.map(it => {
     const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new');
-    const badge = (it.path === '/cart' && cartCount > 0)
-      ? `<span class="nav-badge">${cartCount}</span>` : '';
+    let badge = '';
+    if (it.path === '/cart' && cartCount > 0) {
+      badge = `<span class="nav-badge">${cartCount}</span>`;
+    } else if (it.path === '/chats' && chatsUnread > 0) {
+      badge = `<span class="nav-badge">${chatsUnread}</span>`;
+    }
     if (it.external) {
       return `<a class="nav-link" href="${it.url}" target="_blank">
         <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${it.label}</span>
@@ -225,6 +230,32 @@ function startBlockHeartbeat() {
 
 window.showBlockedScreen = showBlockedScreen;
 window.startBlockHeartbeat = startBlockHeartbeat;
+
+/* Глобальный poller для unread badge в навбаре */
+let _globalChatPoller = null;
+function startGlobalChatPoller() {
+  if (_globalChatPoller) clearInterval(_globalChatPoller);
+  _globalChatPoller = setInterval(async () => {
+    if (!Auth.isLoggedIn()) return;
+    try {
+      const chats = await API.getChats();
+      const total = (chats || []).reduce((sum, c) => sum + (c.unread_count || 0), 0);
+      window._globalChatsUnread = total;
+      // Update badge if element exists
+      const chatLink = document.querySelector('a[onclick*="/chats"]');
+      if (chatLink) {
+        const existing = chatLink.querySelector('.nav-badge');
+        if (total > 0) {
+          if (existing) existing.textContent = total;
+          else chatLink.insertAdjacentHTML('beforeend', `<span class="nav-badge">${total}</span>`);
+        } else if (existing) {
+          existing.remove();
+        }
+      }
+    } catch (e) { /* silent */ }
+  }, 5000);
+}
+window.startGlobalChatPoller = startGlobalChatPoller;
 
 window.Auth = Auth;
 window.showToast = showToast;
