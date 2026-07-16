@@ -560,13 +560,24 @@ async function adminShowProduct(id) {
             <textarea id="admin-del-comment" placeholder="Причина удаления, будет показана фермеру..." style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;resize:vertical;min-height:60px;outline:none;font-family:inherit;box-sizing:border-box"></textarea>
             <div style="display:flex;gap:10px;margin-top:12px">
               <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('admin-product-modal').remove()">Закрыть</button>
-              <button class="btn" style="flex:1;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:600" onclick="adminDeleteProductConfirm(${p.id}, '${(p.name || p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить товар</button>
+              <button class="btn" style="flex:1;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:600" onclick="document.getElementById('admin-product-modal').remove(); adminDoDelete(${p.id}, '${(p.name || p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить товар</button>
             </div>
           </div>
         </div>
       </div>
     `;
     document.body.appendChild(overlay);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function adminDoDelete(id, name) {
+  if (!confirm(`Удалить товар «${name}»?`)) return;
+  try {
+    await API.deleteProduct(id);
+    showToast('Товар удалён', 'success');
+    adminSwitchTab('products');
   } catch (e) {
     showToast(e.message, 'error');
   }
@@ -594,5 +605,6 @@ window.adminBlock           = adminBlock;
 window.adminUnblock         = adminUnblock;
 window.adminDeleteProduct   = adminDeleteProduct;
 window.adminShowProduct     = adminShowProduct;
+window.adminDoDelete        = adminDoDelete;
 window.adminDeleteProductConfirm = adminDeleteProductConfirm;
 window.adminViewChat        = adminViewChat;
