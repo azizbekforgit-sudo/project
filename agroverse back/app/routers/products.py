@@ -304,6 +304,7 @@ async def update_product(
 @router.delete("/{product_id}")
 async def delete_product(
     product_id: int,
+    admin_comment: str = "",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -313,6 +314,7 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="Product not found")
     if product.fermer_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
+
     await db.delete(product)
     await db.commit()
     return {"message": "Product deleted successfully"}

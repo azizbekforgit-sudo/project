@@ -230,19 +230,34 @@ async function adminSwitchTab(tab) {
         return;
       }
       box.innerHTML = `
-        <div class="admin-list">
-          ${products.map(p => `
-            <div class="admin-row" id="prow-${p.id}">
-              <div class="ar-main">
-                <div class="ar-title">📦 ${p.title}</div>
-                <div class="ar-sub">${p.category} · ${Number(p.price_per_unit).toLocaleString()} сум/${p.unit} · ${p.quantity_available} ${p.unit}</div>
-                <div class="ar-sub" style="color:#6b7280">Фермер: ${p.fermer_name || '—'} · ${p.status}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:4px 0">
+          ${products.map(p => {
+            const photos = p.photos || [];
+            const photoSrc = photos.length ? (photos[0].startsWith('http') ? photos[0] : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + photos[0]) : '';
+            const statusColor = p.status === 'active' ? '#10b981' : p.status === 'pending' ? '#f59e0b' : '#6b7280';
+            const statusLabel = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : p.status;
+            return `
+            <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition:all .2s;cursor:pointer;border:1px solid #f1f5f9"
+                 onclick="adminShowProduct(${p.id})"
+                 onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.1)';this.style.transform='translateY(-2px)'"
+                 onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.05)';this.style.transform='none'">
+              <div style="height:140px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+                ${photoSrc
+                  ? `<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'" />`
+                  : `<span style="font-size:40px">📦</span>`}
+                <span style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;color:${statusColor}">${statusLabel}</span>
+                ${photos.length > 1 ? `<span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.5);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">📷 ${photos.length}</span>` : ''}
               </div>
-              <div class="ar-actions">
-                <button class="btn-sm btn-reject" onclick="adminDeleteProduct(${p.id}, '${(p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить</button>
+              <div style="padding:14px">
+                <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:8px">${p.category} · ${p.fermer_name || '—'}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-weight:800;color:#059669;font-size:15px">${Number(p.price_per_unit).toLocaleString()} сум</span>
+                  <span style="font-size:12px;color:#9ca3af">${p.quantity_available} ${p.unit}</span>
+                </div>
               </div>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
         </div>`;
     } catch (e) {
       box.innerHTML = `<div class="empty-state">${e.message}</div>`;
@@ -488,18 +503,79 @@ async function adminViewChat(chatId) {
   }
 }
 
-async function adminDeleteProduct(id, name) {
-  if (!confirm(`Удалить товар «${name}»? Это действие необратимо.`)) return;
+async function adminShowProduct(id) {
   try {
-    await API.deleteProduct(id);
-    const row = document.getElementById(`prow-${id}`);
-    if (row) {
-      row.style.opacity = '0';
-      row.style.transform = 'translateX(20px)';
-      row.style.transition = 'all 0.3s ease';
-      setTimeout(() => row.remove(), 300);
-    }
+    const p = await API.getProduct(id);
+    const photos = p.photos || p.images || [];
+    const overlay = document.createElement('div');
+    overlay.id = 'admin-product-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);animation:fadeIn .2s';
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    const photosHtml = photos.length
+      ? `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px">${photos.map(ph => {
+          const src = ph.startsWith('http') ? ph : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + ph;
+          return `<img src="${src}" style="height:160px;border-radius:10px;flex-shrink:0;object-fit:cover" onerror="this.style.display='none'" />`;
+        }).join('')}</div>`
+      : `<div style="height:120px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">📦</div>`;
+
+    const statusColor = p.status === 'active' ? '#10b981' : p.status === 'pending' ? '#f59e0b' : '#6b7280';
+    const statusLabel = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : p.status;
+
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:18px;max-width:560px;width:95%;max-height:85vh;overflow-y:auto;padding:0">
+        <div style="padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center">
+          <h2 style="margin:0;font-size:18px;font-weight:700">Детали товара</h2>
+          <button onclick="document.getElementById('admin-product-modal').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#6b7280">&times;</button>
+        </div>
+        <div style="padding:16px 24px 24px">
+          ${photosHtml}
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
+            <h3 style="margin:0;font-size:20px;font-weight:800;color:#0f172a;flex:1">${p.title}</h3>
+            <span style="background:${statusColor}20;color:${statusColor};padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;flex-shrink:0;margin-left:10px">${statusLabel}</span>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+            <span style="background:#f0fdf4;color:#059669;padding:4px 12px;border-radius:8px;font-size:13px;font-weight:600">${p.category}</span>
+            <span style="font-size:20px;font-weight:800;color:#059669">${Number(p.price_per_unit).toLocaleString()} сум<small style="font-size:13px;font-weight:500;color:#6b7280"> / ${p.unit}</small></span>
+            <span style="font-size:13px;color:#6b7280">Остаток: ${p.quantity_available} ${p.unit}</span>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Описание</div>
+            <p style="font-size:14px;color:#6b7280;line-height:1.6;margin:0">${p.description || 'Нет описания'}</p>
+          </div>
+          ${p.pickup_location ? `<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">📍 Место получения</div><p style="font-size:14px;color:#059669;font-weight:500;margin:0">${p.pickup_location}</p></div>` : ''}
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#f8fafc;border-radius:12px;margin-bottom:20px">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0"><i class="fi fi-sr-leaf"></i></div>
+            <div>
+              <div style="font-size:12px;color:#9ca3af">Фермер</div>
+              <div style="font-size:14px;font-weight:600;color:#0f172a">${p.fermer_name || '—'}</div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:16px">
+            <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">Комментарий при удалении (необязательно)</div>
+            <textarea id="admin-del-comment" placeholder="Причина удаления, будет показана фермеру..." style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;resize:vertical;min-height:60px;outline:none;font-family:inherit;box-sizing:border-box"></textarea>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('admin-product-modal').remove()">Закрыть</button>
+              <button class="btn" style="flex:1;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:600" onclick="adminDeleteProductConfirm(${p.id}, '${(p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить товар</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function adminDeleteProductConfirm(id, name) {
+  const comment = document.getElementById('admin-del-comment')?.value?.trim() || '';
+  if (!confirm(`Удалить товар «${name}»?`)) return;
+  try {
+    await API.request('DELETE', `/api/products/${id}${comment ? '?admin_comment=' + encodeURIComponent(comment) : ''}`);
+    document.getElementById('admin-product-modal')?.remove();
     showToast('Товар удалён', 'success');
+    adminSwitchTab('products');
   } catch (e) {
     showToast(e.message, 'error');
   }
@@ -513,4 +589,6 @@ window.adminRejectCourier   = adminRejectCourier;
 window.adminBlock           = adminBlock;
 window.adminUnblock         = adminUnblock;
 window.adminDeleteProduct   = adminDeleteProduct;
+window.adminShowProduct     = adminShowProduct;
+window.adminDeleteProductConfirm = adminDeleteProductConfirm;
 window.adminViewChat        = adminViewChat;
