@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func
+from sqlalchemy import select, or_, and_, func, update
 from typing import Optional, List
 import os
 import shutil
@@ -314,6 +314,10 @@ async def delete_product(
     if product.fermer_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
 
+    # Обнуляем связи перед удалением
+    from app.models import Order, Review
+    await db.execute(update(Order).where(Order.product_id == product_id).values(product_id=None))
+    await db.execute(update(Review).where(Review.product_id == product_id).values(product_id=None))
     await db.delete(product)
     await db.commit()
     return {"message": "Product deleted successfully"}

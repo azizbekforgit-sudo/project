@@ -1,11 +1,11 @@
-Uncaught ReferenceError: adminDeleteProduct is not defined
-    at admin.js:606:31
-api.js:287 [WS] Connected
-(index):1 Access to fetch at 'https://project-production-5501.up.railway.app/api/products/1' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-project-production-5501.up.railway.app/api/products/1:1  Failed to load resource: net::ERR_FAILED
+Access to fetch at 'https://project-production-5501.up.railway.app/api/products/1' from origin 'https://pure-strength-production.up.railway.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+api.js:38  DELETE https://project-production-5501.up.railway.app/api/products/1 net::ERR_FAILED 500 (Internal Server Error)
+request @ api.js:38
+deleteProduct @ api.js:139
+adminDoDelete @ admin.js:578
+onclick @ VM754 admin:1
 api.js:83 API Error: TypeError: Failed to fetch
     at request (api.js:38:23)
     at Object.deleteProduct (api.js:139:32)
     at adminDoDelete (admin.js:578:15)
-    
-    at HTMLButtonElement.onclick ((index):1:58)
+    at HTMLButtonElement.onclick (VM754 admin:1:58)

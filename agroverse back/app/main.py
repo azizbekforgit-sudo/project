@@ -237,6 +237,10 @@ END $$;
         # ── Product: pickup_location ──
         await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_location VARCHAR(300) DEFAULT ''")
 
+        # ── Allow product_id to be nullable for product deletion ──
+        await safe_exec("ALTER TABLE orders ALTER COLUMN product_id DROP NOT NULL")
+        await safe_exec("ALTER TABLE reviews ALTER COLUMN product_id DROP NOT NULL")
+
         # ── DeliveryRequest: rating columns ──
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_rating INTEGER")
         await safe_exec("ALTER TABLE delivery_requests ADD COLUMN IF NOT EXISTS buyer_comment TEXT")
