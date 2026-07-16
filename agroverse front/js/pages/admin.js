@@ -232,10 +232,12 @@ async function adminSwitchTab(tab) {
       box.innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:4px 0">
           ${products.map(p => {
-            const photos = p.photos || [];
+            const photos = p.images || p.photos || [];
             const photoSrc = photos.length ? (photos[0].startsWith('http') ? photos[0] : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + photos[0]) : '';
             const statusColor = p.status === 'active' ? '#10b981' : p.status === 'pending' ? '#f59e0b' : '#6b7280';
             const statusLabel = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : p.status;
+            const price = p.price || p.price_per_unit || 0;
+            const qty = p.quantity || p.quantity_available || 0;
             return `
             <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);transition:all .2s;cursor:pointer;border:1px solid #f1f5f9"
                  onclick="adminShowProduct(${p.id})"
@@ -249,11 +251,11 @@ async function adminSwitchTab(tab) {
                 ${photos.length > 1 ? `<span style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.5);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">📷 ${photos.length}</span>` : ''}
               </div>
               <div style="padding:14px">
-                <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</div>
-                <div style="font-size:12px;color:#6b7280;margin-bottom:8px">${p.category} · ${p.fermer_name || '—'}</div>
+                <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name || p.title || 'Без названия'}</div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:8px">${p.category || '—'} · ${p.fermer_name || '—'}</div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-weight:800;color:#059669;font-size:15px">${Number(p.price_per_unit).toLocaleString()} сум</span>
-                  <span style="font-size:12px;color:#9ca3af">${p.quantity_available} ${p.unit}</span>
+                  <span style="font-weight:800;color:#059669;font-size:15px">${Number(price).toLocaleString()} сум</span>
+                  <span style="font-size:12px;color:#9ca3af">${qty} ${p.unit || ''}</span>
                 </div>
               </div>
             </div>`;
@@ -506,7 +508,9 @@ async function adminViewChat(chatId) {
 async function adminShowProduct(id) {
   try {
     const p = await API.getProduct(id);
-    const photos = p.photos || p.images || [];
+    const photos = p.images || p.photos || [];
+    const price = p.price || p.price_per_unit || 0;
+    const qty = p.quantity || p.quantity_available || 0;
     const overlay = document.createElement('div');
     overlay.id = 'admin-product-modal';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);animation:fadeIn .2s';
@@ -531,13 +535,13 @@ async function adminShowProduct(id) {
         <div style="padding:16px 24px 24px">
           ${photosHtml}
           <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
-            <h3 style="margin:0;font-size:20px;font-weight:800;color:#0f172a;flex:1">${p.title}</h3>
+            <h3 style="margin:0;font-size:20px;font-weight:800;color:#0f172a;flex:1">${p.name || p.title || 'Без названия'}</h3>
             <span style="background:${statusColor}20;color:${statusColor};padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;flex-shrink:0;margin-left:10px">${statusLabel}</span>
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
             <span style="background:#f0fdf4;color:#059669;padding:4px 12px;border-radius:8px;font-size:13px;font-weight:600">${p.category}</span>
-            <span style="font-size:20px;font-weight:800;color:#059669">${Number(p.price_per_unit).toLocaleString()} сум<small style="font-size:13px;font-weight:500;color:#6b7280"> / ${p.unit}</small></span>
-            <span style="font-size:13px;color:#6b7280">Остаток: ${p.quantity_available} ${p.unit}</span>
+            <span style="font-size:20px;font-weight:800;color:#059669">${Number(price).toLocaleString()} сум<small style="font-size:13px;font-weight:500;color:#6b7280"> / ${p.unit}</small></span>
+            <span style="font-size:13px;color:#6b7280">Остаток: ${qty} ${p.unit}</span>
           </div>
           <div style="margin-bottom:16px">
             <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">Описание</div>
@@ -556,7 +560,7 @@ async function adminShowProduct(id) {
             <textarea id="admin-del-comment" placeholder="Причина удаления, будет показана фермеру..." style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;resize:vertical;min-height:60px;outline:none;font-family:inherit;box-sizing:border-box"></textarea>
             <div style="display:flex;gap:10px;margin-top:12px">
               <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('admin-product-modal').remove()">Закрыть</button>
-              <button class="btn" style="flex:1;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:600" onclick="adminDeleteProductConfirm(${p.id}, '${(p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить товар</button>
+              <button class="btn" style="flex:1;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:600" onclick="adminDeleteProductConfirm(${p.id}, '${(p.name || p.title || '').replace(/'/g, "\\'")}')">🗑 Удалить товар</button>
             </div>
           </div>
         </div>

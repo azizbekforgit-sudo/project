@@ -1285,6 +1285,13 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
   font-size: 18px; font-weight: 700; color: var(--ink);
 }
 .pc-price small { font-size: 12px; font-weight: 400; color: var(--body); }
+.pc-stock {
+  font-size: 12px; color: #059669; font-weight: 500;
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 8px;
+}
+.pc-stock i { font-size: 12px; }
+.pc-stock-out { color: #9ca3af; font-style: italic; }
 .pc-farmer {
   font-size: 12px; color: var(--body);
   display: flex; align-items: center; gap: 5px;

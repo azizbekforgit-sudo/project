@@ -74,6 +74,7 @@ function productCardHtml(p) {
         <div class="pc-price-row">
           <div class="pc-price">${Number(p.price).toLocaleString('ru')} <small>${t('sum')}/${p.unit || t('unit_kg')}</small></div>
         </div>
+        ${p.quantity > 0 ? `<div class="pc-stock"><i class="fi fi-rr-box-open"></i> В наличии: ${p.quantity} ${p.unit || ''}</div>` : `<div class="pc-stock pc-stock-out">Нет в наличии</div>`}
         <div class="pc-farmer"><i class="fi fi-sr-leaf"></i> ${p.fermer_name || t('farmer_word')}</div>
         <div class="pc-actions">${action}</div>
       </div>
