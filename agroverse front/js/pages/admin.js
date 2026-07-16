@@ -576,7 +576,7 @@ async function adminDeleteProductConfirm(id, name) {
   const comment = document.getElementById('admin-del-comment')?.value?.trim() || '';
   if (!confirm(`Удалить товар «${name}»?`)) return;
   try {
-    await API.request('DELETE', `/api/products/${id}${comment ? '?admin_comment=' + encodeURIComponent(comment) : ''}`);
+    await API.deleteProduct(id);
     document.getElementById('admin-product-modal')?.remove();
     showToast('Товар удалён', 'success');
     adminSwitchTab('products');

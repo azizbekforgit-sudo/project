@@ -304,7 +304,6 @@ async def update_product(
 @router.delete("/{product_id}")
 async def delete_product(
     product_id: int,
-    admin_comment: str = "",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
