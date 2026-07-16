@@ -93,7 +93,7 @@ function orderCardHtml(o, isFermer) {
   const canComplete  = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
   const canMarkReady = isFermer && o.status === 'paid';
   const canPay       = !isFermer && o.status === 'created';
-  const canChatFarmer = !isFermer && ['created', 'paid'].includes(o.status) && o.pickup_method !== 'self';
+  const canChatFarmer = !isFermer && ['created', 'paid'].includes(o.status);
   const canChatDriver = !isFermer && o.driver_candidate_id && o.pickup_method === 'external';
   const canPayDriver = !isFermer && o.delivery_request && o.delivery_request.status === 'delivered';
 
