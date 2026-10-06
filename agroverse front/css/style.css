@@ -247,9 +247,11 @@ input, select, textarea { font-family: inherit; }
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
+  overflow-y: auto;
 }
+.sidebar-nav::-webkit-scrollbar { width: 0; }
 
 .nav-item-link {
   display: flex;
@@ -264,9 +266,21 @@ input, select, textarea { font-family: inherit; }
   transition: all 0.2s ease;
 }
 
-.nav-item-link i {
+.nav-item-link .nav-ic {
   font-size: 18px;
   opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-item-link .nav-ic.emo {
+  font-style: normal;
+  font-size: 20px;
+}
+
+.nav-tx {
+  white-space: nowrap;
 }
 
 .nav-item-link:hover {

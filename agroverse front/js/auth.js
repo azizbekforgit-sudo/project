@@ -63,38 +63,31 @@ function showSpinner(container) {
 }
 
 const NAV_COMMON = [
-  { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
-  { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
-  { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
-  { path: '/wallet',   icon: 'fi fi-rr-wallet',          key: 'nav_wallet' },
-  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
-  { path: '/ai',       icon: 'fi fi-rr-comment-alt',     key: 'nav_ai' },
+  { path: '/home',     icon: '🏠',            key: 'nav_home' },
+  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
 ];
 
 const NAV_FARMER = [
-  ...NAV_COMMON,
+  { path: '/home',     icon: '🏠',            key: 'nav_home' },
+  { path: '/market',   icon: '🏪',            key: 'nav_market' },
+  { path: '/orders',   icon: '📦',            key: 'nav_orders' },
+  { path: '/wallet',   icon: '💳',            key: 'nav_wallet' },
+  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
+  { path: '/ai',       icon: '🤖',            key: 'nav_ai' },
 ];
 
 const NAV_BUYER = [
-  ...NAV_COMMON,
-];
-
-const NAV_COURIER = [
-  { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
-  { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
-  { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
-  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
-  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
-];
-
-const NAV_ADMIN = [
-  { path: '/admin',   icon: 'fi fi-rr-dashboard',        key: 'nav_admin' },
-  { path: '/market',  icon: 'fi fi-rr-shop',             key: 'nav_market' },
-  { path: '/chats',   icon: 'fi fi-rr-comment',          key: 'nav_chats' },
+  { path: '/home',     icon: '🏠',            key: 'nav_home' },
+  { path: '/market',   icon: '🛒',            key: 'nav_market' },
+  { path: '/orders',   icon: '📦',            key: 'nav_orders' },
+  { path: '/cart',     icon: '🛍️',            key: 'nav_cart' },
+  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
 ];
 
 function getNavItems() {
-  if (Auth.isAdmin && Auth.isAdmin()) return NAV_ADMIN;
+  if (Auth.isAdmin && Auth.isAdmin()) return [{ path: '/admin', icon: '⚙️', key: 'nav_admin' }, ...NAV_COMMON];
+  if (Auth.isFarmer()) return NAV_FARMER;
+  if (Auth.isBuyer()) return NAV_BUYER;
   return NAV_COMMON;
 }
 
@@ -120,11 +113,11 @@ function buildHeader() {
     }
     if (it.external) {
       return `<a class="nav-item-link" href="${it.url}" target="_blank">
-        <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${it.label}</span>
+        <span class="nav-ic emo">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>
       </a>`;
     }
     return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
-      <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${t(it.key)}</span>${badge}
+      <span class="nav-ic emo">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>${badge}
     </a>`;
   }).join('');
 
@@ -183,21 +176,21 @@ function buildHeader() {
 
     <nav class="mobile-bottom-bar">
       <a class="mbb-item ${path === '/home' ? 'active' : ''}" onclick="router.go('/home')">
-        <i class="fi fi-rr-home"></i><span>Главная</span>
+        <span class="emo">🏠</span><span>Главная</span>
       </a>
       <a class="mbb-item ${path === '/market' ? 'active' : ''}" onclick="router.go('/market')">
-        <i class="fi fi-rr-shop"></i><span>Рынок</span>
+        <span class="emo">🛍️</span><span>Рынок</span>
       </a>
       <a class="mbb-item ${path === '/cart' ? 'active' : ''}" onclick="router.go('/cart')">
-        <i class="fi fi-rr-shopping-cart"></i>
+        <span class="emo">🛒</span>
         ${cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : ''}
         <span>Корзина</span>
       </a>
       <a class="mbb-item ${path === '/orders' ? 'active' : ''}" onclick="router.go('/orders')">
-        <i class="fi fi-rr-box-open"></i><span>Заказы</span>
+        <span class="emo">📦</span><span>Заказы</span>
       </a>
       <a class="mbb-item ${path === '/profile' ? 'active' : ''}" onclick="router.go('/profile')">
-        <i class="fi fi-rr-user"></i><span>Профиль</span>
+        <span class="emo">👤</span><span>Профиль</span>
       </a>
     </nav>
   `;

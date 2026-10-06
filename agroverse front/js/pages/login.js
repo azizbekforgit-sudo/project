@@ -3,43 +3,62 @@ function renderLogin() {
   const pending = popPendingMessage();
 
   app.innerHTML = `
-    <div class="auth-page">
-      <div class="auth-card">
-        <div class="auth-lang">
-          <select class="lang-select" onchange="I18nManager.set(this.value)">
-            ${(window.I18nManager?I18nManager.langs():[]).map(l=>`<option value="${l.code}" ${l.code===I18nManager.current?'selected':''}>${l.label}</option>`).join('')}
-          </select>
+    <style>
+      .reg-split { display: flex; min-height: 100vh; background: #F8FAF6; }
+      .reg-image-side { 
+        flex: 1; background: url('https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&w=1200&q=80') center/cover;
+        position: relative; display: none; 
+      }
+      @media (min-width: 900px) { .reg-image-side { display: block; } }
+      .reg-image-overlay {
+        position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,70,44,0.3) 0%, rgba(20,70,44,0.8) 100%);
+        display: flex; flex-direction: column; justify-content: flex-end; padding: 60px;
+      }
+      .rio-title { color: #FFF; font-family: var(--font-display); font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+      .rio-text { color: rgba(255,255,255,0.9); font-size: 18px; max-width: 400px; }
+      .reg-form-side { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+      .reg-box { width: 100%; max-width: 440px; }
+      .reg-header { margin-bottom: 32px; text-align: center; }
+      .reg-logo { font-size: 32px; margin-bottom: 16px; text-decoration: none; display: inline-block; }
+      .reg-title { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: #111827; margin-bottom: 12px; }
+      .reg-subtitle { color: #6b7280; font-size: 15px; }
+    </style>
+    <div class="reg-split">
+      <div class="reg-image-side">
+        <div class="reg-image-overlay">
+          <div class="rio-title">С возвращением<br/>в AgroVerse</div>
+          <div class="rio-text">Прямой доступ к лучшим фермерским продуктам и оптовым рынкам без посредников.</div>
         </div>
-        <div class="auth-logo">
-          <div class="logo"><i class="fi fi-sr-seedling"></i> <span>Agro</span>Verse</div>
-          <p>${t('login_subtitle')}</p>
-        </div>
-
-        <h2 class="auth-title">${t('login_to_account')}</h2>
-
-        ${pending ? `<div class="form-error" style="background:#d4edda;border-color:#c3e6cb;color:#155724;">${pending}</div>` : ''}
-        <div id="login-error" class="form-error hidden"></div>
-
-        <div class="form-group">
-          <label for="phone">${t('phone')}</label>
-          <input type="tel" id="phone" placeholder="+998 90 000 00 00" required />
-        </div>
-
-        <div class="form-group">
-          <label for="password">${t('password_label')}</label>
-          <div class="pwd-wrap">
-            <input type="password" id="password" placeholder="••••••••" required />
-            <button type="button" class="pwd-toggle" id="pwd-toggle" title="${t('show_pass')}"><i class="fi fi-rr-eye"></i></button>
+      </div>
+      <div class="reg-form-side">
+        <div class="reg-box">
+          <div class="reg-header">
+            <a href="#/home" class="reg-logo">🌿</a>
+            <h2 class="reg-title">Вход в систему</h2>
+            <p class="reg-subtitle">Введите ваши данные для входа</p>
           </div>
-        </div>
 
-        <button class="btn btn-primary btn-full" id="login-btn">${t('login')}</button>
+          ${pending ? `<div class="form-error" style="background:#d4edda;border-color:#c3e6cb;color:#155724;">${pending}</div>` : ''}
+          <div id="login-error" class="form-error hidden"></div>
 
-        <div class="auth-divider"><span>${t('or_continue')}</span></div>
-        <button class="btn btn-google btn-full" id="google-btn"><i class="fi fi-brands-google"></i> ${t('google_btn')}</button>
+          <div class="form-group">
+            <label for="phone">Номер телефона</label>
+            <input type="tel" id="phone" class="pn-input" placeholder="+998 90 000 00 00" required />
+          </div>
 
-        <div class="auth-footer">
-          ${t('no_account')} <a href="#/register" onclick="router.go('/register'); return false;">${t('register')}</a>
+          <div class="form-group">
+            <label for="password">Пароль</label>
+            <div class="pwd-wrap">
+              <input type="password" id="password" class="pn-input" placeholder="••••••••" required />
+              <button type="button" class="pwd-toggle" id="pwd-toggle" title="${t('show_pass')}"><i class="fi fi-rr-eye"></i></button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-full btn-lg" id="login-btn" style="margin-top:24px">Войти</button>
+
+          <div style="text-align:center; margin-top: 24px; color: #6b7280; font-size: 14px;">
+            Нет аккаунта? <a href="#/register" onclick="router.go('/register'); return false;" style="color: #1B5C3B; font-weight: 600; text-decoration: none;">Зарегистрироваться</a>
+          </div>
         </div>
       </div>
     </div>

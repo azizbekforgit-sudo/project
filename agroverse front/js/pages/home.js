@@ -804,24 +804,7 @@ async function renderHome() {
         <div id="home-products" class="products-grid v2"><div class="spinner"></div></div>
       </section>
 
-      <!-- ═══ RECENT ORDERS PREVIEW ═══ -->
-      <section class="section">
-        <div class="section-head">
-          <h2>Ваши последние заказы</h2>
-          <a class="link-more" onclick="router.go('/orders')">Все заказы <i class="fi fi-rr-arrow-right"></i></a>
-        </div>
-        <div id="home-recent-orders" class="recent-orders-card">
-          <div class="ro-row" onclick="router.go('/delivery')">
-            <div class="ro-icon">🍅</div>
-            <div class="ro-info">
-              <div class="ro-title">#1245 — Помидоры (20 кг)</div>
-              <div class="ro-sub">Ферма "Зелёное поле"</div>
-            </div>
-            <div class="ro-status pill-in-transit">● Доставляется</div>
-            <div class="ro-arrow"><i class="fi fi-rr-angle-right"></i></div>
-          </div>
-        </div>
-      </section>
+
         </div>
 
         <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:24px;text-align:center;color:#6b7280;font-size:13px">
@@ -835,24 +818,6 @@ async function renderHome() {
   const mainEl = document.querySelector('.app-main');
   if (mainEl) mainEl.style.paddingBottom = '0';
 
-  // Insert courier reminder banner if needed
-  if (isCourier && showCourierAlert) {
-    const alertContainer = document.getElementById('home-dynamic-alerts');
-    alertContainer.innerHTML = `
-      <div class="remind-banner scroll-reveal revealed">
-        <div style="font-size: 2rem;"><i class="fi fi-sr-truck-side" style="font-size:32px;color:#92400e"></i></div>
-        <div class="rb-content">
-          <span class="rb-title">Вы зарегистрированы как Йўлчи!</span>
-          <span class="rb-text">Чтобы начать принимать заказы и зарабатывать, вам необходимо заполнить профиль перевозчика и дождаться одобрения админа.</span>
-        </div>
-        <div class="rb-actions">
-           <button class="btn btn-primary" onclick="router.go('/profile')">Заполнить сейчас</button>
-           <button class="btn btn-ghost" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')"><i class="fi fi-rr-paper-plane"></i> Связаться</button>
-           <button class="btn btn-ghost" onclick="this.closest('.remind-banner').remove(); localStorage.removeItem('courier_needs_setup_alert');"><i class="fi fi-sr-times"></i></button>
-        </div>
-      </div>
-    `;
-  }
 
   // Split h1 words and trigger hero animations
   splitHeroH1();

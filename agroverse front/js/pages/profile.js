@@ -3,14 +3,12 @@
 const ROLE_LABELS = {
   fermer: () => t('role_farmer'),
   xaridor: () => t('role_buyer'),
-  courier: () => t('role_courier'),
   admin: 'Admin',
 };
 const ROLE_ICONS = {
-  fermer: 'fi fi-sr-leaf',
-  xaridor: 'fi fi-sr-shopping-bag',
-  courier: 'fi fi-sr-truck-side',
-  admin: 'fi fi-sr-crown',
+  fermer: '👨‍🌾',
+  xaridor: '🛍️',
+  admin: '👑',
 };
 const CAT_EMOJI_PROF = { 'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf', 'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey' };
 
@@ -19,7 +17,6 @@ async function renderProfile() {
   const user = Auth.getUser();
   if (!user) { router.go('/login'); return; }
 
-  if (user.role === 'courier') return renderCourierProfileManager(app);
 
   // Inject profile styles once
   injectProfileStyles();
@@ -39,10 +36,10 @@ async function renderProfile() {
           <div class="pr-user-info">
             <h1 class="pr-name">${user.name || 'Пользователь'}</h1>
             <div class="pr-meta">
-              <span class="pr-role-badge"><i class="${roleIcon}"></i> ${roleLabel}</span>
-              <span class="pr-phone"><i class="fi fi-rr-phone"></i> ${user.phone || ''}</span>
-              ${user.email ? `<span class="pr-email"><i class="fi fi-rr-envelope"></i> ${user.email}</span>` : ''}
-              ${user.city ? `<span class="pr-email"><i class="fi fi-rr-map-marker"></i> ${user.city}</span>` : ''}
+              <span class="pr-role-badge"><span class="emo">${roleIcon}</span> ${roleLabel}</span>
+              <span class="pr-phone"><span class="emo">📞</span> ${user.phone || ''}</span>
+              ${user.email ? `<span class="pr-email"><span class="emo">✉️</span> ${user.email}</span>` : ''}
+              ${user.city ? `<span class="pr-email"><span class="emo">📍</span> ${user.city}</span>` : ''}
             </div>
           </div>
         </div>
@@ -51,24 +48,24 @@ async function renderProfile() {
       <!-- Stats cards -->
       <div class="pr-stats" id="pr-stats">
         <div class="pr-stat-card">
-          <div class="pr-stat-icon"><i class="fi fi-rr-box-open"></i></div>
+          <div class="pr-stat-icon"><span class="emo">📦</span></div>
           <div class="pr-stat-num" id="pr-stat-orders">—</div>
           <div class="pr-stat-label">${t('stat_orders')}</div>
         </div>
         ${user.role === 'fermer' ? `
-        <div class="pr-stat-card featured">
-          <div class="pr-stat-icon"><i class="fi fi-rr-tag"></i></div>
+        <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
+          <div class="pr-stat-icon"><span class="emo">🛒</span></div>
           <div class="pr-stat-num" id="pr-stat-products">—</div>
           <div class="pr-stat-label">${t('stat_products')}</div>
         </div>
         <div class="pr-stat-card">
-          <div class="pr-stat-icon"><i class="fi fi-rr-check-circle"></i></div>
+          <div class="pr-stat-icon"><span class="emo">✅</span></div>
           <div class="pr-stat-num" id="pr-stat-active">—</div>
           <div class="pr-stat-label">${t('stat_active')}</div>
         </div>
         ` : `
-        <div class="pr-stat-card featured">
-          <div class="pr-stat-icon"><i class="fi fi-rr-shopping-cart"></i></div>
+        <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
+          <div class="pr-stat-icon"><span class="emo">🛍️</span></div>
           <div class="pr-stat-num" id="pr-stat-cart">0</div>
           <div class="pr-stat-label">${t('stat_in_cart')}</div>
         </div>
@@ -79,27 +76,25 @@ async function renderProfile() {
       ${user.role === 'fermer' ? `
       <div class="pr-section" id="pr-products-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-tag"></i> ${t('my_products')}</h2>
-          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><i class="fi fi-rr-plus"></i> ${t('add_btn')}</button>
+          <h2><span class="emo">🛒</span> ${t('my_products')}</h2>
+          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><span class="emo">➕</span> ${t('add_btn')}</button>
         </div>
         <div id="pr-products-list"><div class="spinner"></div></div>
       </div>
       ` : ''}
 
-      <!-- Farmer orders section -->
-      ${user.role === 'fermer' ? `
+      <!-- Orders section -->
       <div class="pr-section" id="pr-orders-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-box-open"></i> Заказы</h2>
+          <h2><span class="emo">📦</span> Заказы</h2>
         </div>
         <div id="pr-orders-list"><div class="spinner"></div></div>
       </div>
-      ` : ''}
 
       <!-- Settings -->
       <div class="pr-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-settings"></i> ${t('settings_label')}</h2>
+          <h2><span class="emo">⚙️</span> ${t('settings_label')}</h2>
         </div>
         <div class="pr-settings-card">
           <div class="pr-setting-row">
@@ -541,199 +536,6 @@ function openProfileEdit(field) {
       btn.disabled = false;
     }
   };
-}
-
-/* ============================================================
-   COURIER PROFILE (existing logic, enhanced)
-   ============================================================ */
-async function renderCourierProfileManager(app) {
-    app.innerHTML = pageShell('<div class="spinner-center"><div class="spinner"></div> Загрузка профиля Йўлчи...</div>');
-
-    try {
-        const profile = await API.getCourierProfile();
-
-        if (!profile || !profile.full_name) {
-            renderCourierSetupForm(app);
-            return;
-        }
-
-        if (profile.admin_approved !== true && profile.admin_approved !== "true") {
-            injectProfileStyles();
-            app.innerHTML = pageShell(`
-                <div class="pr-page">
-                    <div class="pr-section" style="max-width:600px;margin:40px auto;text-align:center">
-                        <div style="font-size:3.5rem;margin-bottom:16px">${fe('⏳',56)}</div>
-                        <h2 style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:12px">Анкета на проверке</h2>
-                        <p style="color:var(--txt-2);font-size:15px;line-height:1.7;margin-bottom:20px">Администратор проверяет ваши данные водителя. До одобрения вы не можете принимать заказы.</p>
-                        ${profile.rejection_reason ? `<div class="form-error" style="text-align:left"><b>Причина отказа:</b> ${profile.rejection_reason}</div>` : ''}
-                        <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap">
-                            <button class="btn btn-primary" onclick="renderCourierSetupForm(document.getElementById('app'))">Редактировать анкету</button>
-                            <button class="btn btn-ghost" onclick="Auth.logout()">Выйти</button>
-                        </div>
-                    </div>
-                </div>
-            `);
-            return;
-        }
-
-        renderCourierDashboard(app, profile);
-
-    } catch (e) {
-        renderCourierSetupForm(app);
-    }
-}
-
-function renderCourierSetupForm(app) {
-    injectProfileStyles();
-    app.innerHTML = pageShell(`
-        <div class="pr-page" style="max-width:560px;margin:0 auto">
-            <div class="pr-section">
-                <div class="pr-section-head"><h2><i class="fi fi-rr-truck-side"></i> Анкета водителя</h2></div>
-                <div class="pr-settings-card">
-                    <div id="setup-error" class="form-error hidden"></div>
-
-                    <div class="form-group">
-                        <label>ФИО полностью *</label>
-                        <input type="text" id="cp-full-name" placeholder="Напр: Рахимов Абдулла" class="pn-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Тип транспорта *</label>
-                        <select id="cp-transport" class="pn-input">
-                            <option value="fura">Фура (20т+)</option>
-                            <option value="refrig">Рефрижератор</option>
-                            <option value="tentovan">Тентованный</option>
-                            <option value="samosval">Самосвал</option>
-                            <option value="bortovoy">Бортовой</option>
-                            <option value="truck">Грузовой (до 5т)</option>
-                            <option value="car">Легковая</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Номер автомобиля *</label>
-                        <input type="text" id="cp-plate" placeholder="01 A 777 BA" class="pn-input">
-                    </div>
-                    <div class="form-group">
-                        <label>Ваш город *</label>
-                        <input type="text" id="cp-city" placeholder="Напр: Ташкент" class="pn-input">
-                    </div>
-
-                    <button class="btn btn-primary btn-full" id="setup-save-btn" style="margin-top:12px">Отправить админу</button>
-                </div>
-            </div>
-        </div>
-    `);
-
-    document.getElementById('setup-save-btn').onclick = async () => {
-        const btn = document.getElementById('setup-save-btn');
-        const err = document.getElementById('setup-error');
-
-        const payload = {
-            full_name: document.getElementById('cp-full-name').value.trim(),
-            transport_type: document.getElementById('cp-transport').value,
-            vehicle_number: document.getElementById('cp-plate').value.trim(),
-            city: document.getElementById('cp-city').value.trim(),
-            phone: Auth.getUser().phone || '',
-            max_weight: 5000,
-        };
-
-        if (!payload.full_name || !payload.vehicle_number || !payload.city) {
-            err.textContent = "Заполните обязательные поля";
-            err.classList.remove('hidden');
-            return;
-        }
-
-        btn.disabled = true;
-        try {
-            await API.setupCourierProfile(payload);
-            showToast('Анкета отправлена на проверку!', 'success');
-            localStorage.removeItem('courier_needs_setup_alert');
-            renderProfile();
-        } catch (e) {
-            err.textContent = e.message;
-            err.classList.remove('hidden');
-            btn.disabled = false;
-        }
-    };
-}
-
-function renderCourierDashboard(app, profile) {
-    injectProfileStyles();
-    const avatarLetter = (profile.full_name || 'Й')[0].toUpperCase();
-
-    app.innerHTML = pageShell(`
-        <div class="pr-page">
-            <div class="pr-header">
-                <div class="pr-header-bg"></div>
-                <div class="pr-header-content">
-                    <div class="pr-avatar">${avatarLetter}</div>
-                    <div class="pr-user-info">
-                        <h1 class="pr-name">${profile.full_name || 'Йўлчи'}</h1>
-                        <div class="pr-meta">
-                            <span class="pr-role-badge"><i class="fi fi-rr-truck-side"></i> Водитель</span>
-                            <span class="pr-phone"><i class="fi fi-rr-phone"></i> ${profile.phone || ''}</span>
-                        </div>
-                    </div>
-                    <div class="pr-badge-ok"><i class="fi fi-rr-check-circle"></i> Подтверждён</div>
-                </div>
-            </div>
-
-            <div class="pr-stats">
-                <div class="pr-stat-card featured">
-                    <div class="pr-stat-icon"><i class="fi fi-rr-wallet"></i></div>
-                    <div class="pr-stat-num">${Number(profile.balance || 0).toLocaleString('ru')}</div>
-                    <div class="pr-stat-label">Баланс (сум)</div>
-                </div>
-                <div class="pr-stat-card">
-                    <div class="pr-stat-icon"><i class="fi fi-rr-star"></i></div>
-                    <div class="pr-stat-num">${profile.rating || '5.0'}</div>
-                    <div class="pr-stat-label">Рейтинг</div>
-                </div>
-                <div class="pr-stat-card">
-                    <div class="pr-stat-icon"><i class="fi fi-rr-truck-side"></i></div>
-                    <div class="pr-stat-num">${profile.transport_type || '—'}</div>
-                    <div class="pr-stat-label">Транспорт</div>
-                </div>
-            </div>
-
-            <div class="pr-section">
-                <div class="pr-section-head"><h2><i class="fi fi-rr-truck"></i> Автомобиль</h2></div>
-                <div class="pr-settings-card">
-                    <div class="pr-setting-row">
-                        <div class="pr-setting-info">
-                            <div class="pr-setting-label">Тип транспорта</div>
-                            <div class="pr-setting-value">${profile.transport_type || '—'}</div>
-                        </div>
-                    </div>
-                    <div class="pr-setting-row">
-                        <div class="pr-setting-info">
-                            <div class="pr-setting-label">Гос. номер</div>
-                            <div class="pr-setting-value">${profile.vehicle_number || '—'}</div>
-                        </div>
-                    </div>
-                    <div class="pr-setting-row">
-                        <div class="pr-setting-info">
-                            <div class="pr-setting-label">Город</div>
-                            <div class="pr-setting-value">${profile.city || '—'}</div>
-                        </div>
-                    </div>
-                    ${profile.bio ? `
-                    <div class="pr-setting-row">
-                        <div class="pr-setting-info">
-                            <div class="pr-setting-label">О себе</div>
-                            <div class="pr-setting-value">${profile.bio}</div>
-                        </div>
-                    </div>` : ''}
-                </div>
-            </div>
-
-            <div class="pr-section">
-                <div class="pr-actions-row">
-                    <a class="btn btn-ghost" onclick="router.go('/wallet')"><i class="fi fi-rr-wallet"></i> Кошелёк</a>
-                    <a class="btn btn-danger" onclick="Auth.logout()"><i class="fi fi-rr-sign-out-alt"></i> Выйти</a>
-                </div>
-            </div>
-        </div>
-    `);
 }
 
 /* ============================================================
