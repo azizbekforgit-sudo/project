@@ -62,58 +62,47 @@ function showSpinner(container) {
   container.innerHTML = '<div class="spinner"></div>';
 }
 
-// Иконки — Flaticon UICons (единый набор). AI и тарифы вынесены из навбара,
-// чтобы убрать перегрузку (AI открывается модалкой, тарифы — в профиле).
+const NAV_COMMON = [
+  { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
+  { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
+  { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
+  { path: '/wallet',   icon: 'fi fi-rr-wallet',          key: 'nav_wallet' },
+  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
+  { path: '/ai',       icon: 'fi fi-rr-comment-alt',     key: 'nav_ai' },
+];
+
 const NAV_FARMER = [
-  { path: '/home',        icon: 'fi fi-rr-home',         key: 'nav_home' },
-  { path: '/market',      icon: 'fi fi-rr-shop',         key: 'nav_market' },
-  { path: '/product/new', icon: 'fi fi-rr-add',          key: 'nav_add_product' },
-  { path: '/chats',       icon: 'fi fi-rr-comment',      key: 'nav_chats' },
-  { path: '/delivery',    icon: 'fi fi-rr-truck-side',   key: 'nav_delivery' },
-  { path: '/tariffs',     icon: 'fi fi-rr-star',         key: 'nav_tariffs' },
-  { path: '/wallet',      icon: 'fi fi-rr-wallet',       key: 'nav_wallet' },
-  { path: '/profile',     icon: 'fi fi-rr-user',         key: 'nav_profile' },
+  ...NAV_COMMON,
 ];
 
 const NAV_BUYER = [
+  ...NAV_COMMON,
+];
+
+const NAV_COURIER = [
   { path: '/home',     icon: 'fi fi-rr-home',            key: 'nav_home' },
   { path: '/market',   icon: 'fi fi-rr-shop',            key: 'nav_market' },
   { path: '/orders',   icon: 'fi fi-rr-box-open',        key: 'nav_orders' },
   { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
-  { path: '/delivery', icon: 'fi fi-rr-truck-side',      key: 'nav_delivery' },
-  { path: '/cart',     icon: 'fi fi-rr-shopping-cart',   key: 'nav_cart' },
-  { path: '/tariffs',  icon: 'fi fi-rr-star',            key: 'nav_tariffs' },
-  { path: '/wallet',   icon: 'fi fi-rr-wallet',          key: 'nav_wallet' },
-  { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
-];
-
-const NAV_COURIER = [
-  { path: '/courier',  icon: 'fi fi-rr-bike',            key: 'nav_courier_dashboard' },
-  { path: '/chats',    icon: 'fi fi-rr-comment',         key: 'nav_chats' },
-  { path: '/ai',       icon: 'fi fi-rr-comment-alt',     key: 'nav_ai' },
-  { external: true, url: 'https://t.me/The1_Smurfs_Bot', icon: 'fi fi-rr-paper-plane', label: 'Связаться' },
   { path: '/profile',  icon: 'fi fi-rr-user',            key: 'nav_profile' },
 ];
 
 const NAV_ADMIN = [
   { path: '/admin',   icon: 'fi fi-rr-dashboard',        key: 'nav_admin' },
-  { path: '/chats',   icon: 'fi fi-rr-comment',          key: 'nav_chats' },
   { path: '/market',  icon: 'fi fi-rr-shop',             key: 'nav_market' },
-  { path: '/tariffs', icon: 'fi fi-rr-star',             key: 'nav_tariffs' },
+  { path: '/chats',   icon: 'fi fi-rr-comment',          key: 'nav_chats' },
 ];
 
 function getNavItems() {
   if (Auth.isAdmin && Auth.isAdmin()) return NAV_ADMIN;
-  const role = Auth.getRole();
-  if (role === 'courier') return NAV_COURIER;
-  return Auth.isFarmer() ? NAV_FARMER : NAV_BUYER;
+  return NAV_COMMON;
 }
 
 function currentPath() {
   return (window.location.hash || '#/home').replace(/^#/, '') || '/home';
 }
 
-/* Главный layout-обёртка с навбаром. content — HTML строки страницы. */
+/* Главный layout-обёртка со сбоковым меню в стиле Modern Agriculture */
 function buildHeader() {
   const user = Auth.getUser();
   const path = currentPath();
@@ -130,11 +119,11 @@ function buildHeader() {
       badge = `<span class="nav-badge">${chatsUnread}</span>`;
     }
     if (it.external) {
-      return `<a class="nav-link" href="${it.url}" target="_blank">
+      return `<a class="nav-item-link" href="${it.url}" target="_blank">
         <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${it.label}</span>
       </a>`;
     }
-    return `<a class="nav-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
+    return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
       <i class="nav-ic ${it.icon}"></i><span class="nav-tx">${t(it.key)}</span>${badge}
     </a>`;
   }).join('');
@@ -143,37 +132,86 @@ function buildHeader() {
   const langOpts = (window.I18nManager ? I18nManager.langs() : [])
     .map(l => `<option value="${l.code}" ${l.code === cur ? 'selected' : ''}>${l.code.toUpperCase()}</option>`)
     .join('');
-  const chipIcon = (Auth.isAdmin && Auth.isAdmin()) ? 'fi fi-sr-crown' : (Auth.isFarmer() ? 'fi fi-sr-leaf' : 'fi fi-sr-shopping-bag');
-  const showAi = !(Auth.isAdmin && Auth.isAdmin());
+
+  const userInitial = (user?.name || user?.phone || 'A')[0].toUpperCase();
+  const roleName = Auth.isFarmer() ? 'Фермер' : 'Покупатель';
 
   return `
-    <header class="navbar">
-      <div class="nav-inner">
-        <div class="nav-logo" onclick="router.go('${(Auth.isAdmin && Auth.isAdmin()) ? '/admin' : '/home'}')">
-          <span class="logo-leaf"><i class="fi fi-sr-seedling"></i></span><span class="logo-text"><b>Agro</b>Verse</span>
+    <aside class="sidebar-green">
+      <div class="sidebar-brand" onclick="router.go('/home')">
+        <div class="sb-logo-icon">🌿</div>
+        <div class="sb-logo-text">
+          <div class="sb-logo-title">AgroVerse</div>
+          <div class="sb-logo-sub">Сельское хозяйство</div>
         </div>
-        <nav class="nav-links">
-          ${links}
-          ${showAi ? `<a class="nav-link nav-ai-btn" onclick="router.go('/ai')"><i class="nav-ic fi fi-rr-comment-dots"></i><span class="nav-tx">${t('nav_ai')}</span></a>` : ''}
-        </nav>
-        <div class="nav-right">
-          <select class="lang-select" onchange="I18nManager.set(this.value)">${langOpts}</select>
-          <span class="user-chip"><i class="${chipIcon}"></i><span class="uc-name">${user?.name || user?.phone || ''}</span></span>
-          <button class="btn-logout" onclick="Auth.logout()" title="${t('nav_logout')}"><i class="fi fi-rr-sign-out-alt"></i></button>
+      </div>
+
+      <nav class="sidebar-nav">
+        ${links}
+      </nav>
+
+      <div class="sidebar-user" onclick="router.go('/profile')">
+        <div class="su-avatar">${userInitial}</div>
+        <div class="su-info">
+          <div class="su-name">${user?.name || 'Алишер Абдуллаев'}</div>
+          <div class="su-role">${roleName}</div>
         </div>
-        <button class="nav-burger" onclick="document.querySelector('.nav-links').classList.toggle('open')"><i class="fi fi-rr-menu-burger"></i></button>
+        <button class="su-logout" onclick="event.stopPropagation(); Auth.logout()" title="${t('nav_logout')}">
+          <i class="fi fi-rr-sign-out-alt"></i>
+        </button>
+      </div>
+    </aside>
+
+    <header class="top-header-bar">
+      <div class="top-header-left">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar-green').classList.toggle('mobile-open')">
+          <i class="fi fi-rr-menu-burger"></i>
+        </button>
+        <div class="top-search-box">
+          <i class="fi fi-rr-search"></i>
+          <input type="text" placeholder="Что вы ищете?" onkeydown="if(event.key==='Enter'){ router.go('/market?q=' + encodeURIComponent(this.value)); }" />
+        </div>
+      </div>
+      <div class="top-header-right">
+        <button class="cart-header-btn" onclick="router.go('/cart')" title="Корзина">
+          <i class="fi fi-rr-shopping-cart"></i>
+          ${cartCount > 0 ? `<span class="cart-header-badge">${cartCount}</span>` : ''}
+        </button>
+        <select class="lang-select" onchange="I18nManager.set(this.value)">${langOpts}</select>
       </div>
     </header>
+
+    <nav class="mobile-bottom-bar">
+      <a class="mbb-item ${path === '/home' ? 'active' : ''}" onclick="router.go('/home')">
+        <i class="fi fi-rr-home"></i><span>Главная</span>
+      </a>
+      <a class="mbb-item ${path === '/market' ? 'active' : ''}" onclick="router.go('/market')">
+        <i class="fi fi-rr-shop"></i><span>Рынок</span>
+      </a>
+      <a class="mbb-item ${path === '/cart' ? 'active' : ''}" onclick="router.go('/cart')">
+        <i class="fi fi-rr-shopping-cart"></i>
+        ${cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : ''}
+        <span>Корзина</span>
+      </a>
+      <a class="mbb-item ${path === '/orders' ? 'active' : ''}" onclick="router.go('/orders')">
+        <i class="fi fi-rr-box-open"></i><span>Заказы</span>
+      </a>
+      <a class="mbb-item ${path === '/profile' ? 'active' : ''}" onclick="router.go('/profile')">
+        <i class="fi fi-rr-user"></i><span>Профиль</span>
+      </a>
+    </nav>
   `;
 }
 
-/* Обёртка страницы: navbar + контейнер */
+/* Обёртка страницы: sidebar + header + контейнер */
 function pageShell(contentHtml, opts = {}) {
   return `
-    ${buildHeader()}
-    <main class="app-main ${opts.wide ? 'wide' : ''}">
-      ${contentHtml}
-    </main>
+    <div class="app-layout">
+      ${buildHeader()}
+      <main class="app-main-content ${opts.wide ? 'wide' : ''}">
+        ${contentHtml}
+      </main>
+    </div>
   `;
 }
 

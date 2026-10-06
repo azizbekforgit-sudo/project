@@ -15,11 +15,12 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, select, Boolean
 
 # ─── Database setup ───────────────────────────────────────────
+# ─── Database setup ─────────────────────────────────
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError(
-        "DATABASE_URL is not set. In Railway: Service → Variables → "
-        "DATABASE_URL = ${{postgresql://postgres:nHTkcxWKFDVNFxtHnWqCrrlCxAONLvhc@postgres.railway.internal:5432/railway}}"
+        "DATABASE_URL is not set. In Render: Service → Environment → "
+        "DATABASE_URL = postgresql://user:password@host/dbname"
     )
 DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://").replace("postgres://", "postgresql+asyncpg://")
 

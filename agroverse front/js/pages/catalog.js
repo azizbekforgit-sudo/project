@@ -52,31 +52,32 @@ function starsHtml(rating) {
 function productCardHtml(p) {
   const isBuyer = Auth.isBuyer();
   const pending = p.status === 'pending';
-  const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg,#0e1411,#060807)';
+  const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #1B5C3B, #24754C)';
   const img = p.images?.length
     ? `<img class="pc-img-el" src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.style.background='${bg}';this.remove()" />`
-    : `<div class="pc-img-ph"><i class="${CAT_EMOJI[p.category] || 'fi fi-sr-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.6)"></i></div>`;
+    : `<div class="pc-img-ph"><i class="${CAT_EMOJI[p.category] || 'fi fi-sr-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.7)"></i></div>`;
   const action = isBuyer
     ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fi fi-rr-shopping-cart"></i> ${t('add_to_cart')}</button>`
-    : `<button class="btn btn-ghost btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fi fi-rr-eye"></i> ${t('details_btn')}</button>`;
+    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fi fi-rr-eye"></i> ${t('details_btn')}</button>`;
   const discountBadge = p.discount ? `<span class="pc-discount">-${p.discount}%</span>` : '';
   return `
-    <div class="product-card v2" onclick="router.go('/product/${p.id}')">
-      <div class="pc-media v2" style="background:${bg}">
+    <div class="agri-product-card" onclick="router.go('/product/${p.id}')">
+      <div class="apc-media">
         ${img}
-        ${pending ? `<span class="pc-badge">${t('on_moderation')}</span>` : ''}
+        ${pending ? `<span class="apc-badge">${t('on_moderation')}</span>` : ''}
         ${discountBadge}
-        <span class="pc-cat-tag">${p.category || ''}</span>
+        <span class="apc-cat-tag">${p.category || 'Продукция'}</span>
       </div>
-      <div class="pc-body">
-        <div class="pc-name">${p.name}</div>
-        <div class="pc-rating">${starsHtml(p.rating)}</div>
-        <div class="pc-price-row">
-          <div class="pc-price">${Number(p.price).toLocaleString('ru')} <small>${t('sum')}/${p.unit || t('unit_kg')}</small></div>
+      <div class="apc-body">
+        <div class="apc-farmer"><i class="fi fi-sr-leaf"></i> ${p.fermer_name || 'Ферма Абдуллаева'}</div>
+        <h3 class="apc-name">${p.name}</h3>
+        <div class="apc-rating">${starsHtml(p.rating || 5.0)} <span class="apc-rating-val">${p.rating || '5.0'}</span></div>
+        <div class="apc-price-box">
+          <div class="apc-price">${Number(p.price).toLocaleString('ru')} <small>сум / ${p.unit || 'кг'}</small></div>
         </div>
-        ${p.quantity > 0 ? `<div class="pc-stock"><i class="fi fi-rr-box-open"></i> В наличии: ${p.quantity} ${p.unit || ''}</div>` : `<div class="pc-stock pc-stock-out">Нет в наличии</div>`}
-        <div class="pc-farmer"><i class="fi fi-sr-leaf"></i> ${p.fermer_name || t('farmer_word')}</div>
-        <div class="pc-actions">${action}</div>
+        <div class="apc-footer">
+          ${action}
+        </div>
       </div>
     </div>
   `;
@@ -88,7 +89,7 @@ async function quickAddToCart(id) {
     addToCart(p, 1);
     showToast(`«${p.name}» ${t('added_to_cart')}`);
     document.querySelector('.app')?.dispatchEvent(new Event('cart'));
-    const link = document.querySelector('.nav-link[onclick*="/cart"] .nav-badge');
+    const link = document.querySelector('.cart-header-badge');
     const count = getCartCount();
     if (link) link.textContent = count;
   } catch (e) { showToast(e.message, 'error'); }
@@ -101,49 +102,58 @@ async function renderCatalog() {
   const presetCat = new URLSearchParams((location.hash.split('?')[1] || '')).get('cat') || '';
 
   app.innerHTML = pageShell(`
-    <div class="market-hero">
-      <div class="market-hero-bg"></div>
-      <div class="market-hero-content">
-        <div class="market-hero-icon"><i class="fi fi-sr-store-alt"></i></div>
-        <div>
-          <h1 class="market-title">${t('nav_market')}</h1>
-          <p class="market-subtitle">${t('market_desc')}</p>
+    <div class="catalog-page-layout">
+      <!-- ═══ SIDEBAR FILTERS ═══ -->
+      <aside class="catalog-sidebar-filters">
+        <div class="csf-header">
+          <h3><i class="fi fi-rr-filter"></i> Фильтры</h3>
+          <button class="csf-reset" onclick="resetCatalogFilters()">Сбросить</button>
         </div>
-      </div>
-    </div>
 
-    <div class="cat-tabs" id="cat-tabs">
-      ${CATEGORY_OPTIONS.map(o => `
-        <button class="cat-tab ${o.value === presetCat ? 'active' : ''}" data-val="${o.value}" onclick="setCatTab(this,'${o.value}')">
-          <i class="${o.icon}"></i>
-          <span>${o.value ? t(o.key) : t('cat_all')}</span>
-        </button>
-      `).join('')}
-    </div>
-
-    <div class="market-toolbar">
-      <div class="market-search-wrap">
-        <i class="fi fi-rr-search search-ic"></i>
-        <input type="text" id="search-input" class="market-search" placeholder="${t('search_placeholder')}" />
-      </div>
-      <div class="market-filters-row">
-        <div class="price-inputs">
-          <input type="number" id="min-price" class="price-inp" placeholder="${t('price_from')}" min="0" />
-          <span class="price-sep">—</span>
-          <input type="number" id="max-price" class="price-inp" placeholder="${t('price_to')}" min="0" />
+        <div class="csf-group">
+          <label class="csf-label">Категории</label>
+          <div class="csf-categories-list" id="cat-tabs">
+            ${CATEGORY_OPTIONS.map(o => `
+              <div class="csf-cat-item ${o.value === presetCat ? 'active' : ''}" data-val="${o.value}" onclick="setCatTab(this, '${o.value}')">
+                <i class="${o.icon}"></i>
+                <span>${o.value ? t(o.key) : t('cat_all')}</span>
+              </div>
+            `).join('')}
+          </div>
         </div>
-        <select id="sort-select" class="sort-select">
-          ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
-        </select>
-      </div>
-    </div>
 
-    <div id="products-grid" class="products-grid v2"><div class="spinner"></div></div>
+        <div class="csf-group">
+          <label class="csf-label">Цена (сум)</label>
+          <div class="csf-price-inputs">
+            <input type="number" id="min-price" placeholder="Мин." />
+            <span>—</span>
+            <input type="number" id="max-price" placeholder="Макс." />
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══ MAIN PRODUCTS GRID ═══ -->
+      <section class="catalog-main-panel">
+        <div class="cmp-top-bar">
+          <div class="cmp-search">
+            <i class="fi fi-rr-search"></i>
+            <input type="text" id="search-input" placeholder="${t('search_placeholder')}" />
+          </div>
+          <div class="cmp-sort">
+            <select id="sort-select">
+              ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div id="products-grid" class="agri-products-grid"><div class="spinner"></div></div>
+      </section>
+    </div>
   `);
 
   async function loadProducts() {
     const search    = document.getElementById('search-input')?.value || '';
-    const category  = document.getElementById('cat-tabs')?.querySelector('.cat-tab.active')?.dataset.val || '';
+    const category  = document.getElementById('cat-tabs')?.querySelector('.csf-cat-item.active')?.dataset.val || '';
     const min_price = document.getElementById('min-price')?.value || '';
     const max_price = document.getElementById('max-price')?.value || '';
     const sort      = document.getElementById('sort-select')?.value || 'newest';
@@ -168,8 +178,18 @@ async function renderCatalog() {
   }
 
   window.setCatTab = function(el, val) {
-    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+    loadProducts();
+  };
+
+  window.resetCatalogFilters = function() {
+    document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active'));
+    const allTab = document.querySelector('.csf-cat-item[data-val=""]');
+    if (allTab) allTab.classList.add('active');
+    if (document.getElementById('search-input')) document.getElementById('search-input').value = '';
+    if (document.getElementById('min-price')) document.getElementById('min-price').value = '';
+    if (document.getElementById('max-price')) document.getElementById('max-price').value = '';
     loadProducts();
   };
 
@@ -183,8 +203,8 @@ async function renderCatalog() {
 
   // preset category from URL
   if (presetCat) {
-    const tab = document.querySelector(`.cat-tab[data-val="${presetCat}"]`);
-    if (tab) { document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); }
+    const tab = document.querySelector(`.csf-cat-item[data-val="${presetCat}"]`);
+    if (tab) { document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active')); tab.classList.add('active'); }
   }
 }
 

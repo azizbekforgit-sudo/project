@@ -759,242 +759,69 @@ async function renderHome() {
   const app      = document.getElementById('app');
   const user     = Auth.getUser();
   const isFarmer = Auth.isFarmer();
-  const isCourier = user?.role === 'courier';
-  const showCourierAlert = localStorage.getItem('courier_needs_setup_alert') === 'true';
-
-  const firstName = (user?.name || '').split(' ')[0] || (isFarmer ? t('farmer_word') : t('friend_word'));
-
-  const heroCta = isFarmer
-    ? `<button class="btn btn-primary btn-lg" onclick="router.go('/product/new')"><i class="fi fi-rr-plus"></i> ${t('add_product_btn')}</button>
-       <button class="btn btn-ghost btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-store-alt"></i> ${t('view_market')}</button>`
-    : `<button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shopping-cart"></i> ${t('go_market')}</button>
-       <button class="btn btn-ghost btn-lg" onclick="router.go('/ai')"><i class="fi fi-rr-comment-alt"></i> ${t('ask_ai')}</button>`;
-
-  const feedbackBtn = `<button class="btn btn-ghost btn-lg" onclick="window.open('https://t.me/The1_Smurfs_Bot','_blank')"><i class="fi fi-rr-paper-plane"></i> Оставить отзыв или идею</button>`;
 
   app.innerHTML = pageShell(`
-    <section class="hero-light">
-      <div class="hero-light-inner">
-        <div class="hero-content">
-          <div class="hero-badge hero-badge-anim" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#059669;">
-            <i class="fi fi-sr-leaf"></i> ${t('fresh_with_field')}
-          </div>
-          <h1 style="font-family:var(--font-display);font-size:clamp(36px,5vw,62px);font-weight:800;line-height:1.05;letter-spacing:-1.5px;color:#0f1f12;margin:16px 0 18px;">
-            ${t('hi')}, <span style="color:#10b981;">${firstName}</span>!<br>
-            <span style="background:linear-gradient(135deg,#10b981,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-              ${isFarmer ? t('sell_farm') : t('buy_farm')}
-            </span><br>
-            <span style="color:#0f1f12;">${t('no_middlemen')}</span>
-          </h1>
-          <p class="hero-sub-anim" style="color:#4b7a5a;font-size:17px;margin-bottom:28px;max-width:500px;line-height:1.6;">
-            ${isFarmer ? t('hero_farmer_sub') : t('hero_buyer_sub')}
-          </p>
-          <div class="hero-actions hero-actions-anim" style="display:flex;flex-wrap:wrap;gap:12px">
-            ${heroCta}
-            ${feedbackBtn}
+    <div class="home-page-container">
+      <!-- ═══ HERO BANNER (Modern Agriculture) ═══ -->
+      <section class="hero-agri-banner">
+        <div class="hab-content">
+          <h1 class="hab-title">Всё для вашего хозяйства —<br>в одном месте</h1>
+          <p class="hab-sub">Покупайте и продавайте сельхозпродукцию, управляйте заказами, общайтесь с фермерами напрямую.</p>
+          
+          <div class="hab-search-form">
+            <i class="fi fi-rr-search"></i>
+            <input type="text" id="homeSearchInput" placeholder="Что вы ищете? (например: помидоры, картофель)" onkeydown="if(event.key==='Enter'){ router.go('/market?q='+encodeURIComponent(this.value)); }" />
+            <button class="btn btn-primary" onclick="router.go('/market?q=' + encodeURIComponent(document.getElementById('homeSearchInput').value))">Найти</button>
           </div>
 
-          <div style="display:flex;gap:40px;margin-top:44px;flex-wrap:wrap;">
-            <div class="hero-stat-item">
-              <b id="stat-products">0</b>
-              <span>${t('products_on_market')}</span>
-            </div>
-            <div class="hero-stat-item" style="transition-delay:0.15s;">
-              <b id="stat-100">0%</b>
-              <span>${t('all_farm')}</span>
-            </div>
-            <div class="hero-stat-item" style="transition-delay:0.3s;">
-              <b id="stat-0">0%</b>
-              <span>${t('middlemen0')}</span>
-            </div>
+          <div class="hab-actions">
+            <button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shop"></i> Перейти на рынок</button>
+            <button class="btn btn-outline btn-lg" onclick="router.go('/orders')"><i class="fi fi-rr-box-open"></i> Мои заказы</button>
           </div>
         </div>
+        <div class="hab-art">
+          <img src="assets/hero-farm-tractor.jpg" onerror="this.src='https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80'" alt="Агромаркетплейс" />
+        </div>
+      </section>
 
-        <div class="hero-dashboard">
-          <div class="dash-card">
-            <div class="dash-top">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div class="dash-dot" style="background:#ff5f57;"></div>
-                <div class="dash-dot" style="background:#febc2e;"></div>
-                <div class="dash-dot" style="background:#28c840;"></div>
-                <span class="dash-url" style="margin-left:6px;">agroverse.uz/dashboard</span>
-              </div>
-              <div class="dash-live">Live</div>
+      <!-- ═══ CATEGORY PILLS BAR ═══ -->
+      <section class="home-categories-pills">
+        <div class="pill-item" onclick="router.go('/market?cat=Овощи')"><span class="pill-icon">🍅</span><span>Овощи</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Фрукты')"><span class="pill-icon">🍎</span><span>Фрукты</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Зерновые')"><span class="pill-icon">🌾</span><span>Зерновые</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Молочные')"><span class="pill-icon">🥛</span><span>Молочные</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Мясо')"><span class="pill-icon">🥩</span><span>Мясо</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Семена')"><span class="pill-icon">🌱</span><span>Семена</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Удобрения')"><span class="pill-icon">🧪</span><span>Удобрения</span></div>
+      </section>
+
+      <!-- ═══ POPULAR PRODUCTS / TODAY ON MARKET ═══ -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Сегодня на рынке</h2>
+          <a class="link-more" onclick="router.go('/market')">Смотреть все <i class="fi fi-rr-arrow-right"></i></a>
+        </div>
+        <div id="home-products" class="products-grid v2"><div class="spinner"></div></div>
+      </section>
+
+      <!-- ═══ RECENT ORDERS PREVIEW ═══ -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Ваши последние заказы</h2>
+          <a class="link-more" onclick="router.go('/orders')">Все заказы <i class="fi fi-rr-arrow-right"></i></a>
+        </div>
+        <div id="home-recent-orders" class="recent-orders-card">
+          <div class="ro-row" onclick="router.go('/delivery')">
+            <div class="ro-icon">🍅</div>
+            <div class="ro-info">
+              <div class="ro-title">#1245 — Помидоры (20 кг)</div>
+              <div class="ro-sub">Ферма "Зелёное поле"</div>
             </div>
-
-            <div style="font-size:13px;color:#9ca3af;margin-bottom:5px;">${t('today_analytics') || 'Bugungi tahlil'}</div>
-            <div style="font-size:22px;font-weight:800;color:#0f1f12;margin-bottom:18px;">AI Insights</div>
-
-            <div class="dash-grid">
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-leaf" style="color:#10b981;font-size:11px;"></i> ${isFarmer ? 'MAHSULOT' : 'AI AGRONOM'}</div>
-                <div class="dash-tile-val" id="dash-val-1">${isFarmer ? '0 ta' : "Sug'orish: optimal"}</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-store-alt" style="color:#10b981;font-size:11px;"></i> MARKETPLACE</div>
-                <div class="dash-tile-val" id="dash-val-2">+0 ta order</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-truck-side" style="color:#10b981;font-size:11px;"></i> LOGISTICS</div>
-                <div class="dash-tile-val" id="dash-val-3">0 marshrut</div>
-              </div>
-              <div class="dash-tile">
-                <div class="dash-tile-label"><i class="fi fi-sr-chart-histogram" style="color:#10b981;font-size:11px;"></i> ANALYTICS</div>
-                <div class="dash-tile-val" id="dash-val-4">GMV +0%</div>
-              </div>
-            </div>
-
-            <div class="dash-chart">
-              ${DASH_BARS.map((h, i) => '<div class="dash-bar ' + (h >= 90 ? 'hi' : '') + '" style="height:' + h + '%;transition-delay:' + (0.5 + i * 0.04) + 's;"></div>').join('')}
-            </div>
-
-            <div class="dash-footer">
-              <div class="dash-footer-ic"><i class="fi fi-sr-sparkles"></i></div>
-              <div class="dash-footer-text">
-                <b>AI tavsiya</b>
-                <span id="dash-forecast">+0% hosil prognozi</span>
-              </div>
-            </div>
+            <div class="ro-status pill-in-transit">● Доставляется</div>
+            <div class="ro-arrow"><i class="fi fi-rr-angle-right"></i></div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Dynamic alert container (for courier reminder) -->
-    <div class="container" id="home-dynamic-alerts"></div>
-
-    <!-- ═══ CATEGORY CAROUSEL ═══ -->
-    <section class="section">
-      <div class="section-head">
-        <h2>${t('categories')}</h2>
-        <a class="link-more" onclick="router.go('/market')">${t('all_market')} <i class="fi fi-rr-arrow-right"></i></a>
-      </div>
-      <div class="cc-layout">
-        <div class="cc-viewport">
-          <div class="cc-track" id="ccTrack">
-            <div class="cc-group">${_buildCarouselItems()}</div>
-            <div class="cc-group">${_buildCarouselItems()}</div>
-          </div>
-        </div>
-        <div class="cc-detail empty" id="ccDetail">
-          <div class="cc-ph">
-            <div class="cc-ph-icon">👆</div>
-            <div class="cc-ph-text">Нажмите на категорию,<br>чтобы узнать подробнее</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══ PRODUCTS ═══ -->
-    <section class="section">
-      <div class="section-head">
-        <h2>${isFarmer ? t('fresh_on_market') : t('popular_now')}</h2>
-        <a class="link-more" onclick="router.go('/market')">${t('all_products')} <i class="fi fi-rr-arrow-right"></i></a>
-      </div>
-      <div id="home-products" class="products-grid v2"><div class="spinner"></div></div>
-    </section>
-
-    <!-- ═══ HOW IT WORKS ═══ -->
-    <section class="section">
-      <div class="section-head"><h2>${t('how_it_works')}</h2></div>
-      <div class="how-modern">
-        ${HOW_IT_WORKS.map((h, i) => `
-          <div class="hm-card">
-            <div class="hm-num">${i + 1}</div>
-            <div class="hm-icon"><i class="${h.icon}"></i></div>
-            <div class="hm-label">${t(h.key)}</div>
-          </div>`).join('')}
-      </div>
-    </section>
-
-    <!-- ═══ AI PROMO ═══ -->
-    <section class="section">
-      <div class="promo-modern">
-        <div class="promo-modern-left">
-          <div class="promo-modern-ic"><i class="fi fi-sr-sparkles"></i></div>
-          <div>
-            <h3>${t('ai_promo_title')}</h3>
-            <p>${isFarmer ? t('ai_promo_farmer') : t('ai_promo_buyer')}</p>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="router.go('/ai')"><i class="fi fi-rr-comment-alt"></i> ${t('open_chat')}</button>
-      </div>
-    </section>
-
-    <!-- ═══ BENEFITS / FARMER TIPS ═══ -->
-    ${!isFarmer ? `
-    <section class="section">
-      <div class="section-head"><h2>${t('why_agroverse')}</h2></div>
-      <div class="benefits-modern">
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="fi fi-sr-leaf"></i></div><div class="bn-text"><h4>${t('benefit_fresh')}</h4><p>${t('benefit_fresh_desc')}</p></div></div>
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="fi fi-sr-shield-check"></i></div><div class="bn-text"><h4>${t('benefit_safe')}</h4><p>${t('benefit_safe_desc')}</p></div></div>
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(245,158,11,0.1);color:#f59e0b"><i class="fi fi-sr-bolt"></i></div><div class="bn-text"><h4>${t('benefit_fast')}</h4><p>${t('benefit_fast_desc')}</p></div></div>
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(139,92,246,0.1);color:#8b5cf6"><i class="fi fi-sr-piggy-bank"></i></div><div class="bn-text"><h4>${t('benefit_cheap')}</h4><p>${t('benefit_cheap_desc')}</p></div></div>
-      </div>
-    </section>` : `
-    <section class="section">
-      <div class="section-head"><h2>${t('farmer_tips_title')}</h2></div>
-      <div class="benefits-modern">
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(16,185,129,0.1);color:#10b981"><i class="fi fi-sr-chart-line-up"></i></div><div class="bn-text"><h4>${t('tip_price')}</h4><p>${t('tip_price_desc')}</p></div></div>
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(245,158,11,0.1);color:#f59e0b"><i class="fi fi-sr-camera"></i></div><div class="bn-text"><h4>${t('tip_photo')}</h4><p>${t('tip_photo_desc')}</p></div></div>
-        <div class="bn-card"><div class="bn-ic" style="background:rgba(236,72,153,0.1);color:#ec4899"><i class="fi fi-sr-star"></i></div><div class="bn-text"><h4>${t('tip_rating')}</h4><p>${t('tip_rating_desc')}</p></div></div>
-      </div>
-    </section>`}
-
-    <!-- Footer -->
-    <footer style="background:#0f1f12;color:#fff;padding:60px clamp(20px,4vw,80px) 30px;margin-top:60px">
-      <div style="max-width:1200px;margin:0 auto">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;margin-bottom:40px">
-
-          <!-- Brand -->
-          <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-              <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fi fi-sr-leaf" style="color:#fff"></i></div>
-              <b style="font-size:20px">AgroVerse</b>
-            </div>
-            <p style="color:#9ca3af;font-size:14px;line-height:1.6">Фермерский маркетплейс без посредников. Свежие продукты прямо с полей Узбекистана.</p>
-          </div>
-
-          <!-- Navigation -->
-          <div>
-            <h4 style="margin-bottom:16px;font-size:15px">Навигация</h4>
-            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
-              <li><a href="#/market" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-shop" style="margin-right:6px"></i>Рынок</a></li>
-              <li><a href="#/ai" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-robot" style="margin-right:6px"></i>ИИ-помощник</a></li>
-              <li><a href="#/orders" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-box-open" style="margin-right:6px"></i>Мои заказы</a></li>
-              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-user" style="margin-right:6px"></i>Профиль</a></li>
-              <li><a href="https://t.me/The1_Smurfs_Bot" target="_blank" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-paper-plane" style="margin-right:6px"></i>Обратная связь</a></li>
-            </ul>
-          </div>
-
-          <!-- For farmers -->
-          <div>
-            <h4 style="margin-bottom:16px;font-size:15px">Для фермеров</h4>
-            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
-              <li><a href="#/product/new" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-add" style="margin-right:6px"></i>Добавить товар</a></li>
-              <li><a href="#/profile" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-leaf" style="margin-right:6px"></i>Мои товары</a></li>
-              <li><a href="#/wallet" style="color:#9ca3af;text-decoration:none;font-size:14px;transition:color .2s" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#9ca3af'"><i class="fi fi-sr-wallet" style="margin-right:6px"></i>Кошелёк</a></li>
-            </ul>
-          </div>
-
-          <!-- Social -->
-          <div>
-            <h4 style="margin-bottom:16px;font-size:15px">Мы в соцсетях</h4>
-            <div style="display:flex;gap:12px;flex-wrap:wrap">
-              <a href="https://www.tiktok.com/@agroverse_uz" target="_blank" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .2s" onmouseover="this.style.background='#10b981';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.transform='none'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9a6.33 6.33 0 00-.79-.05A6.34 6.34 0 003.15 15.3a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.83a8.18 8.18 0 004.76 1.52V6.9a4.84 4.84 0 01-1-.21z"/></svg>
-              </a>
-              <a href="https://www.youtube.com/@agroverse_uz" target="_blank" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .2s" onmouseover="this.style.background='#FF0000';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.transform='none'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 00.5 6.19 31.7 31.7 0 000 12a31.7 31.7 0 00.5 5.81 3.02 3.02 0 002.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.7 31.7 0 0024 12a31.7 31.7 0 00-.5-5.81zM9.54 15.57V8.43L15.82 12l-6.28 3.57z"/></svg>
-              </a>
-              <a href="https://www.instagram.com/agroverse_uz?igsh=YXc1MmF3Y3c5c3M2" target="_blank" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .2s" onmouseover="this.style.background='linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.transform='none'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.74 3.74 0 01-1.38-.9 3.74 3.74 0 01-.9-1.38c-.16-.43-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zM12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.87 5.87 0 00-2.13 1.38A5.87 5.87 0 00.63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91a5.87 5.87 0 001.38 2.13 5.87 5.87 0 002.13 1.38c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.87 5.87 0 002.13-1.38 5.87 5.87 0 001.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.87 5.87 0 00-1.38-2.13A5.87 5.87 0 0019.86.63C19.1.33 18.22.13 16.95.07 15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zM12 16a4 4 0 110-8 4 4 0 010 8zm6.4-11.85a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
-              </a>
-              <a href="https://www.facebook.com/share/1D3op7QHQD/" target="_blank" style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all .2s" onmouseover="this.style.background='#1877F2';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.transform='none'">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.33l-.53 3.49h-2.8v8.44C19.61 23.08 24 18.09 24 12.07z"/></svg>
-              </a>
-            </div>
-          </div>
+      </section>
         </div>
 
         <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:24px;text-align:center;color:#6b7280;font-size:13px">
