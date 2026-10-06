@@ -6,7 +6,7 @@ function renderLogin() {
     <style>
       .reg-split { display: flex; min-height: 100vh; background: #F8FAF6; }
       .reg-image-side { 
-        flex: 1; background: url('https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&w=1200&q=80') center/cover;
+        flex: 1; background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80') center/cover;
         position: relative; display: none; 
       }
       @media (min-width: 900px) { .reg-image-side { display: block; } }

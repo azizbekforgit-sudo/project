@@ -6,11 +6,11 @@ const ROLE_LABELS = {
   admin: 'Admin',
 };
 const ROLE_ICONS = {
-  fermer: '👨‍🌾',
-  xaridor: '🛍️',
-  admin: '👑',
+  fermer: 'fa-solid fa-seedling',
+  xaridor: 'fa-solid fa-bag-shopping',
+  admin: 'fa-solid fa-crown',
 };
-const CAT_EMOJI_PROF = { 'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf', 'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey' };
+const CAT_EMOJI_PROF = { 'Овощи': 'fa-solid fa-carrot', 'Фрукты': 'fa-solid fa-apple-whole', 'Зелень': 'fa-solid fa-leaf', 'Зерновые': 'fa-solid fa-wheat-awn', 'Молочные': 'fa-solid fa-bottle-droplet', 'Мёд': 'fa-solid fa-jar' };
 
 async function renderProfile() {
   const app = document.getElementById('app');
@@ -24,7 +24,7 @@ async function renderProfile() {
   const avatarLetter = (user.name || '?')[0].toUpperCase();
   const roleLabelFn = ROLE_LABELS[user.role];
   const roleLabel = typeof roleLabelFn === 'function' ? roleLabelFn() : (roleLabelFn || user.role);
-  const roleIcon = ROLE_ICONS[user.role] || 'fi fi-rr-user';
+  const roleIcon = ROLE_ICONS[user.role] || 'fa-solid fa-user';
 
   app.innerHTML = pageShell(`
     <div class="pr-page">
@@ -36,10 +36,10 @@ async function renderProfile() {
           <div class="pr-user-info">
             <h1 class="pr-name">${user.name || 'Пользователь'}</h1>
             <div class="pr-meta">
-              <span class="pr-role-badge"><span class="emo">${roleIcon}</span> ${roleLabel}</span>
-              <span class="pr-phone"><span class="emo">📞</span> ${user.phone || ''}</span>
-              ${user.email ? `<span class="pr-email"><span class="emo">✉️</span> ${user.email}</span>` : ''}
-              ${user.city ? `<span class="pr-email"><span class="emo">📍</span> ${user.city}</span>` : ''}
+              <span class="pr-role-badge"><i class="${roleIcon}"></i> ${roleLabel}</span>
+              <span class="pr-phone"><i class="fa-solid fa-phone"></i> ${user.phone || ''}</span>
+              ${user.email ? `<span class="pr-email"><i class="fa-solid fa-envelope"></i> ${user.email}</span>` : ''}
+              ${user.city ? `<span class="pr-email"><i class="fa-solid fa-location-dot"></i> ${user.city}</span>` : ''}
             </div>
           </div>
         </div>
@@ -48,24 +48,24 @@ async function renderProfile() {
       <!-- Stats cards -->
       <div class="pr-stats" id="pr-stats">
         <div class="pr-stat-card">
-          <div class="pr-stat-icon"><span class="emo">📦</span></div>
+          <div class="pr-stat-icon"><i class="fa-solid fa-box"></i></div>
           <div class="pr-stat-num" id="pr-stat-orders">—</div>
           <div class="pr-stat-label">${t('stat_orders')}</div>
         </div>
         ${user.role === 'fermer' ? `
         <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
-          <div class="pr-stat-icon"><span class="emo">🛒</span></div>
+          <div class="pr-stat-icon"><i class="fa-solid fa-store"></i></div>
           <div class="pr-stat-num" id="pr-stat-products">—</div>
           <div class="pr-stat-label">${t('stat_products')}</div>
         </div>
         <div class="pr-stat-card">
-          <div class="pr-stat-icon"><span class="emo">✅</span></div>
+          <div class="pr-stat-icon"><i class="fa-solid fa-circle-check"></i></div>
           <div class="pr-stat-num" id="pr-stat-active">—</div>
           <div class="pr-stat-label">${t('stat_active')}</div>
         </div>
         ` : `
         <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
-          <div class="pr-stat-icon"><span class="emo">🛍️</span></div>
+          <div class="pr-stat-icon"><i class="fa-solid fa-bag-shopping"></i></div>
           <div class="pr-stat-num" id="pr-stat-cart">0</div>
           <div class="pr-stat-label">${t('stat_in_cart')}</div>
         </div>
@@ -76,8 +76,8 @@ async function renderProfile() {
       ${user.role === 'fermer' ? `
       <div class="pr-section" id="pr-products-section">
         <div class="pr-section-head">
-          <h2><span class="emo">🛒</span> ${t('my_products')}</h2>
-          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><span class="emo">➕</span> ${t('add_btn')}</button>
+          <h2><i class="fa-solid fa-store"></i> ${t('my_products')}</h2>
+          <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('add_btn')}</button>
         </div>
         <div id="pr-products-list"><div class="spinner"></div></div>
       </div>
@@ -86,7 +86,7 @@ async function renderProfile() {
       <!-- Orders section -->
       <div class="pr-section" id="pr-orders-section">
         <div class="pr-section-head">
-          <h2><span class="emo">📦</span> Заказы</h2>
+          <h2><i class="fa-solid fa-box"></i> Заказы</h2>
         </div>
         <div id="pr-orders-list"><div class="spinner"></div></div>
       </div>
@@ -94,7 +94,7 @@ async function renderProfile() {
       <!-- Settings -->
       <div class="pr-section">
         <div class="pr-section-head">
-          <h2><span class="emo">⚙️</span> ${t('settings_label')}</h2>
+          <h2><i class="fa-solid fa-gear"></i> ${t('settings_label')}</h2>
         </div>
         <div class="pr-settings-card">
           <div class="pr-setting-row">
@@ -116,7 +116,7 @@ async function renderProfile() {
               <div class="pr-setting-label">Phone</div>
               <div class="pr-setting-value">${user.phone || ''}</div>
             </div>
-            <span class="pr-setting-locked"><i class="fi fi-rr-lock"></i> ${t('phone_locked')}</span>
+            <span class="pr-setting-locked"><i class="fa-solid fa-lock"></i> ${t('phone_locked')}</span>
           </div>
           <div class="pr-setting-row">
             <div class="pr-setting-info">
@@ -131,7 +131,7 @@ async function renderProfile() {
       <!-- Security -->
       <div class="pr-section">
         <div class="pr-section-head">
-          <h2><i class="fi fi-rr-shield-check"></i> Безопасность</h2>
+          <h2><i class="fa-solid fa-shield-halved"></i> Безопасность</h2>
         </div>
         <div class="pr-settings-card">
           ${user.plain_password ? `
@@ -140,7 +140,7 @@ async function renderProfile() {
               <div class="pr-setting-label">Ваш пароль</div>
               <div class="pr-setting-value" id="pr-password-display">••••••</div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility()"><i class="fi fi-rr-eye"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="togglePasswordVisibility()"><i class="fa-solid fa-eye"></i></button>
           </div>
           ` : ''}
           <div class="pr-setting-row">
@@ -148,7 +148,7 @@ async function renderProfile() {
               <div class="pr-setting-label">Смена пароля</div>
               <div class="pr-setting-value">Изменить пароль аккаунта</div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="openChangePassword()"><i class="fi fi-rr-key"></i> Изменить</button>
+            <button class="btn btn-ghost btn-sm" onclick="openChangePassword()"><i class="fa-solid fa-key"></i> Изменить</button>
           </div>
         </div>
       </div>
@@ -156,8 +156,8 @@ async function renderProfile() {
       <!-- Actions -->
       <div class="pr-section">
         <div class="pr-actions-row">
-          ${user.role !== 'admin' ? `<a class="btn btn-ghost" onclick="router.go('/tariffs')"><i class="fi fi-rr-star"></i> ${t('nav_tariffs')}</a>` : ''}
-          <a class="btn btn-danger" onclick="Auth.logout()"><i class="fi fi-rr-sign-out-alt"></i> ${t('nav_logout')}</a>
+          ${user.role !== 'admin' ? `<a class="btn btn-ghost" onclick="router.go('/tariffs')"><i class="fa-solid fa-star"></i> ${t('nav_tariffs')}</a>` : ''}
+          <a class="btn btn-danger" onclick="Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('nav_logout')}</a>
         </div>
       </div>
     </div>

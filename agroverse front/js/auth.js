@@ -63,29 +63,29 @@ function showSpinner(container) {
 }
 
 const NAV_COMMON = [
-  { path: '/home',     icon: '🏠',            key: 'nav_home' },
-  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
+  { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
+  { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
 ];
 
 const NAV_FARMER = [
-  { path: '/home',     icon: '🏠',            key: 'nav_home' },
-  { path: '/market',   icon: '🏪',            key: 'nav_market' },
-  { path: '/orders',   icon: '📦',            key: 'nav_orders' },
-  { path: '/wallet',   icon: '💳',            key: 'nav_wallet' },
-  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
-  { path: '/ai',       icon: '🤖',            key: 'nav_ai' },
+  { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
+  { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
+  { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
+  { path: '/wallet',   icon: '<i class="fa-solid fa-wallet"></i>',           key: 'nav_wallet' },
+  { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
+  { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
 ];
 
 const NAV_BUYER = [
-  { path: '/home',     icon: '🏠',            key: 'nav_home' },
-  { path: '/market',   icon: '🛒',            key: 'nav_market' },
-  { path: '/orders',   icon: '📦',            key: 'nav_orders' },
-  { path: '/cart',     icon: '🛍️',            key: 'nav_cart' },
-  { path: '/chats',    icon: '💬',            key: 'nav_chats' },
+  { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
+  { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
+  { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
+  { path: '/cart',     icon: '<i class="fa-solid fa-cart-shopping"></i>',    key: 'nav_cart' },
+  { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
 ];
 
 function getNavItems() {
-  if (Auth.isAdmin && Auth.isAdmin()) return [{ path: '/admin', icon: '⚙️', key: 'nav_admin' }, ...NAV_COMMON];
+  if (Auth.isAdmin && Auth.isAdmin()) return [{ path: '/admin', icon: '<i class="fa-solid fa-gear"></i>', key: 'nav_admin' }, ...NAV_COMMON];
   if (Auth.isFarmer()) return NAV_FARMER;
   if (Auth.isBuyer()) return NAV_BUYER;
   return NAV_COMMON;
@@ -113,11 +113,11 @@ function buildHeader() {
     }
     if (it.external) {
       return `<a class="nav-item-link" href="${it.url}" target="_blank">
-        <span class="nav-ic emo">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>
+        <span class="nav-ic">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>
       </a>`;
     }
     return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
-      <span class="nav-ic emo">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>${badge}
+      <span class="nav-ic">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>${badge}
     </a>`;
   }).join('');
 
@@ -150,7 +150,7 @@ function buildHeader() {
           <div class="su-role">${roleName}</div>
         </div>
         <button class="su-logout" onclick="event.stopPropagation(); Auth.logout()" title="${t('nav_logout')}">
-          <i class="fi fi-rr-sign-out-alt"></i>
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
         </button>
       </div>
     </aside>
@@ -158,16 +158,16 @@ function buildHeader() {
     <header class="top-header-bar">
       <div class="top-header-left">
         <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar-green').classList.toggle('mobile-open')">
-          <i class="fi fi-rr-menu-burger"></i>
+          <i class="fa-solid fa-bars"></i>
         </button>
         <div class="top-search-box">
-          <i class="fi fi-rr-search"></i>
+          <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" placeholder="Что вы ищете?" onkeydown="if(event.key==='Enter'){ router.go('/market?q=' + encodeURIComponent(this.value)); }" />
         </div>
       </div>
       <div class="top-header-right">
         <button class="cart-header-btn" onclick="router.go('/cart')" title="Корзина">
-          <i class="fi fi-rr-shopping-cart"></i>
+          <i class="fa-solid fa-cart-shopping"></i>
           ${cartCount > 0 ? `<span class="cart-header-badge">${cartCount}</span>` : ''}
         </button>
         <select class="lang-select" onchange="I18nManager.set(this.value)">${langOpts}</select>
@@ -176,21 +176,23 @@ function buildHeader() {
 
     <nav class="mobile-bottom-bar">
       <a class="mbb-item ${path === '/home' ? 'active' : ''}" onclick="router.go('/home')">
-        <span class="emo">🏠</span><span>Главная</span>
+        <i class="fa-solid fa-house" style="font-size:24px;"></i><span>Главная</span>
       </a>
       <a class="mbb-item ${path === '/market' ? 'active' : ''}" onclick="router.go('/market')">
-        <span class="emo">🛍️</span><span>Рынок</span>
+        <i class="fa-solid fa-store" style="font-size:24px;"></i><span>Рынок</span>
       </a>
       <a class="mbb-item ${path === '/cart' ? 'active' : ''}" onclick="router.go('/cart')">
-        <span class="emo">🛒</span>
-        ${cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : ''}
+        <div style="position:relative;">
+          <i class="fa-solid fa-cart-shopping" style="font-size:24px;"></i>
+          ${cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : ''}
+        </div>
         <span>Корзина</span>
       </a>
       <a class="mbb-item ${path === '/orders' ? 'active' : ''}" onclick="router.go('/orders')">
-        <span class="emo">📦</span><span>Заказы</span>
+        <i class="fa-solid fa-box" style="font-size:24px;"></i><span>Заказы</span>
       </a>
       <a class="mbb-item ${path === '/profile' ? 'active' : ''}" onclick="router.go('/profile')">
-        <span class="emo">👤</span><span>Профиль</span>
+        <i class="fa-solid fa-user" style="font-size:24px;"></i><span>Профиль</span>
       </a>
     </nav>
   `;
@@ -234,11 +236,11 @@ function showBlockedScreen(reason) {
   app.innerHTML = `
     <div class="blocked-screen">
       <div class="blocked-box">
-        <div class="blocked-ic"><i class="fi fi-sr-ban"></i></div>
+        <div class="blocked-ic"><i class="fa-solid fa-ban"></i></div>
         <h1 class="blocked-title">${t('blocked_title')}</h1>
         <p class="blocked-lead">${t('blocked_lead')}</p>
         <div class="blocked-letter">
-          <div class="bl-head"><i class="fi fi-rr-envelope"></i> ${t('blocked_letter_head')}</div>
+          <div class="bl-head"><i class="fa-solid fa-envelope"></i> ${t('blocked_letter_head')}</div>
           <div class="bl-reason-label">${t('blocked_reason_label')}</div>
           <div class="bl-reason">${r}</div>
           <div class="bl-foot">${t('blocked_foot')}</div>

@@ -5,6 +5,11 @@ const I18N = {
     // навбар
     nav_home: 'Bosh sahifa',
     nav_market: 'Bozor',
+    nav_orders: 'Buyurtmalar',
+    nav_wallet: 'Hamyon',
+    nav_chats: 'Chatlar',
+    nav_ai: 'AI-Yordamchi',
+    nav_admin: 'Boshqaruv',
     // Market page
     market_desc: 'Barcha fermer mahsulotlari bir joyda',
     cat_all: 'Barchasi',
@@ -368,11 +373,21 @@ const I18N = {
     no_desc: 'Tavsif ko\'rsatilmagan.',
     farmer_hint: 'Bu mahsulot kartochkasi fermer tomonidan ko\'rinishi.',
     cart_added: 'savatga qo\'shildi',
+    nav_market: 'Bozor',
+    nav_orders: 'Buyurtmalar',
+    nav_wallet: 'Hamyon',
+    nav_chats: 'Chatlar',
+    nav_ai: 'AI yordamchi',
   },
 
   ru: {
     nav_home: 'Главная',
     nav_market: 'Рынок',
+    nav_orders: 'Заказы',
+    nav_wallet: 'Кошелек',
+    nav_chats: 'Чаты',
+    nav_ai: 'ИИ',
+    nav_admin: 'Панель',
     // Market page
     market_desc: 'Все фермерские товары в одном месте',
     cat_all: 'Все',
@@ -413,7 +428,6 @@ const I18N = {
     tip_rating_desc: 'Качественный сервис для клиентов',
 
     nav_add_product: 'Добавить продукт',
-    nav_ai: 'ИИ-помощник',
     nav_delivery: 'Доставка',
     nav_yulchi: 'Йўлчи',
     nav_yulchi_dashboard: 'Кабинет Йўлчи',
@@ -431,10 +445,9 @@ const I18N = {
     nav_logout: 'Выйти',
     // системные / ошибки / тосты
     err_session: 'Сессия истекла, войдите снова',
-    err_role_access: 'Этот раздел недоступен для вашей роли',
+    err_server: 'Ошибка сервера. Попробуйте позже.',
     err_no_connection: 'Нет связи с сервером. Попробуйте позже.',
     err_role_access: 'Этот раздел недоступен для вашей роли',
-    err_no_connection: 'Нет связи с сервером. Попробуйте позже.',
     err_generic: 'Произошла ошибка',
     err_fill: 'Заполните все поля',
     blocked_reason_default: 'Причина не указана',
@@ -728,6 +741,11 @@ const I18N = {
   en: {
     nav_home: 'Home',
     nav_market: 'Market',
+    nav_orders: 'Orders',
+    nav_wallet: 'Wallet',
+    nav_chats: 'Chats',
+    nav_ai: 'AI Assistant',
+    nav_admin: 'Admin',
     // Market page
     market_desc: 'All farm products in one place',
     cat_all: 'All',

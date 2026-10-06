@@ -10,7 +10,7 @@ function renderRegister() {
       }
       .reg-image-side {
         flex: 1;
-        background: url('https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?auto=format&fit=crop&w=1200&q=80') center/cover;
+        background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80') center/cover;
         position: relative;
         display: none;
       }
