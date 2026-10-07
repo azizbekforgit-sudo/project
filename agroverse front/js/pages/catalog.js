@@ -1,38 +1,38 @@
 /* pages/catalog.js — Bozor (fермер va xaridor uchun) */
 
 const CATEGORY_OPTIONS = [
-  { value: '',          key: 'cat_all',        icon: 'fi fi-rr-apps' },
-  { value: 'Овощи',     key: 'cat_vegetables', icon: 'fi fi-rr-leaf' },
-  { value: 'Фрукты',    key: 'cat_fruits',     icon: 'fi fi-rr-apple' },
-  { value: 'Зелень',    key: 'cat_greens',     icon: 'fi fi-rr-plant' },
-  { value: 'Зерновые',  key: 'cat_grains',     icon: 'fi fi-rr-wheat' },
-  { value: 'Молочные',  key: 'cat_dairy',      icon: 'fi fi-rr-cow' },
-  { value: 'Мёд',       key: 'cat_honey',      icon: 'fi fi-rr-bee' },
-  { value: 'Цветы',      key: 'cat_flowers',    icon: 'fi fi-rr-flower' },
-  { value: 'Саженцы',    key: 'cat_seedlings',  icon: 'fi fi-rr-seedling' },
-  { value: 'Бахчевые',   key: 'cat_melon',      icon: 'fi fi-rr-apple-whole' },
-  { value: 'Семена',     key: 'cat_seeds',      icon: 'fi fi-rr-seedling' },
-  { value: 'Земля',      key: 'cat_land',       icon: 'fi fi-rr-map' },
+  { value: '',          key: 'cat_all',        icon: 'fa-solid fa-border-all' },
+  { value: 'Овощи',     key: 'cat_vegetables', icon: 'fa-solid fa-carrot' },
+  { value: 'Фрукты',    key: 'cat_fruits',     icon: 'fa-solid fa-apple-whole' },
+  { value: 'Зелень',    key: 'cat_greens',     icon: 'fa-solid fa-leaf' },
+  { value: 'Зерновые',  key: 'cat_grains',     icon: 'fa-solid fa-wheat-awn' },
+  { value: 'Молочные',  key: 'cat_dairy',      icon: 'fa-solid fa-bottle-droplet' },
+  { value: 'Мёд',       key: 'cat_honey',      icon: 'fa-solid fa-jar' },
+  { value: 'Цветы',      key: 'cat_flowers',    icon: 'fa-solid fa-seedling' },
+  { value: 'Саженцы',    key: 'cat_seedlings',  icon: 'fa-solid fa-tree' },
+  { value: 'Бахчевые',   key: 'cat_melon',      icon: 'fa-solid fa-lemon' },
+  { value: 'Семена',     key: 'cat_seeds',      icon: 'fa-solid fa-seedling' },
+  { value: 'Земля',      key: 'cat_land',       icon: 'fa-solid fa-mound' },
 ];
 
 const CAT_EMOJI = {
-  'Овощи': 'fi fi-sr-carrot', 'Фрукты': 'fi fi-sr-apple-alt', 'Зелень': 'fi fi-sr-leaf',
-  'Зерновые': 'fi fi-sr-wheat', 'Молочные': 'fi fi-sr-milk', 'Мёд': 'fi fi-sr-honey',
-  'Цветы': 'fi fi-sr-sakura', 'Саженцы': 'fi fi-sr-seedling', 'Бахчевые': 'fi fi-sr-fruit-watermelon',
-  'Семена': 'fi fi-sr-seedling', 'Земля': 'fi fi-sr-map',
+  'Овощи': 'fa-solid fa-carrot', 'Фрукты': 'fa-solid fa-apple-whole', 'Зелень': 'fa-solid fa-leaf',
+  'Зерновые': 'fa-solid fa-wheat-awn', 'Молочные': 'fa-solid fa-bottle-droplet', 'Мёд': 'fa-solid fa-jar',
+  'Цветы': 'fa-solid fa-seedling', 'Саженцы': 'fa-solid fa-tree', 'Бахчевые': 'fa-solid fa-lemon',
+  'Семена': 'fa-solid fa-seedling', 'Земля': 'fa-solid fa-mound',
 };
 const CAT_GRADIENT = {
-  'Овощи': 'linear-gradient(135deg,#0e2918,#1a4a2e)',
-  'Фрукты': 'linear-gradient(135deg,#2e1a0e,#4a2e1a)',
-  'Зелень': 'linear-gradient(135deg,#0a1e12,#1c3d24)',
-  'Зерновые': 'linear-gradient(135deg,#231a0a,#3d2e1a)',
-  'Молочные': 'linear-gradient(135deg,#0a1a2e,#1a2e4a)',
-  'Мёд': 'linear-gradient(135deg,#2e1e0a,#4a331a)',
-  'Цветы': 'linear-gradient(135deg,#2e0a1e,#4a1a33)',
-  'Саженцы': 'linear-gradient(135deg,#0a1e18,#1a3d2e)',
-  'Бахчевые': 'linear-gradient(135deg,#0e2918,#1a4a2e)',
-  'Семена': 'linear-gradient(135deg,#1a0e2e,#2e1a4a)',
-  'Земля': 'linear-gradient(135deg,#1a1408,#3d2e0a)',
+  'Овощи': 'linear-gradient(135deg,#105C38,#167D4D)',
+  'Фрукты': 'linear-gradient(135deg,#D97706,#B45309)',
+  'Зелень': 'linear-gradient(135deg,#15803D,#166534)',
+  'Зерновые': 'linear-gradient(135deg,#B45309,#78350F)',
+  'Молочные': 'linear-gradient(135deg,#1D4ED8,#1E40AF)',
+  'Мёд': 'linear-gradient(135deg,#CA8A04,#854D0E)',
+  'Цветы': 'linear-gradient(135deg,#BE185D,#9D174D)',
+  'Саженцы': 'linear-gradient(135deg,#047857,#065F46)',
+  'Бахчевые': 'linear-gradient(135deg,#059669,#047857)',
+  'Семена': 'linear-gradient(135deg,#6D28D9,#5B21B6)',
+  'Земля': 'linear-gradient(135deg,#78350F,#451A03)',
 };
 
 const SORT_OPTIONS = [
@@ -43,22 +43,22 @@ const SORT_OPTIONS = [
 ];
 
 function starsHtml(rating) {
-  const r = Math.round(rating || 0);
+  const r = Math.round(rating || 5);
   let s = '';
-  for(let i=1;i<=5;i++) s += `<span class="star ${i<=r?'filled':''}"><i class="fi fi-${i<=r?'sr':'rr'}-star"></i></span>`;
+  for(let i=1;i<=5;i++) s += `<span class="star ${i<=r?'filled':''}"><i class="${i<=r?'fa-solid':'fa-regular'} fa-star"></i></span>`;
   return s;
 }
 
 function productCardHtml(p) {
   const isBuyer = Auth.isBuyer();
   const pending = p.status === 'pending';
-  const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #1B5C3B, #24754C)';
+  const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #105C38, #187548)';
   const img = p.images?.length
     ? `<img class="pc-img-el" src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.style.background='${bg}';this.remove()" />`
-    : `<div class="pc-img-ph"><i class="${CAT_EMOJI[p.category] || 'fi fi-sr-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.7)"></i></div>`;
+    : `<div class="pc-img-ph" style="background:${bg}"><i class="${CAT_EMOJI[p.category] || 'fa-solid fa-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.85)"></i></div>`;
   const action = isBuyer
-    ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fi fi-rr-shopping-cart"></i> ${t('add_to_cart')}</button>`
-    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fi fi-rr-eye"></i> ${t('details_btn')}</button>`;
+    ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fa-solid fa-cart-shopping"></i> ${t('add_to_cart')}</button>`
+    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fa-solid fa-eye"></i> ${t('details_btn')}</button>`;
   const discountBadge = p.discount ? `<span class="pc-discount">-${p.discount}%</span>` : '';
   return `
     <div class="agri-product-card" onclick="router.go('/product/${p.id}')">
@@ -69,7 +69,7 @@ function productCardHtml(p) {
         <span class="apc-cat-tag">${p.category || 'Продукция'}</span>
       </div>
       <div class="apc-body">
-        <div class="apc-farmer"><i class="fi fi-sr-leaf"></i> ${p.fermer_name || 'Ферма Абдуллаева'}</div>
+        <div class="apc-farmer"><i class="fa-solid fa-circle-check" style="color:#105C38"></i> ${p.fermer_name || 'Свежий урожай'}</div>
         <h3 class="apc-name">${p.name}</h3>
         <div class="apc-rating">${starsHtml(p.rating || 5.0)} <span class="apc-rating-val">${p.rating || '5.0'}</span></div>
         <div class="apc-price-box">

@@ -89,7 +89,22 @@ body {
 body::before, body::after { display: none; }
 #app::before { display: none; }
 
-#app { position: relative; z-index: 1; }
+#app {
+  position: relative;
+  z-index: 1;
+  animation: pageFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
@@ -254,17 +269,20 @@ input, select, textarea { font-family: inherit; }
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 12px;
-  color: rgba(255,255,255,0.8);
-  font-weight: 500;
+  border-radius: 14px;
+  color: #FFFFFF !important;
+  font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.92;
+  text-decoration: none;
 }
 
 .nav-item-link .nav-ic {
   font-size: 18px;
-  opacity: 0.9;
+  color: #FFFFFF !important;
+  opacity: 0.95;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,22 +295,31 @@ input, select, textarea { font-family: inherit; }
 
 .nav-tx {
   white-space: nowrap;
+  color: #FFFFFF !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .nav-item-link:hover {
-  background: rgba(255,255,255,0.1);
-  color: #FFFFFF;
+  background: rgba(255,255,255,0.16);
+  color: #FFFFFF !important;
+  opacity: 1;
+  transform: translateX(4px);
 }
 
 .nav-item-link.active {
-  background: #FFFFFF;
-  color: #1B5C3B;
-  font-weight: 700;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  background: #FFFFFF !important;
+  color: #105C38 !important;
+  font-weight: 800;
+  opacity: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: none;
 }
 
+.nav-item-link.active .nav-tx,
+.nav-item-link.active .nav-ic,
 .nav-item-link.active i {
-  color: #1B5C3B;
+  color: #105C38 !important;
   opacity: 1;
 }
 
@@ -1641,7 +1668,7 @@ a, button, .nav-link, .nav-logo, .cat-card, .cat-tab, .product-card,
   font-family: var(--font-display);
   font-size: 15px; font-weight: 600; color: var(--ink);
   margin-bottom: 6px; line-height: 1.3;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .pc-rating {
   display: flex; gap: 2px; margin-bottom: 6px;

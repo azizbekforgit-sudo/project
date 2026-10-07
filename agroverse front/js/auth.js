@@ -66,7 +66,6 @@ const NAV_COMMON = [
   { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
   { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
   { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
-  { path: '/wallet',   icon: '<i class="fa-solid fa-wallet"></i>',           key: 'nav_wallet' },
   { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
   { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
 ];
@@ -76,7 +75,6 @@ const NAV_FARMER = [
   { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
   { path: '/product/new',icon: '<i class="fa-solid fa-plus"></i>',             key: 'nav_add_product' },
   { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
-  { path: '/wallet',   icon: '<i class="fa-solid fa-wallet"></i>',           key: 'nav_wallet' },
   { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
   { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
 ];
@@ -85,7 +83,6 @@ const NAV_BUYER = [
   { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
   { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
   { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
-  { path: '/wallet',   icon: '<i class="fa-solid fa-wallet"></i>',           key: 'nav_wallet' },
   { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
   { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
 ];

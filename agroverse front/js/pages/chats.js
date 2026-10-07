@@ -85,13 +85,13 @@ function chatItemHtml(chat) {
 
   const typeLabels = {
     buyer_farmer: 'Покупатель ↔ Фермер',
-    buyer_driver: 'Покупатель ↔ Драйвер',
-    driver_farmer: 'Драйвер ↔ Фермер'
+    buyer_driver: 'Покупатель ↔ Курьер',
+    driver_farmer: 'Курьер ↔ Фермер'
   };
   const typeIcons = {
-    buyer_farmer: '🥬',
-    buyer_driver: '🚗',
-    driver_farmer: '🚜'
+    buyer_farmer: '<i class="fa-solid fa-comments" style="color:#105C38"></i>',
+    buyer_driver: '<i class="fa-solid fa-truck-fast" style="color:#3B82F6"></i>',
+    driver_farmer: '<i class="fa-solid fa-tractor" style="color:#D97706"></i>'
   };
 
   const lastMsg = chat.last_message;
