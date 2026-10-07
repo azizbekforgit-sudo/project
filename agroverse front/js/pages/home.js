@@ -1,46 +1,46 @@
 /* pages/home.js — hero + scroll animations + button effects + Courier Remainder */
 
 const HOME_CATEGORIES = [
-  { value: 'Овощи',    icon: 'fi fi-sr-carrot',        key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)',
+  { value: 'Овощи',    icon: 'fa-solid fa-carrot',        key: 'cat_vegetables', tint: '#10B981', img: 'assets/cat-vegetables.jpg', bg: 'linear-gradient(135deg,#10B981,#059669)',
     desc: 'Свежие овощи прямо с грядок узбекских фермеров. Помидоры, огурцы, перец и баклажаны — собраны сегодня, доставлены завтра.',
     features: ['Помидоры, огурцы, перец и баклажаны', 'Выращены без химикатов и ГМО', 'Сбор и отгрузка в один день'] },
-  { value: 'Фрукты',   icon: 'fi fi-sr-apple-alt',     key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)',
+  { value: 'Фрукты',   icon: 'fa-solid fa-apple-whole',     key: 'cat_fruits',     tint: '#F59E0B', img: 'assets/cat-fruits.jpg',     bg: 'linear-gradient(135deg,#F59E0B,#D97706)',
     desc: 'Сладкие арбузы, дыни, гранаты и цитрусовые — выращенные под солнцем Узбекистана.',
     features: ['Арбузы, дыни, гранаты и яблоки', 'Натуральная сладость без добавок', 'Спелые и сочные плоды'] },
-  { value: 'Зелень',   icon: 'fi fi-sr-leaf',          key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)',
+  { value: 'Зелень',   icon: 'fa-solid fa-leaf',          key: 'cat_greens',     tint: '#22C55E', img: 'assets/cat-greens.jpg',     bg: 'linear-gradient(135deg,#22C55E,#16A34A)',
     desc: 'Базилик, кинза, укроп и зелёный лук — ароматная зелень для вашего стола.',
     features: ['Базилик, кинза, укроп и перо', 'Срезка утром — доставка днём', 'Максимум витаминов и аромата'] },
-  { value: 'Зерновые', icon: 'fi fi-sr-wheat',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)',
+  { value: 'Зерновые', icon: 'fa-solid fa-wheat-awn',         key: 'cat_grains',     tint: '#D97706', img: 'assets/cat-grains.jpg',     bg: 'linear-gradient(135deg,#D97706,#B45309)',
     desc: 'Пшеница, рис и кукуруза — качественные зерновые от проверенных фермеров.',
     features: ['Пшеница, рис и кукуруза', 'Экологически чистые продукты', 'Основа здорового питания'] },
-  { value: 'Молочные', icon: 'fi fi-sr-milk',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)',
-    desc: 'Натуральное молоко, кефир и йогурты — свежие молочные продукты без консервантов.',
+  { value: 'Молочные', icon: 'fa-solid fa-bottle-droplet',          key: 'cat_dairy',      tint: '#3B82F6', img: 'assets/cat-dairy.jpg',      bg: 'linear-gradient(135deg,#3B82F6,#2563EB)',
+    desc: 'Настоящее деревенское молоко, домашний творог, сыры и свежая сметана без консервантов.',
     features: ['Молоко, кефир, сметана и творог', 'Без консервантов и добавок', 'Свежие каждый день'] },
-  { value: 'Мёд',      icon: 'fi fi-sr-honey',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)',
+  { value: 'Мёд',      icon: 'fa-solid fa-jar',         key: 'cat_honey',      tint: '#EAB308', img: 'assets/cat-honey.jpg',      bg: 'linear-gradient(135deg,#EAB308,#CA8A04)',
     desc: 'Натуральный мёд горных пасек — жидкий, цветочный и гречишный.',
     features: ['Жидкий, цветочный и гречишный', 'С горных пасек Узбекистана', '100% натуральный продукт'] },
-  { value: 'Цветы',       icon: 'fi fi-sr-sakura',           key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)',
+  { value: 'Цветы',       icon: 'fa-solid fa-seedling',           key: 'cat_flowers',    tint: '#EC4899', img: 'assets/cat-flowers.jpg',    bg: 'linear-gradient(135deg,#EC4899,#DB2777)',
     desc: 'Букеты и цветочные композиции — свежие цветы для любого повода.',
     features: ['Розы, тюльпаны и хризантемы', 'Авторские букеты и композиции', 'Свежая срезка дня'] },
-  { value: 'Саженцы',     icon: 'fi fi-sr-seedling',         key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)',
+  { value: 'Саженцы',     icon: 'fa-solid fa-tree',         key: 'cat_seedlings',  tint: '#059669', img: 'assets/cat-seedlings.jpg',  bg: 'linear-gradient(135deg,#059669,#047857)',
     desc: 'Рассада и саженцы плодовых деревьев — начните свой сад с нами.',
     features: ['Рассада овощей и трав', 'Плодовые и декоративные деревья', 'Проверенная приживаемость'] },
-  { value: 'Бахчевые',    icon: 'fi fi-sr-fruit-watermelon', key: 'cat_melon',      tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)',
+  { value: 'Бахчевые',    icon: 'fa-solid fa-lemon', key: 'cat_melon',      tint: '#10B981', img: 'assets/cat-melon.jpg',      bg: 'linear-gradient(135deg,#10B981,#34D399)',
     desc: 'Арбузы, дыни и тыквы — сладкие бахчевые прямо с полей Хорезма.',
     features: ['Арбузы и дыни из Хорезма', 'Сахарные и идеально спелые', 'Сезонный вкус лета'] },
-  { value: 'Семена',      icon: 'fi fi-sr-seedling',         key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)',
+  { value: 'Семена',      icon: 'fa-solid fa-seedling',         key: 'cat_seeds',      tint: '#8B5CF6', img: 'assets/cat-seeds.jpg',      bg: 'linear-gradient(135deg,#8B5CF6,#7C3AED)',
     desc: 'Качественные семена овощей и цветов — для вашего будущего урожая.',
     features: ['Семена овощей и цветов', 'Проверенные узбекские сорта', 'Высокая всхожесть 95%+'] },
-  { value: 'Земля',       icon: 'fi fi-sr-map',              key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)',
+  { value: 'Земля',       icon: 'fa-solid fa-mound',              key: 'cat_land',       tint: '#92400E', img: 'assets/cat-land.jpg',       bg: 'linear-gradient(135deg,#92400E,#78350F)',
     desc: 'Плодородная земля и удобрения — для здорового роста ваших растений.',
     features: ['Плодородный грунт и компост', 'Минеральные и органические удобрения', 'Для теплиц, полей и садов'] },
 ];
 
 const HOW_IT_WORKS = [
-  { icon: 'fi fi-sr-user-add',      key: 'how_reg' },
-  { icon: 'fi fi-sr-store-alt',     key: 'how_find' },
-  { icon: 'fi fi-sr-shopping-cart', key: 'how_order' },
-  { icon: 'fi fi-sr-leaf',          key: 'how_deliver' },
+  { icon: 'fa-solid fa-user-plus',      key: 'how_reg' },
+  { icon: 'fa-solid fa-store',     key: 'how_find' },
+  { icon: 'fa-solid fa-cart-shopping', key: 'how_order' },
+  { icon: 'fa-solid fa-leaf',          key: 'how_deliver' },
 ];
 
 const DASH_BARS = [30,42,38,55,48,62,58,70,65,80,75,88,82,100];
@@ -769,14 +769,14 @@ async function renderHome() {
           <p class="hab-sub">Покупайте и продавайте сельхозпродукцию, управляйте заказами, общайтесь с фермерами напрямую.</p>
           
           <div class="hab-search-form">
-            <i class="fi fi-rr-search"></i>
+            <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="homeSearchInput" placeholder="Что вы ищете? (например: помидоры, картофель)" onkeydown="if(event.key==='Enter'){ router.go('/market?q='+encodeURIComponent(this.value)); }" />
             <button class="btn btn-primary" onclick="router.go('/market?q=' + encodeURIComponent(document.getElementById('homeSearchInput').value))">Найти</button>
           </div>
 
           <div class="hab-actions">
-            <button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fi fi-rr-shop"></i> Перейти на рынок</button>
-            <button class="btn btn-outline btn-lg" onclick="router.go('/orders')"><i class="fi fi-rr-box-open"></i> Мои заказы</button>
+            <button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fa-solid fa-store"></i> Перейти на рынок</button>
+            <button class="btn btn-outline btn-lg" onclick="router.go('/orders')"><i class="fa-solid fa-box-open"></i> Мои заказы</button>
           </div>
         </div>
         <div class="hab-art">
@@ -786,20 +786,20 @@ async function renderHome() {
 
       <!-- ═══ CATEGORY PILLS BAR ═══ -->
       <section class="home-categories-pills">
-        <div class="pill-item" onclick="router.go('/market?cat=Овощи')"><span class="pill-icon">🍅</span><span>Овощи</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Фрукты')"><span class="pill-icon">🍎</span><span>Фрукты</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Зерновые')"><span class="pill-icon">🌾</span><span>Зерновые</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Молочные')"><span class="pill-icon">🥛</span><span>Молочные</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Мясо')"><span class="pill-icon">🥩</span><span>Мясо</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Семена')"><span class="pill-icon">🌱</span><span>Семена</span></div>
-        <div class="pill-item" onclick="router.go('/market?cat=Удобрения')"><span class="pill-icon">🧪</span><span>Удобрения</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Овощи')"><span class="pill-icon"><i class="fa-solid fa-carrot"></i></span><span>Овощи</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Фрукты')"><span class="pill-icon"><i class="fa-solid fa-apple-whole"></i></span><span>Фрукты</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Зерновые')"><span class="pill-icon"><i class="fa-solid fa-wheat-awn"></i></span><span>Зерновые</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Молочные')"><span class="pill-icon"><i class="fa-solid fa-bottle-droplet"></i></span><span>Молочные</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Мясо')"><span class="pill-icon"><i class="fa-solid fa-drumstick-bite"></i></span><span>Мясо</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Семена')"><span class="pill-icon"><i class="fa-solid fa-seedling"></i></span><span>Семена</span></div>
+        <div class="pill-item" onclick="router.go('/market?cat=Удобрения')"><span class="pill-icon"><i class="fa-solid fa-flask"></i></span><span>Удобрения</span></div>
       </section>
 
       <!-- ═══ POPULAR PRODUCTS / TODAY ON MARKET ═══ -->
       <section class="section">
         <div class="section-head">
           <h2>Сегодня на рынке</h2>
-          <a class="link-more" onclick="router.go('/market')">Смотреть все <i class="fi fi-rr-arrow-right"></i></a>
+          <a class="link-more" onclick="router.go('/market')">Смотреть все <i class="fa-solid fa-arrow-right"></i></a>
         </div>
         <div id="home-products" class="products-grid v2"><div class="spinner"></div></div>
       </section>

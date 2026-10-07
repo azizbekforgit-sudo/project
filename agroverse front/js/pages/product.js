@@ -13,7 +13,7 @@ function cityOptions(selected) {
 
 function starsHtml(rating) {
   const r = Math.round(rating || 0);
-  return Array.from({length: 5}, (_, i) => `<i class="fi ${i < r ? 'fi-sr-star' : 'fi-rr-star'}" style="color:#f59e0b;font-size:14px"></i>`).join('');
+  return Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star" style="color:${i < r ? '#f59e0b' : '#e5e7eb'};font-size:14px"></i>`).join('');
 }
 
 async function renderProduct(id) {
@@ -28,8 +28,20 @@ async function renderProduct(id) {
 
   try {
     const p = await API.getProduct(id);
-    const emoji = CAT_EMOJI[p.category] || 'fi fi-sr-leaf';
-    const emojiHtml = `<i class="${emoji}" style="font-size:20px"></i>`;
+    
+    // Default FontAwesome icons per category
+    const FONT_ICONS = {
+      'Овощи': 'fa-solid fa-carrot',
+      'Фрукты': 'fa-solid fa-apple-whole',
+      'Зерновые': 'fa-solid fa-wheat-awn',
+      'Молочные': 'fa-solid fa-bottle-droplet',
+      'Мясо': 'fa-solid fa-drumstick-bite',
+      'Семена': 'fa-solid fa-seedling',
+      'Удобрения': 'fa-solid fa-flask'
+    };
+    const faIcon = FONT_ICONS[p.category] || 'fa-solid fa-leaf';
+    const emojiHtml = `<i class="${faIcon}" style="font-size:20px; color: #1B5C3B; margin-right: 5px;"></i>`;
+    
     const photos = p.images || p.photos || [];
     const hasPhotos = photos.length > 0;
     const photoSrc = hasPhotos ? (photos[0].startsWith('http') ? photos[0] : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + photos[0]) : '';
@@ -37,7 +49,7 @@ async function renderProduct(id) {
     // Pickup location
     const locationHtml = p.pickup_location ? `
       <div class="pd-info-row">
-        <div class="pd-info-icon"><i class="fi fi-rr-map-marker"></i></div>
+        <div class="pd-info-icon"><i class="fa-solid fa-location-dot"></i></div>
         <div>
           <div class="pd-info-label">Место получения</div>
           <div class="pd-info-value">${p.pickup_location}</div>
@@ -47,21 +59,21 @@ async function renderProduct(id) {
 
     // Delivery available badge
     const deliveryBadge = p.delivery_available
-      ? `<span class="pd-badge pd-badge-green"><i class="fi fi-rr-truck-side"></i> Доставка от фермера</span>`
+      ? `<span class="pd-badge pd-badge-green"><i class="fa-solid fa-truck"></i> Доставка от фермера</span>`
       : '';
 
     // Build radio buttons for pickup
-    let radiosHtml = `<label class="radio-label"><input type="radio" name="pickup" value="self" checked /> <i class="fi fi-rr-car-side"></i> ${t('pickup_self')}</label>`;
+    let radiosHtml = `<label class="radio-label"><input type="radio" name="pickup" value="self" checked /> <i class="fa-solid fa-person-walking-box"></i> ${t('pickup_self')}</label>`;
     if (p.delivery_available) {
-      radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="farmer" /> <i class="fi fi-rr-tractor"></i> ${t('pickup_farmer')}</label>`;
+      radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="farmer" /> <i class="fa-solid fa-tractor"></i> ${t('pickup_farmer')}</label>`;
     }
-    radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="external" /> <i class="fi fi-rr-box-alt"></i> ${t('pickup_ext')}</label>`;
+    radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="external" /> <i class="fa-solid fa-box-open"></i> ${t('pickup_ext')}</label>`;
 
     // Farmer info card
     const farmerHtml = `
       <div class="pd-farmer-card">
         <div class="pd-farmer-avatar">
-          <i class="fi fi-sr-leaf"></i>
+          <i class="fa-solid fa-user-tie"></i>
         </div>
         <div class="pd-farmer-info">
           <div class="pd-farmer-label">Фермер</div>
@@ -88,24 +100,24 @@ async function renderProduct(id) {
           <b id="total-price">${Number(p.price).toLocaleString('ru')} ${t('currency') || 'сум'}</b>
         </div>
         <button class="btn btn-primary btn-full pd-btn-main" id="order-btn">
-          <i class="fi fi-sr-credit-card"></i> Оплатить
+          <i class="fa-solid fa-credit-card"></i> Оплатить
         </button>
         <button class="btn btn-ghost btn-full pd-btn-cart" id="cart-btn">
-          <i class="fi fi-rr-shopping-bag"></i> В корзину
+          <i class="fa-solid fa-cart-plus"></i> В корзину
         </button>
       </div>
     ` : `
       <div class="pd-order-panel">
         <div class="pd-order-title">Информация о товаре</div>
         <div class="pd-info-row">
-          <div class="pd-info-icon"><i class="fi fi-rr-box-alt"></i></div>
+          <div class="pd-info-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
           <div>
             <div class="pd-info-label">В наличии</div>
             <div class="pd-info-value">${p.quantity} ${p.unit || 'кг'}</div>
           </div>
         </div>
         <div class="pd-info-row">
-          <div class="pd-info-icon"><i class="fi fi-rr-tag"></i></div>
+          <div class="pd-info-icon"><i class="fa-solid fa-tag"></i></div>
           <div>
             <div class="pd-info-label">Категория</div>
             <div class="pd-info-value">${p.category || '—'}</div>
@@ -124,7 +136,7 @@ async function renderProduct(id) {
             ${hasPhotos
               ? `<img src="${photoSrc}" alt="${p.name}" class="pd-photo" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pd-photo-placeholder'}))" />`
               : `<div class="pd-photo-placeholder">${emojiHtml}</div>`}
-            <span class="pd-cat-badge">${emojiHtml} ${p.category || ''}</span>
+            <span class="pd-cat-badge">${p.category || ''}</span>
           </div>
 
           <!-- Инфо о товаре -->

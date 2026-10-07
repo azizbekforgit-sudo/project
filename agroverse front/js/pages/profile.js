@@ -26,34 +26,52 @@ async function renderProfile() {
   const roleLabel = typeof roleLabelFn === 'function' ? roleLabelFn() : (roleLabelFn || user.role);
   const roleIcon = ROLE_ICONS[user.role] || 'fa-solid fa-user';
 
+  const isFarmer = user.role === 'fermer';
+
   app.innerHTML = pageShell(`
     <div class="pr-page">
       <!-- Header -->
-      <div class="pr-header">
-        <div class="pr-header-bg"></div>
-        <div class="pr-header-content">
-          <div class="pr-avatar">${avatarLetter}</div>
+      <div class="pr-header" style="background: linear-gradient(135deg, #105C38 0%, #1A7A4C 100%); border-radius: 16px; padding: 28px; color: #FFF; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; box-shadow: 0 10px 25px rgba(16, 92, 56, 0.15);">
+        <div class="pr-header-content" style="display: flex; align-items: center; gap: 20px;">
+          <div class="pr-avatar" style="width: 72px; height: 72px; border-radius: 50%; background: #F4EFE6; color: #105C38; font-size: 32px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 3px solid rgba(255,255,255,0.3); font-family: var(--font-display);">${avatarLetter}</div>
           <div class="pr-user-info">
-            <h1 class="pr-name">${user.name || 'Пользователь'}</h1>
-            <div class="pr-meta">
-              <span class="pr-role-badge"><i class="${roleIcon}"></i> ${roleLabel}</span>
+            <h1 class="pr-name" style="font-size: 26px; font-weight: 800; margin: 0 0 6px 0; font-family: var(--font-display); text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${user.name || 'Пользователь'}</h1>
+            <div class="pr-meta" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; opacity: 0.95;">
+              <span class="pr-role-badge" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-weight: 700; backdrop-filter: blur(4px);"><i class="${roleIcon}"></i> ${roleLabel}</span>
               <span class="pr-phone"><i class="fa-solid fa-phone"></i> ${user.phone || ''}</span>
-              ${user.email ? `<span class="pr-email"><i class="fa-solid fa-envelope"></i> ${user.email}</span>` : ''}
               ${user.city ? `<span class="pr-email"><i class="fa-solid fa-location-dot"></i> ${user.city}</span>` : ''}
             </div>
           </div>
         </div>
+        <div class="pr-header-actions" style="display: flex; gap: 10px;">
+          ${isFarmer ? `<button class="btn btn-primary" onclick="router.go('/product/new')" style="background:#FFF; color:#105C38; font-weight:700; border:none; padding:10px 18px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-plus"></i> ${t('add_btn')}</button>` : ''}
+        </div>
+      </div>
+
+      <!-- Profile Tab Navigation -->
+      <div class="pr-tabs-bar" style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 2px solid #E5E7EB; padding-bottom: 2px; overflow-x: auto;">
+        ${isFarmer ? `
+          <button class="pr-tab active" data-tab="products" onclick="switchProfileTab('products')"><i class="fa-solid fa-wheat-awn"></i> Мои товары</button>
+          <button class="pr-tab" data-tab="orders" onclick="switchProfileTab('orders')"><i class="fa-solid fa-receipt"></i> Продажи и Заказы</button>
+          <button class="pr-tab" data-tab="finance" onclick="switchProfileTab('finance')"><i class="fa-solid fa-wallet"></i> Финансы</button>
+          <button class="pr-tab" data-tab="settings" onclick="switchProfileTab('settings')"><i class="fa-solid fa-sliders"></i> Настройки</button>
+        ` : `
+          <button class="pr-tab active" data-tab="orders" onclick="switchProfileTab('orders')"><i class="fa-solid fa-box"></i> Мои покупки</button>
+          <button class="pr-tab" data-tab="cart" onclick="switchProfileTab('cart')"><i class="fa-solid fa-basket-shopping"></i> Корзина</button>
+          <button class="pr-tab" data-tab="finance" onclick="switchProfileTab('finance')"><i class="fa-solid fa-wallet"></i> Баланс</button>
+          <button class="pr-tab" data-tab="settings" onclick="switchProfileTab('settings')"><i class="fa-solid fa-sliders"></i> Настройки</button>
+        `}
       </div>
 
       <!-- Stats cards -->
-      <div class="pr-stats" id="pr-stats">
+      <div class="pr-stats" id="pr-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="pr-stat-card">
           <div class="pr-stat-icon"><i class="fa-solid fa-box"></i></div>
           <div class="pr-stat-num" id="pr-stat-orders">—</div>
           <div class="pr-stat-label">${t('stat_orders')}</div>
         </div>
-        ${user.role === 'fermer' ? `
-        <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
+        ${isFarmer ? `
+        <div class="pr-stat-card featured" style="background:#105C38;color:#FFF">
           <div class="pr-stat-icon"><i class="fa-solid fa-store"></i></div>
           <div class="pr-stat-num" id="pr-stat-products">—</div>
           <div class="pr-stat-label">${t('stat_products')}</div>
@@ -64,7 +82,7 @@ async function renderProfile() {
           <div class="pr-stat-label">${t('stat_active')}</div>
         </div>
         ` : `
-        <div class="pr-stat-card featured" style="background:#1B5C3B;color:#FFF">
+        <div class="pr-stat-card featured" style="background:#105C38;color:#FFF">
           <div class="pr-stat-icon"><i class="fa-solid fa-bag-shopping"></i></div>
           <div class="pr-stat-num" id="pr-stat-cart">0</div>
           <div class="pr-stat-label">${t('stat_in_cart')}</div>
@@ -72,10 +90,10 @@ async function renderProfile() {
         `}
       </div>
 
-      <!-- Farmer products section -->
-      ${user.role === 'fermer' ? `
-      <div class="pr-section" id="pr-products-section">
-        <div class="pr-section-head">
+      <!-- TAB: PRODUCTS (Farmer) -->
+      ${isFarmer ? `
+      <div class="pr-tab-content pr-section" id="tab-content-products">
+        <div class="pr-section-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <h2><i class="fa-solid fa-store"></i> ${t('my_products')}</h2>
           <button class="btn btn-primary btn-sm" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('add_btn')}</button>
         </div>
@@ -83,20 +101,49 @@ async function renderProfile() {
       </div>
       ` : ''}
 
-      <!-- Orders section -->
-      <div class="pr-section" id="pr-orders-section">
-        <div class="pr-section-head">
-          <h2><i class="fa-solid fa-box"></i> Заказы</h2>
+      <!-- TAB: ORDERS (Farmer & Buyer) -->
+      <div class="pr-tab-content pr-section ${!isFarmer ? 'active-tab' : 'hidden-tab'}" id="tab-content-orders">
+        <div class="pr-section-head" style="margin-bottom:16px;">
+          <h2><i class="fa-solid fa-box"></i> ${isFarmer ? 'Заказы от клиентов' : 'Мои покупки'}</h2>
         </div>
         <div id="pr-orders-list"><div class="spinner"></div></div>
       </div>
 
-      <!-- Settings -->
-      <div class="pr-section">
-        <div class="pr-section-head">
+      <!-- TAB: CART (Buyer) -->
+      ${!isFarmer ? `
+      <div class="pr-tab-content pr-section hidden-tab" id="tab-content-cart">
+        <div class="pr-section-head" style="margin-bottom:16px;">
+          <h2><i class="fa-solid fa-basket-shopping"></i> Корзина покупок</h2>
+        </div>
+        <div class="pr-settings-card" style="padding:20px; text-align:center;">
+          <p style="font-size:16px; color:#4B5563; margin-bottom:16px;">Перейти к оформлению заказа из корзины</p>
+          <button class="btn btn-primary" onclick="router.go('/cart')"><i class="fa-solid fa-cart-shopping"></i> Открыть корзину</button>
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- TAB: FINANCE -->
+      <div class="pr-tab-content pr-section hidden-tab" id="tab-content-finance">
+        <div class="pr-section-head" style="margin-bottom:16px;">
+          <h2><i class="fa-solid fa-wallet"></i> Финансы и Баланс</h2>
+        </div>
+        <div class="pr-settings-card" style="padding:24px; background:#FAFAFA; border-radius:14px; border:1px solid #E5E7EB;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div style="font-size:14px; color:#6B7280; font-weight:600;">Текущий баланс счета</div>
+              <div style="font-size:32px; font-weight:800; color:#105C38; font-family:var(--font-display);">0 сум</div>
+            </div>
+            <button class="btn btn-primary" onclick="router.go('/wallet')" style="padding:12px 24px;"><i class="fa-solid fa-wallet"></i> Управление балансом</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: SETTINGS -->
+      <div class="pr-tab-content pr-section hidden-tab" id="tab-content-settings">
+        <div class="pr-section-head" style="margin-bottom:16px;">
           <h2><i class="fa-solid fa-gear"></i> ${t('settings_label')}</h2>
         </div>
-        <div class="pr-settings-card">
+        <div class="pr-settings-card" style="margin-bottom:24px;">
           <div class="pr-setting-row">
             <div class="pr-setting-info">
               <div class="pr-setting-label">${t('field_name')}</div>
@@ -113,7 +160,7 @@ async function renderProfile() {
           </div>
           <div class="pr-setting-row">
             <div class="pr-setting-info">
-              <div class="pr-setting-label">Phone</div>
+              <div class="pr-setting-label">Телефон</div>
               <div class="pr-setting-value">${user.phone || ''}</div>
             </div>
             <span class="pr-setting-locked"><i class="fa-solid fa-lock"></i> ${t('phone_locked')}</span>
@@ -126,11 +173,8 @@ async function renderProfile() {
             <button class="btn btn-ghost btn-sm" onclick="openProfileEdit('city')">${t('field_edit')}</button>
           </div>
         </div>
-      </div>
 
-      <!-- Security -->
-      <div class="pr-section">
-        <div class="pr-section-head">
+        <div class="pr-section-head" style="margin-bottom:16px;">
           <h2><i class="fa-solid fa-shield-halved"></i> Безопасность</h2>
         </div>
         <div class="pr-settings-card">
@@ -154,8 +198,8 @@ async function renderProfile() {
       </div>
 
       <!-- Actions -->
-      <div class="pr-section">
-        <div class="pr-actions-row">
+      <div class="pr-section" style="margin-top:32px;">
+        <div class="pr-actions-row" style="display:flex; gap:16px;">
           ${user.role !== 'admin' ? `<a class="btn btn-ghost" onclick="router.go('/tariffs')"><i class="fa-solid fa-star"></i> ${t('nav_tariffs')}</a>` : ''}
           <a class="btn btn-danger" onclick="Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('nav_logout')}</a>
         </div>
@@ -819,6 +863,19 @@ function injectProfileStyles() {
     }
     .pr-empty p { color: var(--txt-3); font-size: 14px; margin-bottom: 20px; }
 
+    /* Profile Tabs */
+    .pr-tab {
+      background: none; border: none; padding: 12px 20px; font-size: 15px; font-weight: 600;
+      color: #6B7280; cursor: pointer; border-bottom: 3px solid transparent;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;
+      white-space: nowrap; font-family: var(--font-body);
+    }
+    .pr-tab i { font-size: 16px; }
+    .pr-tab:hover { color: #105C38; background: rgba(16, 92, 56, 0.04); border-radius: 8px 8px 0 0; }
+    .pr-tab.active { color: #105C38; border-bottom-color: #105C38; font-weight: 700; }
+    .hidden-tab { display: none !important; }
+    .active-tab { display: block !important; }
+
     /* Actions row */
     .pr-actions-row {
       display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end;
@@ -838,12 +895,37 @@ function injectProfileStyles() {
         padding: 10px 16px; justify-content: flex-end;
       }
       .pr-setting-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .pr-tabs-bar { padding-bottom: 4px; }
+      .pr-tab { padding: 10px 14px; font-size: 14px; }
     }
   `;
   document.head.appendChild(s);
 }
 
+function switchProfileTab(tabName) {
+  const tabs = document.querySelectorAll('.pr-tab');
+  tabs.forEach(t => {
+    if (t.getAttribute('data-tab') === tabName) {
+      t.classList.add('active');
+    } else {
+      t.classList.remove('active');
+    }
+  });
+
+  const contents = document.querySelectorAll('.pr-tab-content');
+  contents.forEach(c => {
+    if (c.id === `tab-content-${tabName}`) {
+      c.classList.remove('hidden-tab');
+      c.classList.add('active-tab');
+    } else {
+      c.classList.add('hidden-tab');
+      c.classList.remove('active-tab');
+    }
+  });
+}
+
 window.renderProfile = renderProfile;
+window.switchProfileTab = switchProfileTab;
 window.openProfileEdit = openProfileEdit;
 window.openProductEdit = openProductEdit;
 window.deleteMyProduct = deleteMyProduct;

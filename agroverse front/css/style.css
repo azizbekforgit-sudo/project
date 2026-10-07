@@ -7,61 +7,57 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* ── Design Tokens — Modern Agricultural Marketplace (#1B5C3B) ── */
-  --bg:            #F8FAF6;
-  --bg-2:          #F5F7F3;
+  /* ── Design Tokens — AgroVerse #105C38 Agricultural Palette ── */
+  --bg:            #F8F9FA;
+  --bg-2:          #F4F6F4;
   --bg-card:       #FFFFFF;
-  --bg-card-2:     #F5F5F0;
+  --bg-card-2:     #F4F6F3;
   --bg-elev:       #FFFFFF;
 
-  --clr-primary:   #1B5C3B;
-  --clr-primary-dk:#14462C;
-  --clr-primary-2: #24754C;
-  --clr-green:     #1B5C3B;
-  --clr-green-dk:  #14462C;
-  --clr-green-lt:  #E8F4EC;
+  --clr-primary:   #105C38;
+  --clr-primary-dk:#0B4228;
+  --clr-primary-2: #187548;
+  --clr-green:     #105C38;
+  --clr-green-dk:  #0B4228;
+  --clr-green-lt:  #EBF5EF;
   --clr-error:     #EF4444;
   --clr-warn:      #F59E0B;
 
-  --clr-brown:     #684F38;
-  --clr-beige:     #F5F5F0;
+  --clr-brown:     #6B4F38;
+  --clr-beige:     #F4EFE6;
 
-  --txt:           #1A231E;
-  --txt-1:         #1A231E;
-  --txt-2:         #334155;
-  --txt-3:         #66706B;
-  --txt-muted:     #8A9690;
-  --bg-input:      #F5F7F4;
-  --line:          #E2E8E4;
-  --line-2:        #CBD5CE;
+  --txt:           #111827;
+  --txt-1:         #111827;
+  --txt-2:         #374151;
+  --txt-3:         #6B7280;
+  --txt-muted:     #9CA3AF;
+  --bg-input:      #F3F4F6;
+  --line:          #E5E7EB;
+  --line-2:        #D1D5DB;
 
-  --ink:           #1A231E;
-  --body:          #3B4740;
-  --muted:         #66706B;
-  --hairline:      #E2E8E4;
-  --surface-soft:  #F5F7F4;
-  --surface-strong:#E2E8E4;
-  --surface-dark:  #1B5C3B;
+  --ink:           #111827;
+  --body:          #374151;
+  --muted:         #6B7280;
+  --hairline:      #E5E7EB;
+  --surface-soft:  #F9FAFB;
+  --surface-strong:#E5E7EB;
+  --surface-dark:  #105C38;
 
   --on-primary:    #FFFFFF;
   --on-dark:       #FFFFFF;
 
-  --glow:          0 0 30px rgba(27,92,59,0.15);
-  --glow-soft:     0 0 20px rgba(27,92,59,0.08);
-  --glow-strong:   0 0 40px rgba(27,92,59,0.25);
+  --glow:          0 4px 20px rgba(16,92,56,0.18);
+  --glow-soft:     0 2px 12px rgba(16,92,56,0.08);
+  --glow-strong:   0 8px 30px rgba(16,92,56,0.28);
 
-  --gradient-primary: linear-gradient(135deg, #1B5C3B 0%, #24754C 100%);
-  --gradient-dark:    linear-gradient(135deg, #14462C 0%, #1B5C3B 100%);
-  --gradient-card:    linear-gradient(135deg, #FFFFFF 0%, #F8FAF6 100%);
-  --gradient-hero:    linear-gradient(135deg, #14462C 0%, #1B5C3B 50%, #24754C 100%);
-  --gradient-accent:  linear-gradient(135deg, #1B5C3B 0%, #34A86C 100%);
-  --gradient-dark:    linear-gradient(135deg, #14532d 0%, #166534 100%);
-  --gradient-card:    linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(240,253,244,0.6) 100%);
-  --gradient-hero:    linear-gradient(135deg, #14532d 0%, #166534 30%, #15803d 60%, #16a34a 100%);
-  --gradient-accent:  linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  --gradient-primary: linear-gradient(135deg, #105C38 0%, #187548 100%);
+  --gradient-dark:    linear-gradient(135deg, #0B4228 0%, #105C38 100%);
+  --gradient-card:    linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  --gradient-hero:    linear-gradient(135deg, #0B4228 0%, #105C38 50%, #187548 100%);
+  --gradient-accent:  linear-gradient(135deg, #105C38 0%, #22C55E 100%);
 
-  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body:    'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* Spacing (4px base) */
   --radius:    16px;
