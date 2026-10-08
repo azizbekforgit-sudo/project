@@ -62,7 +62,6 @@ function renderProductNew() {
       }
       @media (max-width: 860px) {
         .pn-layout { grid-template-columns: 1fr; }
-        .pn-aside { order: -1; }
       }
 
       /* Cards (Premium Bento) */
@@ -256,86 +255,15 @@ function renderProductNew() {
 
       <div class="pn-layout">
         <div class="pn-form-col">
-          <div id="pn-error" class="pn-err hidden">${iconWarn} <span id="pn-error-text"></span></div>
+          <div id="pn-error" class="pn-err hidden" role="alert">${iconWarn} <span id="pn-error-text"></span></div>
 
-          <!-- Basic info -->
+          <!-- 1. Фото -->
           <div class="pn-card">
-            <div class="pn-card-title">${iconInfo} ${t('pn_basic_info')}</div>
-
-            <div class="pn-field">
-              <label>${t('pn_name')} <span class="req">*</span></label>
-              <input type="text" id="pn-name" placeholder="${t('pn_name_ph')}" class="pn-input" maxlength="120" />
-            </div>
-
-            <div class="pn-field">
-              <label>${t('pn_category')} <span class="req">*</span></label>
-              <div class="pn-cat-grid" id="pn-cat-grid">
-                ${categories.map(c => `
-                  <div class="pn-cat-chip" data-value="${c.value}" onclick="selectPnCat(this)">
-                    ${c.icon}
-                    <span>${t(c.labelKey)}</span>
-                  </div>
-                `).join('')}
-              </div>
-              <input type="hidden" id="pn-category" />
-            </div>
-
-            <div class="pn-field">
-              <label>
-                ${t('pn_desc')} <span class="req">*</span>
-                <span class="pn-char-count" id="pn-desc-count">0/500</span>
-              </label>
-              <textarea id="pn-description" placeholder="${t('pn_desc_ph')}" class="pn-input pn-textarea" maxlength="500"></textarea>
-              <span class="pn-hint">${t('pn_desc_hint')}</span>
-            </div>
-          </div>
-
-          <!-- Price -->
-          <div class="pn-card">
-            <div class="pn-card-title">${iconMoney} ${t('pn_price_section')}</div>
-            <div class="pn-price-row">
-              <div class="pn-field">
-                <label>${t('pn_price')} <span class="req">*</span></label>
-                <div class="pn-input-wrap">
-                  <input type="number" id="pn-price" placeholder="0" min="0" step="0.01" class="pn-input" />
-                  <span class="pn-suffix">${t('currency') || 'сум'}</span>
-                </div>
-              </div>
-              <div class="pn-field">
-                <label>${t('pn_unit')}</label>
-                <select id="pn-unit" class="pn-input">
-                  <option value="кг">${t('unit_kg')}</option>
-                  <option value="шт">${t('unit_pcs')}</option>
-                  <option value="литр">${t('unit_litre')}</option>
-                  <option value="г">${t('unit_gram')}</option>
-                </select>
-              </div>
-            </div>
-            <div class="pn-field" style="max-width:220px">
-              <label>${t('pn_qty')} <span class="req">*</span></label>
-              <input type="number" id="pn-quantity" placeholder="0" min="0" class="pn-input" />
-            </div>
-            <div class="pn-field">
-              <label>${t('pn_location') || 'Место откуда забирать'} <span class="req">*</span></label>
-              <input type="text" id="pn-location" placeholder="${t('pn_location_ph') || 'Например: Ташкент, Яккасарайский р-н, ул. Бабура 45'}" class="pn-input" maxlength="200" />
-              <span class="pn-hint">${t('pn_location_hint') || 'Город и адрес, где покупатель сможет забрать товар'}</span>
-            </div>
-            <div class="pn-field" style="margin-top:12px">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                <input type="checkbox" id="pn-delivery" style="width:18px;height:18px;accent-color:#059669" />
-                <span>Есть доставка (доставка фермера)</span>
-              </label>
-              <span class="pn-hint">Покупатели смогут выбрать доставку от вас</span>
-            </div>
-          </div>
-
-          <!-- Photos -->
-          <div class="pn-card">
-            <div class="pn-card-title">${iconPhoto} ${t('pn_photos')}</div>
+            <div class="pn-card-title"><span class="pn-step">1</span> ${t('pn_step_photo')}</div>
             <div class="pn-dropzone" id="upload-zone">
               <input type="file" id="pn-images" multiple accept="image/*" style="display:none" />
-              <div class="pn-upload-icon">${iconUpload}</div>
-              <p class="pn-drop-title">${t('pn_drop')}</p>
+              <div class="pn-upload-icon"><i class="fa-solid fa-camera"></i></div>
+              <p class="pn-drop-title">${t('pn_take_photo')}</p>
               <p class="pn-drop-hint">${t('pn_drop_hint')}</p>
               <button type="button" class="pn-choose-btn" onclick="document.getElementById('pn-images').click();event.stopPropagation()">
                 ${iconPicture} ${t('pn_choose_files')}
@@ -344,9 +272,92 @@ function renderProductNew() {
             <div id="image-previews" class="pn-previews"></div>
             <div id="pn-photo-count" class="pn-preview-count" style="display:none"></div>
           </div>
+
+          <!-- 2. Что продаёте -->
+          <div class="pn-card">
+            <div class="pn-card-title"><span class="pn-step">2</span> ${t('pn_step_what')}</div>
+
+            <div class="pn-field">
+              <label for="pn-name">${t('pn_name')} <span class="req">*</span></label>
+              <input type="text" id="pn-name" placeholder="${t('pn_name_ph')}" class="pn-input" maxlength="120" />
+            </div>
+
+            <div class="pn-field">
+              <label>${t('pn_category')} <span class="req">*</span></label>
+              <div class="pn-cat-grid" id="pn-cat-grid" role="group">
+                ${categories.map(c => `
+                  <button type="button" class="pn-cat-chip" data-value="${c.value}" onclick="selectPnCat(this)">
+                    ${c.icon}
+                    <span>${t(c.labelKey)}</span>
+                  </button>
+                `).join('')}
+              </div>
+              <input type="hidden" id="pn-category" />
+            </div>
+
+            <div class="pn-field">
+              <label for="pn-description">
+                ${t('pn_desc')} <span class="req">*</span>
+                <span class="pn-char-count" id="pn-desc-count">0/500</span>
+              </label>
+              <textarea id="pn-description" placeholder="${t('pn_desc_ph')}" class="pn-input pn-textarea" maxlength="500"></textarea>
+              <span class="pn-hint">${t('pn_desc_hint')}</span>
+            </div>
+          </div>
+
+          <!-- 3. Цена и количество -->
+          <div class="pn-card">
+            <div class="pn-card-title"><span class="pn-step">3</span> ${t('pn_step_price')}</div>
+            <div class="pn-price-row">
+              <div class="pn-field">
+                <label for="pn-price">${t('pn_price')} <span class="req">*</span></label>
+                <div class="pn-input-wrap">
+                  <input type="number" inputmode="decimal" id="pn-price" placeholder="0" min="0" step="1" class="pn-input" />
+                  <span class="pn-suffix">${t('currency') || 'сум'}</span>
+                </div>
+              </div>
+              <div class="pn-field">
+                <label for="pn-unit">${t('pn_unit')}</label>
+                <select id="pn-unit" class="pn-input">
+                  <option value="кг">${t('unit_kg')}</option>
+                  <option value="шт">${t('unit_pcs')}</option>
+                  <option value="литр">${t('unit_litre')}</option>
+                  <option value="ящик">${t('unit_box')}</option>
+                  <option value="мешок">${t('unit_sack')}</option>
+                  <option value="пучок">${t('unit_bunch')}</option>
+                  <option value="тонна">${t('unit_ton')}</option>
+                  <option value="г">${t('unit_gram')}</option>
+                </select>
+              </div>
+            </div>
+            <div class="pn-field">
+              <label for="pn-quantity">${t('pn_qty')} <span class="req">*</span></label>
+              <input type="number" inputmode="decimal" id="pn-quantity" placeholder="0" min="0" step="any" class="pn-input" />
+            </div>
+          </div>
+
+          <!-- 4. Где забрать -->
+          <div class="pn-card">
+            <div class="pn-card-title"><span class="pn-step">4</span> ${t('pn_step_where')}</div>
+            <div class="pn-field">
+              <label for="pn-location">${t('pn_location')} <span class="req">*</span></label>
+              <input type="text" id="pn-location" placeholder="${t('pn_location_ph')}" class="pn-input" maxlength="200" />
+              <span class="pn-hint">${t('pn_location_hint')}</span>
+            </div>
+            <label class="pn-check">
+              <input type="checkbox" id="pn-delivery" />
+              <span><b>${t('pn_delivery')}</b><small>${t('pn_delivery_hint')}</small></span>
+            </label>
+          </div>
+
+          <div class="pn-submit-bar">
+            <button class="pn-submit-btn" id="publish-btn">
+              ${iconSend} ${t('pn_publish')}
+            </button>
+          </div>
         </div>
 
-        <!-- Aside -->
+        <!-- Советы -->
         <div class="pn-aside">
           <div class="pn-tip-card">
             <div class="pn-tip-icon">${iconStar}</div>
@@ -366,10 +377,6 @@ function renderProductNew() {
               <p>${t('pn_moderation_desc')}</p>
             </div>
           </div>
-
-          <button class="pn-submit-btn" id="publish-btn">
-            ${iconSend} ${t('pn_publish')}
-          </button>
         </div>
       </div>
     </div>
@@ -468,8 +475,8 @@ function renderProductNew() {
     // Validation
     let valid = true;
     if (!name)     { document.getElementById('pn-name').classList.add('error'); valid = false; }
-    if (!price)    { document.getElementById('pn-price').classList.add('error'); valid = false; }
-    if (!quantity) { document.getElementById('pn-quantity').classList.add('error'); valid = false; }
+    if (!(parseFloat(price) > 0))    { document.getElementById('pn-price').classList.add('error'); valid = false; }
+    if (!(parseFloat(quantity) > 0)) { document.getElementById('pn-quantity').classList.add('error'); valid = false; }
     if (!document.getElementById('pn-location')?.value.trim()) { document.getElementById('pn-location').classList.add('error'); valid = false; }
     if (!category) {
       document.querySelectorAll('.pn-cat-chip').forEach(c => {
@@ -495,7 +502,7 @@ function renderProductNew() {
       fd.append('description', desc);
       fd.append('price_per_unit', parseFloat(price));
       fd.append('unit', unit);
-      fd.append('quantity_available', parseInt(quantity));
+      fd.append('quantity_available', parseFloat(quantity));
       fd.append('delivery_available', document.getElementById('pn-delivery')?.checked || false);
       fd.append('pickup_location', document.getElementById('pn-location')?.value?.trim() || '');
       Array.from(files).forEach(f => fd.append('photos', f));

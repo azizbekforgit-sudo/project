@@ -53,7 +53,7 @@ async function renderOrders() {
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
     <div class="page-head">
-      <h1 class="page-title"><i class="fi fi-sr-box-open" style="font-size:24px"></i> ${t('nav_orders')}</h1>
+      <h1 class="page-title"><i class="fa-solid fa-box-open" style="font-size:24px"></i> ${t('nav_orders')}</h1>
       <p class="page-desc">${t('orders_desc')}</p>
     </div>
     <div id="orders-wrap"><div class="spinner"></div></div>
@@ -72,7 +72,7 @@ async function loadOrdersList() {
     if (!orders?.length) {
       wrap.innerHTML = `
         <div class="empty-state big">
-          <div class="icon"><i class="fi fi-sr-box-open" style="font-size:48px"></i></div>
+          <div class="icon"><i class="fa-solid fa-box-open" style="font-size:48px"></i></div>
           <p>${t('orders_empty')}</p>
           ${!isFermer ? `<button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>` : ''}
         </div>`;
@@ -102,8 +102,8 @@ function orderCardHtml(o, isFermer) {
     : '<div class="oc-ph">🥬</div>';
 
   const personLabel = isFermer
-    ? `<i class="fi fi-sr-shopping-cart" style="font-size:14px"></i> ${o.xaridor_name || t('buyer_word')}`
-    : `<i class="fi fi-sr-leaf" style="font-size:14px"></i> ${o.fermer_name || t('farmer_word')}`;
+    ? `<i class="fa-solid fa-cart-shopping" style="font-size:14px"></i> ${o.xaridor_name || t('buyer_word')}`
+    : `<i class="fa-solid fa-leaf" style="font-size:14px"></i> ${o.fermer_name || t('farmer_word')}`;
 
   // Status description
   let statusNote = '';
@@ -206,14 +206,14 @@ function orderCardHtml(o, isFermer) {
         ${timelineHtml(o.status)}
       </div>
       <div class="oc-actions">
-        ${canPay       ? `<button class="btn btn-primary btn-sm" onclick="payOrder(${o.id}, ${o.total_price})"><i class="fi fi-sr-credit-card" style="font-size:14px"></i> Оплатить</button>` : ''}
+        ${canPay       ? `<button class="btn btn-primary btn-sm" onclick="payOrder(${o.id}, ${o.total_price})"><i class="fa-solid fa-credit-card" style="font-size:14px"></i> Оплатить</button>` : ''}
         ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
         ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
         ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
-        ${canPayDriver ? `<button class="btn btn-primary btn-sm" onclick="payDriverOrder(${o.id}, ${o.delivery_request.total_price})"><i class="fi fi-sr-credit-card" style="font-size:14px"></i> Оплатить драйверу ${Number(o.delivery_request.total_price).toLocaleString()} сум</button>` : ''}
-        ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
-        ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
-        ${(!isFermer && o.driver_candidate_id && !o.delivery_request && o.pickup_method === 'external') ? `<button class="btn btn-ghost btn-sm" onclick="changeDriver(${o.id})"><i class="fi fi-rr-refresh" style="font-size:14px"></i> Сменить драйвера</button>` : ''}
+        ${canPayDriver ? `<button class="btn btn-primary btn-sm" onclick="payDriverOrder(${o.id}, ${o.delivery_request.total_price})"><i class="fa-solid fa-credit-card" style="font-size:14px"></i> Оплатить драйверу ${Number(o.delivery_request.total_price).toLocaleString()} сум</button>` : ''}
+        ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
+        ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
+        ${(!isFermer && o.driver_candidate_id && !o.delivery_request && o.pickup_method === 'external') ? `<button class="btn btn-ghost btn-sm" onclick="changeDriver(${o.id})"><i class="fa-solid fa-rotate" style="font-size:14px"></i> Сменить драйвера</button>` : ''}
       </div>
     </div>
   `;

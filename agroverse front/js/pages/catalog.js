@@ -88,10 +88,7 @@ async function quickAddToCart(id) {
     const p = await API.getProduct(id);
     addToCart(p, 1);
     showToast(`«${p.name}» ${t('added_to_cart')}`);
-    document.querySelector('.app')?.dispatchEvent(new Event('cart'));
-    const link = document.querySelector('.cart-header-badge');
-    const count = getCartCount();
-    if (link) link.textContent = count;
+    if (typeof refreshCartBadges === 'function') refreshCartBadges();
   } catch (e) { showToast(e.message, 'error'); }
 }
 
@@ -99,113 +96,116 @@ let debounceTimer;
 
 async function renderCatalog() {
   const app = document.getElementById('app');
-  const presetCat = new URLSearchParams((location.hash.split('?')[1] || '')).get('cat') || '';
+  const qs = new URLSearchParams((location.hash.split('?')[1] || ''));
+  const presetCat = qs.get('cat') || '';
+  const presetQ = qs.get('q') || '';
 
   app.innerHTML = pageShell(`
-    <div class="catalog-page-layout">
-      <!-- ═══ SIDEBAR FILTERS ═══ -->
-      <aside class="catalog-sidebar-filters">
-        <div class="csf-header">
-          <h3><i class="fi fi-rr-filter"></i> Фильтры</h3>
-          <button class="csf-reset" onclick="resetCatalogFilters()">Сбросить</button>
-        </div>
+    <div class="mk">
+      <div class="mk-head">
+        <h1 class="page-title">${t('nav_market')}</h1>
+        <form class="search-form big" role="search" onsubmit="event.preventDefault(); document.getElementById('search-input').blur()">
+          <i class="fa-solid fa-magnifying-glass sf-ic"></i>
+          <input type="search" id="search-input" placeholder="${t('search_ph')}" enterkeyhint="search" autocomplete="off" />
+          ${voiceButtonHtml('search-input')}
+        </form>
+      </div>
 
-        <div class="csf-group">
-          <label class="csf-label">Категории</label>
-          <div class="csf-categories-list" id="cat-tabs">
-            ${CATEGORY_OPTIONS.map(o => `
-              <div class="csf-cat-item ${o.value === presetCat ? 'active' : ''}" data-val="${o.value}" onclick="setCatTab(this, '${o.value}')">
-                <i class="${o.icon}"></i>
-                <span>${o.value ? t(o.key) : t('cat_all')}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
+      <div class="mk-chips" id="cat-tabs" role="group" aria-label="${t('cats_title')}">
+        ${CATEGORY_OPTIONS.map(o => `
+          <button class="mk-chip ${o.value === presetCat ? 'active' : ''}" data-val="${o.value}" onclick="setCatTab(this)" aria-pressed="${o.value === presetCat}">
+            <i class="${o.icon}"></i><span>${o.value ? t(o.key) : t('cat_all')}</span>
+          </button>
+        `).join('')}
+      </div>
 
-        <div class="csf-group">
-          <label class="csf-label">Цена (сум)</label>
-          <div class="csf-price-inputs">
-            <input type="number" id="min-price" placeholder="Мин." />
-            <span>—</span>
-            <input type="number" id="max-price" placeholder="Макс." />
+      <div class="mk-tools">
+        <details class="mk-price" id="mk-price">
+          <summary><i class="fa-solid fa-sliders"></i> ${t('filters')}</summary>
+          <div class="mk-price-body">
+            <label class="mk-field"><span>${t('price_from')}</span><input type="number" inputmode="numeric" id="min-price" placeholder="0" /></label>
+            <label class="mk-field"><span>${t('price_to')}</span><input type="number" inputmode="numeric" id="max-price" placeholder="∞" /></label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="resetCatalogFilters()">${t('reset')}</button>
           </div>
-        </div>
-      </aside>
+        </details>
+        <label class="mk-sort">
+          <i class="fa-solid fa-arrow-down-wide-short"></i>
+          <select id="sort-select" aria-label="${t('sort_newest')}">
+            ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
+          </select>
+        </label>
+      </div>
 
-      <!-- ═══ MAIN PRODUCTS GRID ═══ -->
-      <section class="catalog-main-panel">
-        <div class="cmp-top-bar">
-          <div class="cmp-search">
-            <i class="fi fi-rr-search"></i>
-            <input type="text" id="search-input" placeholder="${t('search_placeholder')}" />
-          </div>
-          <div class="cmp-sort">
-            <select id="sort-select">
-              ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-
-        <div id="products-grid" class="agri-products-grid"><div class="spinner"></div></div>
-      </section>
+      <div class="mk-count" id="mk-count" aria-live="polite"></div>
+      <div id="products-grid" class="agri-products-grid"><div class="spinner"></div></div>
     </div>
   `);
 
+  const searchEl = document.getElementById('search-input');
+  if (searchEl && presetQ) searchEl.value = presetQ;
+
   async function loadProducts() {
-    const search    = document.getElementById('search-input')?.value || '';
-    const category  = document.getElementById('cat-tabs')?.querySelector('.csf-cat-item.active')?.dataset.val || '';
+    const search    = searchEl?.value.trim() || '';
+    const category  = document.querySelector('#cat-tabs .mk-chip.active')?.dataset.val || '';
     const min_price = document.getElementById('min-price')?.value || '';
     const max_price = document.getElementById('max-price')?.value || '';
     const sort      = document.getElementById('sort-select')?.value || 'newest';
-    const grid = document.getElementById('products-grid');
+    const grid  = document.getElementById('products-grid');
+    const count = document.getElementById('mk-count');
     if (!grid) return;
 
     grid.innerHTML = '<div class="spinner"></div>';
     try {
       let products = await API.getProducts({ search, category, min_price, max_price });
+      if (count) count.textContent = `${t('found_n')}: ${products?.length || 0}`;
       if (!products?.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fi fi-rr-leaf" style="font-size:48px;color:var(--clr-primary)"></i><p>${t('no_products_found')}</p></div>`;
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-leaf" style="font-size:48px;color:var(--clr-primary)"></i><p>${t('no_products_found')}</p></div>`;
         return;
       }
-      // client-side sort
       if (sort === 'price_asc') products.sort((a,b) => a.price - b.price);
       else if (sort === 'price_desc') products.sort((a,b) => b.price - a.price);
       else if (sort === 'rating') products.sort((a,b) => (b.rating||0) - (a.rating||0));
       grid.innerHTML = products.map(productCardHtml).join('');
     } catch (e) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fi fi-rr-triangle-warning" style="font-size:48px;color:var(--clr-error)"></i><p>${e.message}</p></div>`;
+      if (count) count.textContent = '';
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation" style="font-size:48px;color:var(--clr-error)"></i><p>${e.message}</p></div>`;
     }
   }
 
-  window.setCatTab = function(el, val) {
-    document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active'));
+  window.setCatTab = function(el) {
+    document.querySelectorAll('#cat-tabs .mk-chip').forEach(c => { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
     el.classList.add('active');
+    el.setAttribute('aria-pressed', 'true');
     loadProducts();
   };
 
   window.resetCatalogFilters = function() {
-    document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active'));
-    const allTab = document.querySelector('.csf-cat-item[data-val=""]');
-    if (allTab) allTab.classList.add('active');
-    if (document.getElementById('search-input')) document.getElementById('search-input').value = '';
-    if (document.getElementById('min-price')) document.getElementById('min-price').value = '';
-    if (document.getElementById('max-price')) document.getElementById('max-price').value = '';
+    const all = document.querySelector('#cat-tabs .mk-chip[data-val=""]');
+    if (all) window.setCatTab(all);
+    if (searchEl) searchEl.value = '';
+    document.getElementById('min-price').value = '';
+    document.getElementById('max-price').value = '';
     loadProducts();
   };
 
+  // если категория не задана — активна «Все»
+  if (!document.querySelector('#cat-tabs .mk-chip.active')) {
+    document.querySelector('#cat-tabs .mk-chip[data-val=""]')?.classList.add('active');
+  }
+  // выбранную категорию показываем на экране (лента листается вбок)
+  const activeChip = document.querySelector('#cat-tabs .mk-chip.active');
+  const chips = document.getElementById('cat-tabs');
+  if (activeChip && chips && chips.scrollWidth > chips.clientWidth) {
+    chips.scrollLeft = activeChip.offsetLeft - 16;
+  }
+
   loadProducts();
 
-  const onChange = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 300); };
-  document.getElementById('search-input')?.addEventListener('input', onChange);
+  const onChange = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 350); };
+  searchEl?.addEventListener('input', onChange);
   document.getElementById('min-price')?.addEventListener('input', onChange);
   document.getElementById('max-price')?.addEventListener('input', onChange);
   document.getElementById('sort-select')?.addEventListener('change', loadProducts);
-
-  // preset category from URL
-  if (presetCat) {
-    const tab = document.querySelector(`.csf-cat-item[data-val="${presetCat}"]`);
-    if (tab) { document.querySelectorAll('.csf-cat-item').forEach(t => t.classList.remove('active')); tab.classList.add('active'); }
-  }
 }
 
 window.renderCatalog = renderCatalog;

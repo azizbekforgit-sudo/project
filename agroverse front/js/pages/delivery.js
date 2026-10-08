@@ -7,23 +7,23 @@
 // ─── Константы ────────────────────────────────────────────────────────────────
 
 const TRUCK_TYPES = [
-  { id: 'fura',       label: 'Фура',         icon: '<i class="fi fi-sr-truck"></i>', desc: 'Тяжёлый грузовик до 20т' },
-  { id: 'refrig',     label: 'Рефрижератор', icon: '<i class="fi fi-sr-snowflake"></i>',  desc: 'Рефрижератор, до 10т' },
-  { id: 'tentovan',   label: 'Тентованный',  icon: '<i class="fi fi-sr-truck-moving"></i>', desc: 'Тент-фургон, до 15т' },
-  { id: 'samosval',   label: 'Самосвал',     icon: '<i class="fi fi-sr-dumpster"></i>', desc: 'Самосвал, до 25т' },
-  { id: 'bortovoy',   label: 'Бортовой',     icon: '<i class="fi fi-sr-truck-side"></i>', desc: 'Бортовой грузовик, до 8т' },
+  { id: 'fura',       label: 'Фура',         icon: '<i class="fa-solid fa-truck"></i>', desc: 'Тяжёлый грузовик до 20т' },
+  { id: 'refrig',     label: 'Рефрижератор', icon: '<i class="fa-solid fa-snowflake"></i>',  desc: 'Рефрижератор, до 10т' },
+  { id: 'tentovan',   label: 'Тентованный',  icon: '<i class="fa-solid fa-truck-moving"></i>', desc: 'Тент-фургон, до 15т' },
+  { id: 'samosval',   label: 'Самосвал',     icon: '<i class="fa-solid fa-dumpster"></i>', desc: 'Самосвал, до 25т' },
+  { id: 'bortovoy',   label: 'Бортовой',     icon: '<i class="fa-solid fa-truck-fast"></i>', desc: 'Бортовой грузовик, до 8т' },
 ];
 
 const SECTIONS = [
-  { id: 'home',    icon: '<i class="fi fi-sr-home"></i>', label: 'Главная' },
-  { id: 'orders',  icon: '<i class="fi fi-sr-box-open"></i>', label: 'Заказы' },
-  { id: 'chats',   icon: '<i class="fi fi-sr-comment"></i>', label: 'Чаты' },
-  { id: 'map',     icon: '<i class="fi fi-sr-map-marker-alt"></i>', label: 'Карта' },
-  { id: 'tariffs', icon: '<i class="fi fi-sr-credit-card"></i>', label: 'Тарифы' },
-  { id: 'ai',      icon: '<i class="fi fi-sr-robot"></i>', label: 'ИИ' },
-  { id: 'wallet',  icon: '<i class="fi fi-sr-wallet"></i>', label: 'Кошелёк' },
-  { id: 'market',  icon: '<i class="fi fi-sr-shopping-cart"></i>', label: 'Рынок' },
-  { id: 'profile', icon: '<i class="fi fi-sr-user"></i>', label: 'Профиль' },
+  { id: 'home',    icon: '<i class="fa-solid fa-house"></i>', label: 'Главная' },
+  { id: 'orders',  icon: '<i class="fa-solid fa-box-open"></i>', label: 'Заказы' },
+  { id: 'chats',   icon: '<i class="fa-solid fa-comment"></i>', label: 'Чаты' },
+  { id: 'map',     icon: '<i class="fa-solid fa-location-dot"></i>', label: 'Карта' },
+  { id: 'tariffs', icon: '<i class="fa-solid fa-credit-card"></i>', label: 'Тарифы' },
+  { id: 'ai',      icon: '<i class="fa-solid fa-robot"></i>', label: 'ИИ' },
+  { id: 'wallet',  icon: '<i class="fa-solid fa-wallet"></i>', label: 'Кошелёк' },
+  { id: 'market',  icon: '<i class="fa-solid fa-cart-shopping"></i>', label: 'Рынок' },
+  { id: 'profile', icon: '<i class="fa-solid fa-user"></i>', label: 'Профиль' },
 ];
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -106,14 +106,14 @@ async function _renderFindCourier() {
     <div style="max-width:1100px;margin:0 auto;">
       <!-- Hero -->
       <div class="del-hero">
-        <div class="del-hero-title"><i class="fi fi-sr-truck-side" style="font-size:24px"></i> Доставка грузов</div>
+        <div class="del-hero-title"><i class="fa-solid fa-truck-fast" style="font-size:24px"></i> Доставка грузов</div>
         <div class="del-hero-sub">Найдите проверенного курьера для перевозки вашего груза по всей Узбекистану</div>
       </div>
 
       <!-- Tabs for buyers -->
       <div style="display:flex;gap:8px;margin-bottom:20px">
-        <button class="btn btn-primary btn-sm" id="buyer-tab-search" onclick="_buyerTabSwitch('search')"><i class="fi fi-sr-search" style="font-size:14px"></i> Найти курьера</button>
-        <button class="btn btn-ghost btn-sm" id="buyer-tab-deliveries" onclick="_buyerTabSwitch('deliveries')"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Мои доставки</button>
+        <button class="btn btn-primary btn-sm" id="buyer-tab-search" onclick="_buyerTabSwitch('search')"><i class="fa-solid fa-magnifying-glass" style="font-size:14px"></i> Найти курьера</button>
+        <button class="btn btn-ghost btn-sm" id="buyer-tab-deliveries" onclick="_buyerTabSwitch('deliveries')"><i class="fa-solid fa-box-open" style="font-size:14px"></i> Мои доставки</button>
       </div>
 
       <div id="buyer-tab-content">
@@ -132,7 +132,7 @@ async function _renderFindCourier() {
                 <option value="100">100 км</option>
                 <option value="500">Весь Узбекистан</option>
               </select>
-              <button class="del-search-btn" onclick="_delZoneSearch()"><i class="fi fi-sr-search" style="font-size:16px"></i> Найти</button>
+              <button class="del-search-btn" onclick="_delZoneSearch()"><i class="fa-solid fa-magnifying-glass" style="font-size:16px"></i> Найти</button>
             </div>
           </div>
 
@@ -149,17 +149,17 @@ async function _renderFindCourier() {
         <h2 style="font-family:var(--font-display);font-size:24px;font-weight:600;text-align:center;margin-bottom:24px;">Как это работает?</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;">
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-marker" style="font-size:40px;color:#059669"></i></div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fa-solid fa-location-dot" style="font-size:40px;color:#059669"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Укажите адрес</div>
             <div style="font-size:13px;color:var(--muted);">Кликните на карту или введите адрес</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-search" style="font-size:40px"></i></div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fa-solid fa-magnifying-glass" style="font-size:40px"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Выберите курьера</div>
             <div style="font-size:13px;color:var(--muted);">Сравните рейтинги и тарифы</div>
           </div>
           <div class="how-card" style="text-align:center;padding:28px 20px;">
-            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fi fi-sr-box-open" style="font-size:40px;color:#059669"></i></div>
+            <div style="font-size:2.5rem;margin-bottom:12px;"><i class="fa-solid fa-box-open" style="font-size:40px;color:#059669"></i></div>
             <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Закажите доставку</div>
             <div style="font-size:13px;color:var(--muted);">Быстро, надёжно, с гарантией</div>
           </div>
@@ -201,7 +201,7 @@ async function _loadBuyerDeliveries() {
     const requests = await API.getBuyerDeliveryRequests().catch(() => []);
 
     if (!requests.length) {
-      content.innerHTML = `<div class="empty-state"><i class="fi fi-sr-inbox" style="font-size:48px;color:var(--muted)"></i> Нет заказов на доставку</div>`;
+      content.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:48px;color:var(--muted)"></i> Нет заказов на доставку</div>`;
       return;
     }
 
@@ -233,8 +233,8 @@ async function _loadBuyerDeliveries() {
       if (r.status === 'delivered') {
         actions = `
           <div style="display:flex;gap:8px;margin-top:12px">
-            <button class="btn btn-primary btn-sm" onclick="_buyerConfirmDelivery(${r.id}, true)"><i class="fi fi-sr-check-circle" style="font-size:14px"></i> Доставлено</button>
-            <button class="btn btn-ghost btn-sm" onclick="_buyerConfirmDelivery(${r.id}, false)"><i class="fi fi-sr-times-circle" style="font-size:14px"></i> Проблема</button>
+            <button class="btn btn-primary btn-sm" onclick="_buyerConfirmDelivery(${r.id}, true)"><i class="fa-solid fa-circle-check" style="font-size:14px"></i> Доставлено</button>
+            <button class="btn btn-ghost btn-sm" onclick="_buyerConfirmDelivery(${r.id}, false)"><i class="fa-solid fa-circle-xmark" style="font-size:14px"></i> Проблема</button>
           </div>
         `;
       } else if (r.status === 'pending' || r.status === 'driver_accepted' || r.status === 'collecting') {
@@ -245,7 +245,7 @@ async function _loadBuyerDeliveries() {
         if (elapsedMinutes <= 30) {
           actions = `
             <div style="display:flex;gap:8px;margin-top:12px">
-              <button class="btn btn-ghost btn-sm" onclick="_buyerCancelDelivery(${r.id})"><i class="fi fi-sr-times-circle" style="font-size:14px"></i> Отменить</button>
+              <button class="btn btn-ghost btn-sm" onclick="_buyerCancelDelivery(${r.id})"><i class="fa-solid fa-circle-xmark" style="font-size:14px"></i> Отменить</button>
               <span style="font-size:11px;color:#9ca3af;align-self:center">Можно отменить ещё ${Math.ceil(30 - elapsedMinutes)} мин</span>
             </div>
           `;
@@ -258,17 +258,17 @@ async function _loadBuyerDeliveries() {
             <div>
               <div style="font-weight:700;font-size:15px">${r.product_title || 'Груз'}</div>
               <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-                <span style="font-size:13px;color:#6b7280"><i class="fi fi-sr-marker" style="font-size:13px"></i> ${r.route_from}</span>
+                <span style="font-size:13px;color:#6b7280"><i class="fa-solid fa-location-dot" style="font-size:13px"></i> ${r.route_from}</span>
                 <span style="color:#d1d5db">→</span>
-                <span style="font-size:13px;color:#6b7280"><i class="fi fi-sr-flag-checkered" style="font-size:13px"></i> ${r.route_to}</span>
+                <span style="font-size:13px;color:#6b7280"><i class="fa-solid fa-flag-checkered" style="font-size:13px"></i> ${r.route_to}</span>
               </div>
             </div>
             <span style="background:${color}20;color:${color};padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700">${status}</span>
           </div>
           <div style="display:flex;gap:16px;font-size:13px;color:#6b7280;margin-bottom:8px">
-            <span><i class="fi fi-sr-ruler" style="font-size:13px"></i> ${r.distance_km} км</span>
-            <span style="color:#059669;font-weight:600"><i class="fi fi-sr-money-bill-wave" style="font-size:13px"></i> ${Number(r.total_price).toLocaleString()} сум</span>
-            ${r.courier_name ? `<span><i class="fi fi-sr-truck" style="font-size:13px"></i> ${r.courier_name}</span>` : ''}
+            <span><i class="fa-solid fa-ruler" style="font-size:13px"></i> ${r.distance_km} км</span>
+            <span style="color:#059669;font-weight:600"><i class="fa-solid fa-money-bill-wave" style="font-size:13px"></i> ${Number(r.total_price).toLocaleString()} сум</span>
+            ${r.courier_name ? `<span><i class="fa-solid fa-truck" style="font-size:13px"></i> ${r.courier_name}</span>` : ''}
           </div>
           ${actions}
         </div>
@@ -319,7 +319,7 @@ function _showRatingModal(requestId) {
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:16px;max-width:420px;width:95%;padding:24px">
       <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-star" style="font-size:48px;color:#f59e0b"></i></div>
+        <div style="font-size:48px;margin-bottom:8px"><i class="fa-solid fa-star" style="font-size:48px;color:#f59e0b"></i></div>
         <h2 style="margin:0;font-size:18px;font-weight:700">Оцените доставку</h2>
         <p style="color:#6b7280;font-size:13px;margin-top:4px">Поставьте оценку от 1 до 10</p>
       </div>
@@ -396,7 +396,7 @@ function _initDelMap() {
   if (!mapEl || !window.L) {
     if (mapEl) mapEl.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--surface-soft);color:var(--muted);">
-        <div style="font-size:48px;margin-bottom:16px;"><i class="fi fi-sr-map" style="font-size:48px"></i></div>
+        <div style="font-size:48px;margin-bottom:16px;"><i class="fa-solid fa-map" style="font-size:48px"></i></div>
         <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Карта</div>
         <div style="font-size:13px;">Введите адрес для поиска курьеров</div>
       </div>`;
@@ -478,7 +478,7 @@ window._delZoneSearch = async function() {
     if (!couriers.length) {
       results.innerHTML = `
         <div style="text-align:center;padding:60px 20px;color:var(--muted);">
-          <div style="font-size:48px;margin-bottom:16px;"><i class="fi fi-sr-truck-side" style="font-size:48px;color:#059669"></i></div>
+          <div style="font-size:48px;margin-bottom:16px;"><i class="fa-solid fa-truck-fast" style="font-size:48px;color:#059669"></i></div>
           <h3 style="font-size:18px;font-weight:600;color:var(--ink);margin-bottom:8px;">Курьеры не найдены</h3>
           <p style="font-size:14px;">В выбранном радиусе (${radius} км) пока нет активных курьеров.<br>Попробуйте увеличить радиус поиска.</p>
         </div>`;
@@ -492,7 +492,7 @@ window._delZoneSearch = async function() {
       couriers.forEach(c => {
         if (c.lat && c.lng) {
           const greenIcon = L.divIcon({
-            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-truck" style="font-size:18px;color:#fff"></i></div>',
+            html: '<div style="width:32px;height:32px;background:#0a6e3a;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fa-solid fa-truck" style="font-size:18px;color:#fff"></i></div>',
             className: '',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
@@ -519,13 +519,13 @@ window._delZoneSearch = async function() {
 // ─── Courier card rendering ──────────────────────────────────────────────────
 
 const TRANSPORT_EMOJI = {
-  fura: () => '<i class="fi fi-sr-truck" style="font-size:20px"></i>',
-  refrig: () => '<i class="fi fi-sr-snowflake" style="font-size:20px"></i>',
-  tentovan: () => '<i class="fi fi-sr-truck-moving" style="font-size:20px"></i>',
-  samosval: () => '<i class="fi fi-sr-dumpster" style="font-size:20px"></i>',
-  bortovoy: () => '<i class="fi fi-sr-truck-side" style="font-size:20px"></i>',
-  moto: () => '<i class="fi fi-sr-motorcycle" style="font-size:20px"></i>',
-  car: () => '<i class="fi fi-sr-car" style="font-size:20px"></i>',
+  fura: () => '<i class="fa-solid fa-truck" style="font-size:20px"></i>',
+  refrig: () => '<i class="fa-solid fa-snowflake" style="font-size:20px"></i>',
+  tentovan: () => '<i class="fa-solid fa-truck-moving" style="font-size:20px"></i>',
+  samosval: () => '<i class="fa-solid fa-dumpster" style="font-size:20px"></i>',
+  bortovoy: () => '<i class="fa-solid fa-truck-fast" style="font-size:20px"></i>',
+  moto: () => '<i class="fa-solid fa-motorcycle" style="font-size:20px"></i>',
+  car: () => '<i class="fa-solid fa-car" style="font-size:20px"></i>',
 };
 
 const TRANSPORT_LABEL = {
@@ -541,7 +541,7 @@ function _ratingClass(r) {
 
 function _renderCourierCard(c) {
   const emojiFn = TRANSPORT_EMOJI[c.transport_type];
-  const emoji = emojiFn ? emojiFn() : '<i class="fi fi-sr-truck" style="font-size:20px"></i>';
+  const emoji = emojiFn ? emojiFn() : '<i class="fa-solid fa-truck" style="font-size:20px"></i>';
   const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
   const rating = c.rating || 0;
   const ratingPct = (rating / 10) * 100;
@@ -549,7 +549,7 @@ function _renderCourierCard(c) {
 
   let routeHtml = '';
   if (c.route_anywhere) {
-    routeHtml = `<div class="del-cc-route anywhere"><i class="fi fi-sr-globe" style="font-size:14px"></i> Любое место → любое место</div>`;
+    routeHtml = `<div class="del-cc-route anywhere"><i class="fa-solid fa-globe" style="font-size:14px"></i> Любое место → любое место</div>`;
   } else if (c.route_from || c.route_to) {
     routeHtml = `<div class="del-cc-route">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
   }
@@ -574,14 +574,14 @@ function _renderCourierCard(c) {
         </div>
         ${routeHtml}
         <div class="del-cc-stats">
-          <div class="del-cc-stat"><i class="fi fi-sr-marker" style="font-size:14px"></i> ${c.city || 'Узбекистан'}</div>
-          <div class="del-cc-stat"><i class="fi fi-sr-weight" style="font-size:14px"></i> до ${c.max_weight || 5000} кг</div>
-          <div class="del-cc-stat"><i class="fi fi-sr-calendar" style="font-size:14px"></i> ${c.experience_years || 0} лет опыта</div>
+          <div class="del-cc-stat"><i class="fa-solid fa-location-dot" style="font-size:14px"></i> ${c.city || 'Узбекистан'}</div>
+          <div class="del-cc-stat"><i class="fa-solid fa-weight-hanging" style="font-size:14px"></i> до ${c.max_weight || 5000} кг</div>
+          <div class="del-cc-stat"><i class="fa-solid fa-calendar" style="font-size:14px"></i> ${c.experience_years || 0} лет опыта</div>
         </div>
       </div>
       <div class="del-cc-footer">
-        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})"><i class="fi fi-sr-id-card" style="font-size:14px"></i> Профиль</button>
-        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Заказать</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); _showCourierProfile(${c.user_id})"><i class="fa-solid fa-id-card" style="font-size:14px"></i> Профиль</button>
+        <button class="btn btn-outline" onclick="event.stopPropagation(); _delOrderCourier(${c.user_id})"><i class="fa-solid fa-box-open" style="font-size:14px"></i> Заказать</button>
       </div>
     </div>`;
 }
@@ -592,7 +592,7 @@ window._showCourierProfile = async function(userId) {
   try {
     const c = await API.getPublicCourierProfile(userId);
   const emojiFn = TRANSPORT_EMOJI[c.transport_type];
-  const emoji = emojiFn ? emojiFn() : '<i class="fi fi-sr-truck" style="font-size:20px"></i>';
+  const emoji = emojiFn ? emojiFn() : '<i class="fa-solid fa-truck" style="font-size:20px"></i>';
     const transport = TRANSPORT_LABEL[c.transport_type] || c.transport_type;
     const rating = c.rating || 0;
     const ratingPct = (rating / 10) * 100;
@@ -603,7 +603,7 @@ window._showCourierProfile = async function(userId) {
 
     let routeSection = '';
     if (c.route_anywhere) {
-      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;"><i class="fi fi-sr-globe" style="font-size:14px"></i> Любое место → любое место</div>';
+      routeSection = '<div class="del-cc-route anywhere" style="margin-bottom:0;"><i class="fa-solid fa-globe" style="font-size:14px"></i> Любое место → любое место</div>';
     } else if (c.route_from || c.route_to) {
       routeSection = `<div class="del-cc-route" style="margin-bottom:0;">${c.route_from || 'Откуда угодно'} <span class="route-arrow">→</span> ${c.route_to || 'Куда угодно'}</div>`;
     }
@@ -643,12 +643,12 @@ window._showCourierProfile = async function(userId) {
             <div class="del-profile-row"><span class="label">Режим работы</span><span class="value">${c.work_mode === 'flexible' ? 'Гибкий' : c.work_hours || '08:00-20:00'}</span></div>
             <div class="del-profile-row"><span class="label">Номер авто</span><span class="value">${c.vehicle_number || 'Не указан'}</span></div>
             <div class="del-profile-row"><span class="label">Лицензия</span><span class="value">${c.license_info || 'Не указана'}</span></div>
-            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? `<i class="fi fi-sr-check-circle" style="color:#10b981;font-size:14px"></i> Есть` : `<i class="fi fi-sr-times-circle" style="color:#ef4444;font-size:14px"></i> Нет`}</span></div>
+            <div class="del-profile-row"><span class="label">Термосумка</span><span class="value">${c.has_thermo_bag ? `<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:14px"></i> Есть` : `<i class="fa-solid fa-circle-xmark" style="color:#ef4444;font-size:14px"></i> Нет`}</span></div>
             ${c.bio ? `<div class="del-profile-row"><span class="label">О себе</span><span class="value">${c.bio}</span></div>` : ''}
           </div>
         </div>
         <div class="del-profile-footer">
-          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})"><i class="fi fi-sr-box-open" style="font-size:14px"></i> Заказать доставку</button>
+          <button class="btn btn-primary btn-lg" onclick="this.closest('.del-profile-overlay').remove(); _delOrderCourier(${c.user_id})"><i class="fa-solid fa-box-open" style="font-size:14px"></i> Заказать доставку</button>
         </div>
       </div>`;
 
@@ -673,7 +673,7 @@ function _renderOnboarding() {
   app.innerHTML = `
     <div class="delivery-onboard">
       <div class="onboard-header">
-        <div class="onboard-logo"><i class="fi fi-sr-truck-side" style="font-size:24px"></i> AgroVerse Йўлчи</div>
+        <div class="onboard-logo"><i class="fa-solid fa-truck-fast" style="font-size:24px"></i> AgroVerse Йўлчи</div>
         <p class="onboard-subtitle">Зарегистрируйтесь как курьер за 3 шага</p>
       </div>
       <div class="onboard-progress">
@@ -717,7 +717,7 @@ function _renderOnboardStep() {
         <div class="ob-checkbox">
           <input type="checkbox" id="ob-thermo" ${s.has_thermo_bag ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.has_thermo_bag = this.checked">
-          <label for="ob-thermo"><i class="fi fi-sr-snowflake" style="font-size:14px"></i> Есть рефрижератор / термоизоляция</label>
+          <label for="ob-thermo"><i class="fa-solid fa-snowflake" style="font-size:14px"></i> Есть рефрижератор / термоизоляция</label>
         </div>
         <button class="btn btn-primary ob-next" onclick="_obNext()">Далее →</button>
       </div>
@@ -733,7 +733,7 @@ function _renderOnboardStep() {
         <div class="del-onb-anywhere" style="margin-bottom:16px;">
           <input type="checkbox" id="ob-anywhere" ${s.route_anywhere ? 'checked' : ''}
                  onchange="_deliveryState.onboarding.route_anywhere = this.checked; _toggleRouteInputs()">
-          <label for="ob-anywhere"><i class="fi fi-sr-globe" style="font-size:14px"></i> Возлю из любого места в любое место</label>
+          <label for="ob-anywhere"><i class="fa-solid fa-globe" style="font-size:14px"></i> Возлю из любого места в любое место</label>
         </div>
 
         <div id="route-inputs" style="${s.route_anywhere ? 'display:none;' : ''}">
@@ -753,14 +753,14 @@ function _renderOnboardStep() {
         </div>
 
         <div class="ob-field" style="margin-top:16px;">
-          <label class="ob-label"><i class="fi fi-sr-marker" style="font-size:14px"></i> Адрес базирования</label>
+          <label class="ob-label"><i class="fa-solid fa-location-dot" style="font-size:14px"></i> Адрес базирования</label>
           <input type="text" class="ob-input" id="ob-address" value="${s.address}" placeholder="Ташкент, ул. Примерная 1"
                  oninput="_deliveryState.onboarding.address = this.value">
           <span class="hint">Ваш фактический адрес (для будущих функций)</span>
         </div>
 
         <div class="ob-field" style="margin-top:16px;">
-          <label class="ob-label"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> Цена за 1 км (сум)</label>
+          <label class="ob-label"><i class="fa-solid fa-money-bill-wave" style="font-size:14px"></i> Цена за 1 км (сум)</label>
           <input type="number" class="ob-input" id="ob-price-per-km" value="${s.price_per_km || 0}" min="0" step="1000"
                  placeholder="100000"
                  oninput="_deliveryState.onboarding.price_per_km = +this.value">
@@ -831,7 +831,7 @@ function _renderOnboardStep() {
         </div>
         <div class="ob-nav">
           <button class="btn btn-ghost" onclick="_obBack()">← Назад</button>
-          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()"><i class="fi fi-sr-check" style="font-size:14px"></i> Отправить заявку</button>
+          <button class="btn btn-primary" id="ob-submit" onclick="_obSubmit()"><i class="fa-solid fa-check" style="font-size:14px"></i> Отправить заявку</button>
         </div>
       </div>
     `;
@@ -912,7 +912,7 @@ async function _obSubmit() {
     _renderDashboard();
   } catch (e) {
     showToast(e.message || 'Ошибка при сохранении', 'error');
-    if (btn) { btn.disabled = false; btn.textContent = `<i class="fi fi-sr-check" style="font-size:14px"></i> Отправить заявку`; }
+    if (btn) { btn.disabled = false; btn.textContent = `<i class="fa-solid fa-check" style="font-size:14px"></i> Отправить заявку`; }
   }
 }
 
@@ -930,7 +930,7 @@ function _renderDashboard() {
       <!-- Sidebar — Grouped navigation -->
       <aside class="del-sidebar">
         <div class="ds-brand">
-          <span class="ds-logo"><i class="fi fi-sr-truck-side" style="font-size:24px"></i></span>
+          <span class="ds-logo"><i class="fa-solid fa-truck-fast" style="font-size:24px"></i></span>
           <span class="ds-name">Йўлчи</span>
         </div>
         <nav class="ds-nav">
@@ -957,7 +957,7 @@ function _renderDashboard() {
           <div class="ds-courier-info">
             <div class="ds-courier-name">${profile.full_name || 'Курьер'}</div>
             <div class="ds-courier-status ${approved ? 'status-active' : (profile.rejection_reason ? 'status-rejected' : 'status-pending')}">
-              ${approved ? `<i class="fi fi-sr-check-circle" style="color:#10b981;font-size:14px"></i> Активен` : (profile.rejection_reason ? `<i class="fi fi-sr-times-circle" style="color:#ef4444;font-size:14px"></i> Отклонен` : `<i class="fi fi-sr-clock" style="color:#f59e0b;font-size:14px"></i> На проверке`)}
+              ${approved ? `<i class="fa-solid fa-circle-check" style="color:#10b981;font-size:14px"></i> Активен` : (profile.rejection_reason ? `<i class="fa-solid fa-circle-xmark" style="color:#ef4444;font-size:14px"></i> Отклонен` : `<i class="fa-solid fa-clock" style="color:#f59e0b;font-size:14px"></i> На проверке`)}
             </div>
           </div>
         </div>
@@ -1013,7 +1013,7 @@ async function _sectionHome(main) {
       ${!approved ? `
         ${profile.rejection_reason ? `
           <div class="pending-banner rejection-banner">
-            <div class="pb-icon"><i class="fi fi-sr-times-circle" style="font-size:32px;color:#ef4444"></i></div>
+            <div class="pb-icon"><i class="fa-solid fa-circle-xmark" style="font-size:32px;color:#ef4444"></i></div>
             <div class="pb-body">
               <div class="pb-title">Заявка отклонена</div>
               <div class="pb-text">Причина: <b>${profile.rejection_reason}</b></div>
@@ -1022,7 +1022,7 @@ async function _sectionHome(main) {
           </div>
         ` : `
           <div class="pending-banner">
-            <div class="pb-icon"><i class="fi fi-sr-hourglass" style="font-size:32px;color:#f59e0b"></i></div>
+            <div class="pb-icon"><i class="fa-solid fa-hourglass-half" style="font-size:32px;color:#f59e0b"></i></div>
             <div class="pb-body">
               <div class="pb-title">Заявка на проверке</div>
               <div class="pb-text">Ваш профиль отправлен администратору. Вы получите доступ к заказам после одобрения.</div>
@@ -1040,22 +1040,22 @@ async function _sectionHome(main) {
       <!-- Stats row — Bento grid -->
       <div class="home-stats">
         <div class="hs-card clickable" onclick="_deliverySection('orders')">
-          <div class="hs-icon"><i class="fi fi-sr-box-open" style="font-size:28px"></i></div>
+          <div class="hs-icon"><i class="fa-solid fa-box-open" style="font-size:28px"></i></div>
           <div class="hs-num" id="stat-available">—</div>
           <div class="hs-label">Доступные</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon"><i class="fi fi-sr-check-circle" style="font-size:28px;color:#10b981"></i></div>
+          <div class="hs-icon"><i class="fa-solid fa-circle-check" style="font-size:28px;color:#10b981"></i></div>
           <div class="hs-num" id="stat-done">—</div>
           <div class="hs-label">Доставлено</div>
         </div>
         <div class="hs-card">
-          <div class="hs-icon"><i class="fi fi-sr-star" style="font-size:28px;color:#f59e0b"></i></div>
+          <div class="hs-icon"><i class="fa-solid fa-star" style="font-size:28px;color:#f59e0b"></i></div>
           <div class="hs-num" id="stat-rating">${profile.rating ?? '0.0'}</div>
           <div class="hs-label">Рейтинг /10</div>
         </div>
         <div class="hs-card clickable" onclick="_deliverySection('wallet')">
-          <div class="hs-icon"><i class="fi fi-sr-wallet" style="font-size:28px"></i></div>
+          <div class="hs-icon"><i class="fa-solid fa-wallet" style="font-size:28px"></i></div>
           <div class="hs-num" id="stat-balance">—</div>
           <div class="hs-label">Баланс</div>
         </div>
@@ -1072,7 +1072,7 @@ async function _sectionHome(main) {
         <div class="hsb-title">Уведомления</div>
         <div id="notif-list">
           <div class="notif-item">
-            <div class="ni-icon"><i class="fi fi-sr-party-horn" style="font-size:24px;color:#10b981"></i></div>
+            <div class="ni-icon"><i class="fa-solid fa-champagne-glasses" style="font-size:24px;color:#10b981"></i></div>
             <div class="ni-body">
               <div class="ni-title">Добро пожаловать в AgroVerse!</div>
               <div class="ni-time">Только что</div>
@@ -1080,7 +1080,7 @@ async function _sectionHome(main) {
           </div>
           ${!approved ? `
             <div class="notif-item">
-              <div class="ni-icon"><i class="fi fi-sr-search" style="font-size:24px;color:#f59e0b"></i></div>
+              <div class="ni-icon"><i class="fa-solid fa-magnifying-glass" style="font-size:24px;color:#f59e0b"></i></div>
               <div class="ni-body">
                 <div class="ni-title">Ваш профиль проходит проверку</div>
                 <div class="ni-time">Сегодня</div>
@@ -1088,7 +1088,7 @@ async function _sectionHome(main) {
             </div>
           ` : `
             <div class="notif-item">
-              <div class="ni-icon"><i class="fi fi-sr-check-circle" style="font-size:24px;color:#10b981"></i></div>
+              <div class="ni-icon"><i class="fa-solid fa-circle-check" style="font-size:24px;color:#10b981"></i></div>
               <div class="ni-body">
                 <div class="ni-title">Профиль одобрен! Можете принимать заказы</div>
                 <div class="ni-time">Сегодня</div>
@@ -1137,11 +1137,11 @@ async function _sectionHome(main) {
               <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
                 <div>
                   <b>${r.route_from} → ${r.route_to}</b>
-                  <div style="color:#6b7280;font-size:13px"><i class="fi fi-sr-box" style="font-size:13px"></i> ${r.product_title || 'Товар'} | <i class="fi fi-sr-ruler" style="font-size:13px"></i> ${r.distance_km} км</div>
+                  <div style="color:#6b7280;font-size:13px"><i class="fa-solid fa-box" style="font-size:13px"></i> ${r.product_title || 'Товар'} | <i class="fa-solid fa-ruler" style="font-size:13px"></i> ${r.distance_km} км</div>
                 </div>
                 <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600">Ожидание</span>
               </div>
-              <div style="color:#059669;font-weight:600;margin-bottom:8px"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> ${Number(r.total_price).toLocaleString()} сум</div>
+              <div style="color:#059669;font-weight:600;margin-bottom:8px"><i class="fa-solid fa-money-bill-wave" style="font-size:14px"></i> ${Number(r.total_price).toLocaleString()} сум</div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-primary btn-sm" onclick="_driverAcceptDelivery(${r.id})">Принять заказ</button>
                 <button class="btn btn-ghost btn-sm" onclick="_driverRejectDelivery(${r.id})">Отклонить</button>
@@ -1186,7 +1186,7 @@ async function _driverAcceptDelivery(requestId) {
         <button onclick="document.getElementById('driver-disclaimer-modal').remove()" style="background:none;border:none;cursor:pointer;padding:4px;font-size:20px;color:#9ca3af">✕</button>
       </div>
       <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-exclamation-triangle" style="font-size:48px;color:#f59e0b"></i></div>
+        <div style="font-size:48px;margin-bottom:8px"><i class="fa-solid fa-triangle-exclamation" style="font-size:48px;color:#f59e0b"></i></div>
         <h2 style="margin:0;font-size:18px">Внимание</h2>
       </div>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;line-height:1.6">
@@ -1261,10 +1261,10 @@ async function _sectionOrders(main) {
         <h1 class="section-title">Заказы</h1>
       </div>
       <div class="orders-tabs">
-        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')"><i class="fi fi-sr-box-open" style="font-size:16px"></i> Доступные</button>
-        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Принятые</button>
-        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')"><i class="fi fi-sr-check-circle" style="font-size:16px"></i> Выполненные</button>
-        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')"><i class="fi fi-sr-times-circle" style="font-size:16px"></i> Отменённые</button>
+        <button class="ot-tab active" data-tab="available" onclick="_ordersTab(this,'available')"><i class="fa-solid fa-box-open" style="font-size:16px"></i> Доступные</button>
+        <button class="ot-tab" data-tab="accepted"  onclick="_ordersTab(this,'accepted')"><i class="fa-solid fa-truck-fast" style="font-size:16px"></i> Принятые</button>
+        <button class="ot-tab" data-tab="done"      onclick="_ordersTab(this,'done')"><i class="fa-solid fa-circle-check" style="font-size:16px"></i> Выполненные</button>
+        <button class="ot-tab" data-tab="cancelled" onclick="_ordersTab(this,'cancelled')"><i class="fa-solid fa-circle-xmark" style="font-size:16px"></i> Отменённые</button>
       </div>
       <div id="orders-list"><div class="spinner"></div></div>
     </div>
@@ -1357,7 +1357,7 @@ async function _loadOrdersTab(tab) {
     }
 
     if (!orders.length) {
-      list.innerHTML = `<div class="empty-state"><i class="fi fi-sr-inbox" style="font-size:48px;color:var(--muted)"></i> Заказов нет</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox" style="font-size:48px;color:var(--muted)"></i> Заказов нет</div>`;
       return;
     }
 
@@ -1388,22 +1388,22 @@ function _orderCard(o, tab) {
 
   let actions = '';
   if (tab === 'available') {
-    actions = `<button class="btn btn-primary btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})"><i class="fi fi-sr-check" style="font-size:14px"></i> Принять</button>`;
+    actions = `<button class="btn btn-primary btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})"><i class="fa-solid fa-check" style="font-size:14px"></i> Принять</button>`;
   } else if (tab === 'accepted') {
     const status = o.status;
     if (status === 'driver_accepted') {
       actions = `
-        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'collecting')"><i class="fi fi-sr-box" style="font-size:14px"></i> Собирается</button>
+        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'collecting')"><i class="fa-solid fa-box" style="font-size:14px"></i> Собирается</button>
         <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
       `;
     } else if (status === 'collecting') {
       actions = `
-        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'in_transit')"><i class="fi fi-sr-truck" style="font-size:14px"></i> В пути</button>
+        <button class="btn btn-primary btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'in_transit')"><i class="fa-solid fa-truck" style="font-size:14px"></i> В пути</button>
         <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
       `;
     } else if (status === 'in_transit') {
       actions = `
-        <button class="btn btn-success btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'delivered')"><i class="fi fi-sr-check-circle" style="font-size:14px"></i> Доставлено</button>
+        <button class="btn btn-success btn-sm" onclick="_updateDeliveryStatus(${o.id}, 'delivered')"><i class="fa-solid fa-circle-check" style="font-size:14px"></i> Доставлено</button>
         <button class="btn btn-ghost btn-sm" onclick="_showOrderDetails(${JSON.stringify(o).replace(/"/g, '&quot;')})">Детали</button>
       `;
     }
@@ -1435,17 +1435,17 @@ function _orderCard(o, tab) {
   return `
     <div class="order-card" id="oc-${o.id}">
       <div class="oc-left">
-        <div class="oc-cargo-icon"><i class="fi fi-sr-wheat" style="font-size:24px;color:#10b981"></i></div>
+        <div class="oc-cargo-icon"><i class="fa-solid fa-wheat-awn" style="font-size:24px;color:#10b981"></i></div>
       </div>
       <div class="oc-body">
         ${statusBadge}
         <div class="oc-title">${cargo}</div>
         <div class="oc-route">
-          <span class="oc-from"><i class="fi fi-sr-marker" style="font-size:14px"></i> ${from}</span>
+          <span class="oc-from"><i class="fa-solid fa-location-dot" style="font-size:14px"></i> ${from}</span>
           <span class="oc-arrow">→</span>
-          <span class="oc-to"><i class="fi fi-sr-flag-checkered" style="font-size:14px"></i> ${to}</span>
+          <span class="oc-to"><i class="fa-solid fa-flag-checkered" style="font-size:14px"></i> ${to}</span>
         </div>
-        ${dist ? `<div class="oc-dist"><i class="fi fi-sr-ruler" style="font-size:14px"></i> ${dist}</div>` : ''}
+        ${dist ? `<div class="oc-dist"><i class="fa-solid fa-ruler" style="font-size:14px"></i> ${dist}</div>` : ''}
       </div>
       <div class="oc-right">
         <div class="oc-price">${price} сум</div>
@@ -1458,7 +1458,7 @@ function _orderCard(o, tab) {
 async function _acceptOrder(id) {
   try {
     await API.acceptDeliveryOrder(id);
-    showToast('Заказ принят! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>', 'success');
+    showToast('Заказ принят! <i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i>', 'success');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
 }
@@ -1466,7 +1466,7 @@ async function _acceptOrder(id) {
 async function _deliverOrder(id) {
   try {
     await API.updateDeliveryStatus(id, 'delivered');
-    showToast(`Доставлено! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>`, 'success');
+    showToast(`Доставлено! <i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i>`, 'success');
     _sectionOrders(document.getElementById('delivery-main'));
   } catch (e) { showToast(e.message, 'error'); }
 }
@@ -1498,7 +1498,7 @@ function _showOrderDetails(order) {
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:16px;max-width:480px;width:95%;padding:24px;max-height:80vh;overflow-y:auto">
       <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:48px;margin-bottom:8px"><i class="fi fi-sr-box-open" style="font-size:48px;color:#10b981"></i></div>
+        <div style="font-size:48px;margin-bottom:8px"><i class="fa-solid fa-box-open" style="font-size:48px;color:#10b981"></i></div>
         <h2 style="margin:0;font-size:18px;font-weight:700">Детали заказа</h2>
       </div>
 
@@ -1574,7 +1574,7 @@ async function _sectionChats(main) {
   main.innerHTML = `
     <div class="section-chats">
       <div class="section-header">
-        <h1 class="section-title"><i class="fi fi-sr-comment" style="font-size:24px"></i> Чаты</h1>
+        <h1 class="section-title"><i class="fa-solid fa-comment" style="font-size:24px"></i> Чаты</h1>
       </div>
       <div id="delivery-chats-list"><div class="spinner"></div></div>
     </div>
@@ -1588,7 +1588,7 @@ async function _sectionChats(main) {
     if (!chats?.length) {
       wrap.innerHTML = `
         <div class="empty-state">
-          <div class="icon"><i class="fi fi-sr-comment" style="font-size:48px"></i></div>
+          <div class="icon"><i class="fa-solid fa-comment" style="font-size:48px"></i></div>
           <p>У вас пока нет чатов</p>
           <p style="color:#9ca3af;font-size:14px;margin-top:8px">Чаты появятся после начала работы с заказами</p>
         </div>`;
@@ -1642,7 +1642,7 @@ async function _sectionMap(main) {
     <div class="section-map">
       <div class="section-header">
         <h1 class="section-title">Карта заказов</h1>
-        <button class="btn btn-sm btn-primary" onclick="_setOnline()"><i class="fi fi-sr-marker" style="font-size:14px"></i> Я онлайн</button>
+        <button class="btn btn-sm btn-primary" onclick="_setOnline()"><i class="fa-solid fa-location-dot" style="font-size:14px"></i> Я онлайн</button>
       </div>
       <div id="delivery-map" style="width:100%;height:500px;border-radius:12px;overflow:hidden;"></div>
       <div id="map-orders-list" style="margin-top:16px;"></div>
@@ -1668,7 +1668,7 @@ async function _sectionMap(main) {
         const { latitude: lat, longitude: lng } = pos.coords;
         map.setView([lat, lng], 13);
         L.marker([lat, lng], {
-          icon: L.divIcon({ className: '', html: '<div style="width:32px;height:32px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-truck" style="font-size:16px;color:#fff"></i></div>', iconSize: [32,32] })
+          icon: L.divIcon({ className: '', html: '<div style="width:32px;height:32px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fa-solid fa-truck" style="font-size:16px;color:#fff"></i></div>', iconSize: [32,32] })
         }).addTo(map).bindPopup('Вы здесь').openPopup();
 
         // Load nearby orders
@@ -1676,7 +1676,7 @@ async function _sectionMap(main) {
           orders.forEach(o => {
             if (o.pickup_lat && o.pickup_lng) {
               L.marker([o.pickup_lat, o.pickup_lng], {
-                icon: L.divIcon({ className: '', html: `<div style="width:28px;height:28px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fi fi-sr-box-open" style="font-size:14px;color:#fff"></i></div>`, iconSize: [28,28] })
+                icon: L.divIcon({ className: '', html: `<div style="width:28px;height:28px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fa-solid fa-box-open" style="font-size:14px;color:#fff"></i></div>`, iconSize: [28,28] })
               }).addTo(map).bindPopup(`
                 <b>${o.cargo || 'Груз'}</b><br>
                 ${Number(o.price||0).toLocaleString()} сум<br>
@@ -1712,7 +1712,7 @@ async function _setOnline() {
     const { latitude: lat, longitude: lng } = pos.coords;
     try {
       await API.updateCourierStatus({ status: 'online', lat, lng });
-      showToast(`Вы онлайн! <i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i>`, 'success');
+      showToast(`Вы онлайн! <i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i>`, 'success');
     } catch (e) { showToast(e.message, 'error'); }
   });
 }
@@ -1732,25 +1732,25 @@ function _sectionTariffs(main) {
           <div class="tc-price">Бесплатно</div>
           <div class="tc-period">навсегда</div>
           <ul class="tc-features">
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> До 10 заказов в месяц</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Базовый ИИ-помощник</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Карта заказов</li>
-            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Приоритет в поиске</li>
-            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Аналитика</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> До 10 заказов в месяц</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Базовый ИИ-помощник</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Карта заказов</li>
+            <li><i class="fa-solid fa-circle-xmark" style="font-size:14px;color:#ef4444"></i> Приоритет в поиске</li>
+            <li><i class="fa-solid fa-circle-xmark" style="font-size:14px;color:#ef4444"></i> Аналитика</li>
           </ul>
           <button class="btn btn-ghost tc-btn" disabled>Текущий план</button>
         </div>
         <div class="tariff-card featured">
-          <div class="tc-top-badge"><i class="fi fi-sr-star" style="font-size:14px"></i> Популярный</div>
+          <div class="tc-top-badge"><i class="fa-solid fa-star" style="font-size:14px"></i> Популярный</div>
           <div class="tc-badge">Оптимальный</div>
           <div class="tc-price">49 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Неограниченные заказы</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Приоритет в поиске</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Расширенный ИИ</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Базовая аналитика</li>
-            <li><i class="fi fi-sr-times-circle" style="font-size:14px;color:#ef4444"></i> Выделенный менеджер</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Неограниченные заказы</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Приоритет в поиске</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Расширенный ИИ</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Базовая аналитика</li>
+            <li><i class="fa-solid fa-circle-xmark" style="font-size:14px;color:#ef4444"></i> Выделенный менеджер</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1759,11 +1759,11 @@ function _sectionTariffs(main) {
           <div class="tc-price">149 900 <span>сум/мес</span></div>
           <div class="tc-period">в месяц</div>
           <ul class="tc-features">
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Всё из Оптимального</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Выделенный менеджер</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Полная аналитика</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> API доступ</li>
-            <li><i class="fi fi-sr-check-circle" style="font-size:14px;color:#10b981"></i> Брендирование</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Всё из Оптимального</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Выделенный менеджер</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Полная аналитика</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> API доступ</li>
+            <li><i class="fa-solid fa-circle-check" style="font-size:14px;color:#10b981"></i> Брендирование</li>
           </ul>
           <button class="btn btn-primary tc-btn" onclick="showToast('Скоро доступно!','info')">Выбрать</button>
         </div>
@@ -1771,7 +1771,7 @@ function _sectionTariffs(main) {
 
       <!-- Calculator -->
       <div class="tariff-calc">
-        <h3><i class="fi fi-sr-wallet" style="font-size:20px"></i> Калькулятор стоимости доставки</h3>
+        <h3><i class="fa-solid fa-wallet" style="font-size:20px"></i> Калькулятор стоимости доставки</h3>
         <div class="calc-row">
           <label>Расстояние (км)</label>
           <input type="number" id="calc-dist" class="ob-input" value="50" min="1" max="2000">
@@ -1811,12 +1811,12 @@ function _sectionAI(main) {
   main.innerHTML = `
     <div class="section-ai">
       <div class="section-header">
-        <h1 class="section-title"><i class="fi fi-sr-robot" style="font-size:24px"></i> ИИ-помощник</h1>
+        <h1 class="section-title"><i class="fa-solid fa-robot" style="font-size:24px"></i> ИИ-помощник</h1>
         <p class="section-subtitle">Задайте вопрос о маршрутах, тарифах или заказах</p>
       </div>
       <div class="ai-chat" id="ai-chat">
         <div class="ai-msg ai-bot">
-          <div class="ai-msg-bubble">Привет! Я ИИ-помощник AgroVerse. Могу помочь с маршрутами, расчётом стоимости и вопросами по заказам. Чем могу помочь? <i class="fi fi-sr-truck" style="font-size:14px"></i></div>
+          <div class="ai-msg-bubble">Привет! Я ИИ-помощник AgroVerse. Могу помочь с маршрутами, расчётом стоимости и вопросами по заказам. Чем могу помочь? <i class="fa-solid fa-truck" style="font-size:14px"></i></div>
         </div>
         ${_deliveryState.aiMessages.map(m => `
           <div class="ai-msg ${m.role === 'user' ? 'ai-user' : 'ai-bot'}">
@@ -1827,7 +1827,7 @@ function _sectionAI(main) {
       <div class="ai-input-row">
         <input type="text" id="ai-input" class="ai-input" placeholder="Введите вопрос..." 
                onkeydown="if(event.key==='Enter') _sendAIMessage()">
-        <button class="btn btn-primary" onclick="_sendAIMessage()"><i class="fi fi-sr-paper-plane" style="font-size:14px"></i></button>
+        <button class="btn btn-primary" onclick="_sendAIMessage()"><i class="fa-solid fa-paper-plane" style="font-size:14px"></i></button>
       </div>
     </div>
   `;
@@ -1843,7 +1843,7 @@ async function _sendAIMessage() {
   const chat = document.getElementById('ai-chat');
   if (chat) {
     chat.innerHTML += `<div class="ai-msg ai-user"><div class="ai-msg-bubble">${msg}</div></div>`;
-    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble"><i class="fi fi-sr-hourglass" style="font-size:16px"></i> Думаю...</div></div>`;
+    chat.innerHTML += `<div class="ai-msg ai-bot" id="ai-typing"><div class="ai-msg-bubble"><i class="fa-solid fa-hourglass-half" style="font-size:16px"></i> Думаю...</div></div>`;
     chat.scrollTop = chat.scrollHeight;
   }
 
@@ -1865,13 +1865,13 @@ async function _sectionWallet(main) {
   main.innerHTML = `
     <div class="section-wallet">
       <div class="section-header">
-        <h1 class="section-title"><i class="fi fi-sr-wallet" style="font-size:24px"></i> Кошелёк</h1>
+        <h1 class="section-title"><i class="fa-solid fa-wallet" style="font-size:24px"></i> Кошелёк</h1>
       </div>
       <div class="wallet-card">
         <div class="wc-label">Текущий баланс</div>
         <div class="wc-balance" id="wallet-balance">Загрузка...</div>
         <div class="wc-actions">
-          <button class="btn btn-primary" onclick="_withdrawModal()"><i class="fi fi-sr-money-bill-wave" style="font-size:14px"></i> Вывести</button>
+          <button class="btn btn-primary" onclick="_withdrawModal()"><i class="fa-solid fa-money-bill-wave" style="font-size:14px"></i> Вывести</button>
         </div>
       </div>
       <div class="wallet-history">
@@ -1893,7 +1893,7 @@ async function _sectionWallet(main) {
       } else {
         txList.innerHTML = wallet.history.slice().reverse().map(tx => `
           <div class="tx-item ${tx.type === 'income' ? 'tx-in' : 'tx-out'}">
-            <div class="tx-icon">${tx.type === 'income' ? '<i class="fi fi-sr-arrow-down" style="font-size:14px;color:#10b981"></i>' : '<i class="fi fi-sr-arrow-up" style="font-size:14px;color:#ef4444"></i>'}</div>
+            <div class="tx-icon">${tx.type === 'income' ? '<i class="fa-solid fa-arrow-down" style="font-size:14px;color:#10b981"></i>' : '<i class="fa-solid fa-arrow-up" style="font-size:14px;color:#ef4444"></i>'}</div>
             <div class="tx-body">
               <div class="tx-desc">${tx.desc || tx.method || tx.type}</div>
               <div class="tx-status">${tx.status || ''}</div>
@@ -1917,7 +1917,7 @@ function _withdrawModal() {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal-box">
-      <div class="modal-ic"><i class="fi fi-sr-money-bill-wave" style="font-size:36px;color:#10b981"></i></div>
+      <div class="modal-ic"><i class="fa-solid fa-money-bill-wave" style="font-size:36px;color:#10b981"></i></div>
       <h3 class="modal-title">Вывод средств</h3>
       <p class="modal-desc">Доступно: ${Number(bal).toLocaleString('ru-RU')} сум</p>
       <input type="number" id="wd-amount" class="ob-input" placeholder="Сумма" max="${bal}" min="1000">
@@ -1958,7 +1958,7 @@ async function _sectionMarket(main) {
   main.innerHTML = `
     <div class="section-market">
       <div class="section-header">
-        <h1 class="section-title"><i class="fi fi-sr-shop" style="font-size:24px"></i> Рынок</h1>
+        <h1 class="section-title"><i class="fa-solid fa-store" style="font-size:24px"></i> Рынок</h1>
         <p class="section-subtitle">Товары от фермеров, доступные для доставки</p>
       </div>
       <div id="market-list"><div class="spinner"></div></div>
@@ -1970,16 +1970,16 @@ async function _sectionMarket(main) {
     const list = document.getElementById('market-list');
     if (!list) return;
     if (!products.length) {
-      list.innerHTML = `<div class="empty-state"><i class="fi fi-sr-box-open" style="font-size:48px;color:var(--clr-primary)"></i> Товаров пока нет</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open" style="font-size:48px;color:var(--clr-primary)"></i> Товаров пока нет</div>`;
       return;
     }
     list.innerHTML = `<div class="market-grid">
       ${products.slice(0, 20).map(p => `
         <div class="market-card">
-          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder"><i class="fi fi-sr-wheat" style="font-size:40px;color:rgba(255,255,255,0.5)"></i></div>`}
+          ${p.images && p.images.length ? `<img src="${p.images[0]}" class="mc-img" alt="${p.name}">` : `<div class="mc-img-placeholder"><i class="fa-solid fa-wheat-awn" style="font-size:40px;color:rgba(255,255,255,0.5)"></i></div>`}
           <div class="mc-body">
             <div class="mc-title">${p.name || 'Без названия'}</div>
-            <div class="mc-farmer"><i class="fi fi-sr-leaf" style="font-size:14px"></i> ${p.fermer_name || 'Фермер'}</div>
+            <div class="mc-farmer"><i class="fa-solid fa-leaf" style="font-size:14px"></i> ${p.fermer_name || 'Фермер'}</div>
             <div class="mc-price">${Number(p.price ?? 0).toLocaleString('ru-RU')} сум/${p.unit || 'кг'}</div>
           </div>
         </div>
@@ -2001,12 +2001,12 @@ function _sectionProfile(main) {
   main.innerHTML = `
     <div class="section-profile">
       <div class="section-header">
-        <h1 class="section-title"><i class="fi fi-sr-user" style="font-size:24px"></i> Профиль</h1>
+        <h1 class="section-title"><i class="fa-solid fa-user" style="font-size:24px"></i> Профиль</h1>
       </div>
 
       ${!approved ? `
         <div class="pending-banner">
-          <div class="pb-icon"><i class="fi fi-sr-hourglass" style="font-size:32px;color:#f59e0b"></i></div>
+          <div class="pb-icon"><i class="fa-solid fa-hourglass-half" style="font-size:32px;color:#f59e0b"></i></div>
           <div class="pb-body">
             <div class="pb-title">Ожидает одобрения администратора</div>
             <div class="pb-text">Ваши данные проверяются. Обычно это занимает 1–2 рабочих дня.</div>
@@ -2017,39 +2017,39 @@ function _sectionProfile(main) {
           </div>
         </div>
       ` : `
-        <div class="approved-banner"><i class="fi fi-sr-check-circle" style="font-size:16px;color:#10b981"></i> Профиль одобрен и активен</div>
+        <div class="approved-banner"><i class="fa-solid fa-circle-check" style="font-size:16px;color:#10b981"></i> Профиль одобрен и активен</div>
       `}
 
       <div class="profile-card">
-        <div class="profile-avatar"><i class="fi fi-sr-truck" style="font-size:32px;color:#10b981"></i></div>
+        <div class="profile-avatar"><i class="fa-solid fa-truck" style="font-size:32px;color:#10b981"></i></div>
         <div class="profile-name">${p.full_name || 'Не указано'}</div>
         <div class="profile-role">Йўлчи · ${tt ? tt.label : p.transport_type || '—'}</div>
-        <div class="profile-rating"><i class="fi fi-sr-star" style="font-size:16px;color:#f59e0b"></i> ${p.rating ?? '0.0'}</div>
+        <div class="profile-rating"><i class="fa-solid fa-star" style="font-size:16px;color:#f59e0b"></i> ${p.rating ?? '0.0'}</div>
       </div>
 
       <!-- Completion bar -->
       ${_profileCompletionBar(p)}
 
       <div class="profile-details">
-        ${_profileRow('<i class="fi fi-sr-phone" style="font-size:16px"></i>', 'Телефон', p.phone)}
-        ${_profileRow('<i class="fi fi-sr-city" style="font-size:16px"></i>', 'Город', p.city)}
-        ${_profileRow('<i class="fi fi-sr-truck" style="font-size:16px"></i>', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
-        ${_profileRow('<i class="fi fi-sr-weight" style="font-size:16px"></i>', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
-        ${_profileRow('<i class="fi fi-sr-id-card" style="font-size:16px"></i>', 'Гос. номер', p.vehicle_number)}
-        ${_profileRow('<i class="fi fi-sr-marker" style="font-size:16px"></i>', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
-        ${_profileRow('<i class="fi fi-sr-snowflake" style="font-size:16px"></i>', 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
-        ${_profileRow('<i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i>', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
-        ${p.bio ? _profileRow('<i class="fi fi-sr-comment" style="font-size:16px"></i>', 'О себе', p.bio) : ''}
+        ${_profileRow('<i class="fa-solid fa-phone" style="font-size:16px"></i>', 'Телефон', p.phone)}
+        ${_profileRow('<i class="fa-solid fa-city" style="font-size:16px"></i>', 'Город', p.city)}
+        ${_profileRow('<i class="fa-solid fa-truck" style="font-size:16px"></i>', 'Транспорт', tt ? `${tt.icon} ${tt.label}` : p.transport_type || '—')}
+        ${_profileRow('<i class="fa-solid fa-weight-hanging" style="font-size:16px"></i>', 'Грузоподъёмность', p.max_weight ? `${p.max_weight} кг` : '—')}
+        ${_profileRow('<i class="fa-solid fa-id-card" style="font-size:16px"></i>', 'Гос. номер', p.vehicle_number)}
+        ${_profileRow('<i class="fa-solid fa-location-dot" style="font-size:16px"></i>', 'Радиус', p.radius_km ? `${p.radius_km} км` : '—')}
+        ${_profileRow('<i class="fa-solid fa-snowflake" style="font-size:16px"></i>', 'Рефрижератор', p.has_thermo_bag ? 'Да' : 'Нет')}
+        ${_profileRow('<i class="fa-solid fa-money-bill-wave" style="font-size:16px"></i>', 'Цена за км', p.price_per_km ? `${Number(p.price_per_km).toLocaleString()} сум` : 'Не указана')}
+        ${p.bio ? _profileRow('<i class="fa-solid fa-comment" style="font-size:16px"></i>', 'О себе', p.bio) : ''}
       </div>
 
       <!-- Completed deliveries section -->
       <div style="margin-top:24px">
-        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:12px"><i class="fi fi-sr-check-circle" style="font-size:18px;color:#10b981"></i> Выполненные заказы</h3>
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:12px"><i class="fa-solid fa-circle-check" style="font-size:18px;color:#10b981"></i> Выполненные заказы</h3>
         <div id="profile-completed-list"><div class="spinner"></div></div>
       </div>
 
       <button class="btn btn-ghost" style="margin-top:16px;width:100%;" 
-              onclick="_editProfile()"><i class="fi fi-sr-pencil" style="font-size:14px"></i> Редактировать профиль</button>
+              onclick="_editProfile()"><i class="fa-solid fa-pen" style="font-size:14px"></i> Редактировать профиль</button>
       <button class="btn btn-danger-ghost" style="margin-top:8px;width:100%;" 
               onclick="Auth.logout ? Auth.logout() : (localStorage.clear(), router.go('/login'))">Выйти</button>
     </div>

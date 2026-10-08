@@ -13,19 +13,19 @@ async function renderAdmin() {
       <div class="page-head"><h1>${fe('📊',24)} ${t('admin_title')}</h1></div>
 
       <div class="admin-stats" id="admin-stats">
-        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-users" style="font-size:22px"></i></div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
-        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-box-open" style="font-size:22px"></i></div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
-        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-receipt" style="font-size:22px"></i></div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
-        <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-truck-side" style="font-size:22px"></i></div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-users" style="font-size:22px"></i></div><div class="stat-num" id="st-users">—</div><div class="stat-lbl">${t('stat_users')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-box-open" style="font-size:22px"></i></div><div class="stat-num" id="st-products">—</div><div class="stat-lbl">${t('stat_products')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-receipt" style="font-size:22px"></i></div><div class="stat-num" id="st-orders">—</div><div class="stat-lbl">${t('stat_orders')}</div></div>
+        <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-truck-fast" style="font-size:22px"></i></div><div class="stat-num" id="st-couriers">—</div><div class="stat-lbl">Йўлчи заявки</div></div>
       </div>
 
       <div class="admin-tabs">
-        <button class="admin-tab active" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fi fi-sr-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
-        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fi fi-sr-truck-side" style="font-size:16px"></i> Йўлчи заявки</button>
-        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fi fi-sr-users" style="font-size:16px"></i> ${t('admin_users')}</button>
-        <button class="admin-tab" data-tab="products" onclick="adminSwitchTab('products')"><i class="fi fi-sr-box-open" style="font-size:16px"></i> Товары</button>
-        <button class="admin-tab" data-tab="chats" onclick="adminSwitchTab('chats')"><i class="fi fi-rr-comment" style="font-size:16px"></i> Чаты</button>
-        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fi fi-sr-chart-mixed" style="font-size:16px"></i> ${t('admin_reports')}</button>
+        <button class="admin-tab active" data-tab="topups" onclick="adminSwitchTab('topups')"><i class="fa-solid fa-money-bill-wave" style="font-size:16px"></i> Пополнения</button>
+        <button class="admin-tab" data-tab="couriers" onclick="adminSwitchTab('couriers')"><i class="fa-solid fa-truck-fast" style="font-size:16px"></i> Йўлчи заявки</button>
+        <button class="admin-tab" data-tab="users" onclick="adminSwitchTab('users')"><i class="fa-solid fa-users" style="font-size:16px"></i> ${t('admin_users')}</button>
+        <button class="admin-tab" data-tab="products" onclick="adminSwitchTab('products')"><i class="fa-solid fa-box-open" style="font-size:16px"></i> Товары</button>
+        <button class="admin-tab" data-tab="chats" onclick="adminSwitchTab('chats')"><i class="fa-regular fa-comment" style="font-size:16px"></i> Чаты</button>
+        <button class="admin-tab" data-tab="reports" onclick="adminSwitchTab('reports')"><i class="fa-solid fa-chart-column" style="font-size:16px"></i> ${t('admin_reports')}</button>
       </div>
 
       <div id="admin-content"><div class="spinner"></div></div>
@@ -311,9 +311,9 @@ async function adminSwitchTab(tab) {
       const avg = ordCnt > 0 ? Math.round(totalRev / ordCnt) : 0;
       box.innerHTML = `
         <div class="admin-stats" style="margin-top:0;">
-          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-wallet" style="font-size:22px"></i></div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
-          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-receipt" style="font-size:22px"></i></div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
-          <div class="stat-card"><div class="stat-ic"><i class="fi fi-sr-chart-mixed" style="font-size:22px"></i></div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-wallet" style="font-size:22px"></i></div><div class="stat-num">${Number(totalRev).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_revenue')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-receipt" style="font-size:22px"></i></div><div class="stat-num">${ordCnt}</div><div class="stat-lbl">${t('rep_orders')}</div></div>
+          <div class="stat-card"><div class="stat-ic"><i class="fa-solid fa-chart-column" style="font-size:22px"></i></div><div class="stat-num">${Number(avg).toLocaleString()} ${t('currency')}</div><div class="stat-lbl">${t('rep_avg')}</div></div>
         </div>`;
     } catch (e) {
       box.innerHTML = `<div class="empty-state">${t('rep_none')}</div>`;
@@ -321,7 +321,7 @@ async function adminSwitchTab(tab) {
   }
 }
 
-function roleIcon(r) { return r === 'fermer' ? '<i class="fi fi-sr-leaf" style="font-size:16px"></i>' : r === 'admin' ? '<i class="fi fi-sr-crown" style="font-size:16px"></i>' : '<i class="fi fi-sr-shopping-bag" style="font-size:16px"></i>'; }
+function roleIcon(r) { return r === 'fermer' ? '<i class="fa-solid fa-leaf" style="font-size:16px"></i>' : r === 'admin' ? '<i class="fa-solid fa-crown" style="font-size:16px"></i>' : '<i class="fa-solid fa-bag-shopping" style="font-size:16px"></i>'; }
 
 // ─── Courier approval ─────────────────────────────────────────────────────────
 
@@ -549,7 +549,7 @@ async function adminShowProduct(id) {
           </div>
           ${p.pickup_location ? `<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px">📍 Место получения</div><p style="font-size:14px;color:#059669;font-weight:500;margin:0">${p.pickup_location}</p></div>` : ''}
           <div style="display:flex;align-items:center;gap:12px;padding:14px;background:#f8fafc;border-radius:12px;margin-bottom:20px">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0"><i class="fi fi-sr-leaf"></i></div>
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0"><i class="fa-solid fa-leaf"></i></div>
             <div>
               <div style="font-size:12px;color:#9ca3af">Фермер</div>
               <div style="font-size:14px;font-weight:600;color:#0f172a">${p.fermer_name || '—'}</div>

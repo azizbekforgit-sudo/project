@@ -278,17 +278,17 @@ async function loadFarmerProducts() {
     if (!products.length) {
       list.innerHTML = `
         <div class="pr-empty">
-          <div class="pr-empty-icon"><i class="fi fi-rr-shop"></i></div>
+          <div class="pr-empty-icon"><i class="fa-solid fa-store"></i></div>
           <h3>Нет товаров</h3>
           <p>Добавьте свой первый товар, чтобы начать продавать</p>
-          <button class="btn btn-primary" onclick="router.go('/product/new')"><i class="fi fi-rr-plus"></i> Добавить товар</button>
+          <button class="btn btn-primary" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> Добавить товар</button>
         </div>
       `;
       return;
     }
 
     list.innerHTML = products.map(p => {
-      const emoji = `<i class="${CAT_EMOJI_PROF[p.category] || 'fi fi-sr-leaf'}" style="font-size:20px"></i>`;
+      const emoji = `<i class="${CAT_EMOJI_PROF[p.category] || 'fa-solid fa-leaf'}" style="font-size:20px"></i>`;
       const statusClass = p.status === 'active' ? 'ok' : p.status === 'pending' ? 'pending' : 'rejected';
       const statusText = p.status === 'active' ? 'Активен' : p.status === 'pending' ? 'На модерации' : 'Отклонён';
       const bg = p.status === 'active' ? 'var(--bg-card-2)' : 'var(--bg-card)';
@@ -309,10 +309,10 @@ async function loadFarmerProducts() {
           </div>
           <div class="pr-pc-actions">
             <button class="btn btn-ghost btn-sm" onclick="openProductEdit(${p.id})" title="Редактировать">
-              <i class="fi fi-rr-pencil"></i>
+              <i class="fa-solid fa-pen"></i>
             </button>
             <button class="btn btn-ghost btn-sm" onclick="deleteMyProduct(${p.id}, '${(p.name || '').replace(/'/g, "\\'")}')" title="Удалить">
-              <i class="fi fi-rr-trash"></i>
+              <i class="fa-solid fa-trash"></i>
             </button>
           </div>
         </div>
@@ -414,7 +414,7 @@ function showProductEditModal(product) {
 
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:520px">
-      <div class="modal-ic"><i class="fi fi-rr-pencil"></i></div>
+      <div class="modal-ic"><i class="fa-solid fa-pen"></i></div>
       <div class="modal-title">Редактировать товар</div>
       <div class="modal-desc">${product.title}</div>
 
@@ -538,7 +538,7 @@ function openProfileEdit(field) {
 
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:420px">
-      <div class="modal-ic"><i class="fi fi-rr-${icon}"></i></div>
+      <div class="modal-ic"><i class="fa-solid fa-${icon === 'map-marker' ? 'location-dot' : icon}"></i></div>
       <div class="modal-title">Изменить ${label.toLowerCase()}</div>
       <div class="form-group">
         <label>${label}</label>
@@ -608,7 +608,7 @@ function openChangePassword() {
 
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:420px">
-      <div class="modal-ic"><i class="fi fi-rr-key"></i></div>
+      <div class="modal-ic"><i class="fa-solid fa-key"></i></div>
       <div class="modal-title">Смена пароля</div>
       <div class="form-group">
         <label>Текущий пароль</label>

@@ -27,7 +27,7 @@ function renderAI() {
     <div class="ai-page-wrap">
       <div class="ai-page-hero">
         <div class="ai-hero-glow"></div>
-        <div class="ai-hero-orb"><i class="fi fi-sr-sparkles"></i></div>
+        <div class="ai-hero-orb"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <h1 class="ai-hero-title">${t('ai_promo_title')}</h1>
         <p class="ai-hero-sub">${isFarmer ? t('ai_farmer_help') : t('ai_buyer_help')}</p>
         <span class="ai-hero-badge"><span class="ai-dot"></span> ${t('ai_beta')}</span>
@@ -35,7 +35,7 @@ function renderAI() {
       <div class="ai-page-body">
         <div class="ai-chat" id="ai-page-chat">
           <div class="ai-msg bot">
-            <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+            <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
             <div class="ai-bubble">
               ${t('ai_greeting')}<br>
               ${isFarmer ? t('ai_farmer_help') : t('ai_buyer_help')}
@@ -48,7 +48,7 @@ function renderAI() {
         </div>
         <div class="ai-input-bar page">
           <input type="text" id="ai-page-input" placeholder="${t('ai_msg_placeholder')}" onkeydown="if(event.key==='Enter')aiSend(null,'page')" />
-          <button class="ai-send" onclick="aiSend(null,'page')"><i class="fi fi-sr-paper-plane"></i></button>
+          <button class="ai-send" onclick="aiSend(null,'page')"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ async function aiSend(text, context) {
   const typingId = 'ai-typing-' + (context || 'x');
   chat.insertAdjacentHTML('beforeend', `
     <div class="ai-msg bot" id="${typingId}">
-      <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+      <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
       <div class="ai-bubble"><span class="ai-typing-dots"><i></i><i></i><i></i></span></div>
     </div>
   `);
@@ -137,7 +137,7 @@ async function aiSend(text, context) {
     document.getElementById(typingId)?.remove();
     chat.insertAdjacentHTML('beforeend', `
       <div class="ai-msg bot">
-        <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+        <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
         <div class="ai-bubble">${reply.replace(/\n/g, '<br>')}</div>
       </div>
     `);
@@ -146,7 +146,7 @@ async function aiSend(text, context) {
     const errMsg = typeof t === 'function' ? (t('ai_error') || 'Xatolik yuz berdi. Qayta urinib ko\'ring.') : 'Ошибка. Попробуйте ещё раз.';
     chat.insertAdjacentHTML('beforeend', `
       <div class="ai-msg bot">
-        <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+        <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
         <div class="ai-bubble" style="color:#e74c3c">${errMsg}</div>
       </div>
     `);
@@ -170,19 +170,19 @@ function initAIBubble() {
     <div id="ai-fab-chat" class="ai-fab-chat" style="display:none">
       <div class="ai-fab-head">
         <div class="ai-fab-head-left">
-          <div class="ai-orb sm"><i class="fi fi-sr-sparkles"></i></div>
+          <div class="ai-orb sm"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
           <div>
             <div class="ai-fab-name">${t('ai_promo_title')}</div>
             <div class="ai-status"><span class="ai-dot"></span> ${t('ai_beta')}</div>
           </div>
         </div>
         <div class="ai-fab-actions">
-          <button class="ai-fab-min" onclick="minimizeAIBubble()" title="Yopish"><i class="fi fi-rr-minus-small"></i></button>
+          <button class="ai-fab-min" onclick="minimizeAIBubble()" title="Yopish"><i class="fa-solid fa-minus"></i></button>
         </div>
       </div>
       <div class="ai-chat" id="ai-fab-chat-msgs" style="max-height:280px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px">
         <div class="ai-msg bot">
-          <div class="ai-ava sm"><i class="fi fi-sr-robot"></i></div>
+          <div class="ai-ava sm"><i class="fa-solid fa-robot"></i></div>
           <div class="ai-bubble">${t('ai_greeting')}</div>
         </div>
       </div>
@@ -191,11 +191,11 @@ function initAIBubble() {
       </div>
       <div class="ai-input-bar fab">
         <input type="text" id="ai-fab-input" placeholder="${t('ai_msg_placeholder')}" onkeydown="if(event.key==='Enter')aiSend(null,'fab')" />
-        <button class="ai-send sm" onclick="aiSend(null,'fab')"><i class="fi fi-sr-paper-plane"></i></button>
+        <button class="ai-send sm" onclick="aiSend(null,'fab')"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </div>
     <button id="ai-fab-btn" class="ai-fab-btn" onclick="toggleAIBubble()">
-      <i class="fi fi-sr-comment-alt"></i>
+      <i class="fa-solid fa-message"></i>
       <span class="ai-fab-label">AI</span>
     </button>
   `;
@@ -248,16 +248,16 @@ function openAiModal() {
   overlay.innerHTML = `
     <div class="ai-modal">
       <div class="ai-modal-head">
-        <div class="ai-orb sm"><i class="fi fi-sr-sparkles"></i></div>
+        <div class="ai-orb sm"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
         <div class="ai-modal-titles">
           <h3>${t('ai_promo_title')}</h3>
           <span class="ai-status"><span class="ai-dot"></span> ${t('ai_beta')}</span>
         </div>
-        <button class="ai-modal-x" onclick="closeAiModal()"><i class="fi fi-rr-cross-small"></i></button>
+        <button class="ai-modal-x" onclick="closeAiModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="ai-chat" id="ai-modal-chat">
         <div class="ai-msg bot">
-          <div class="ai-ava"><i class="fi fi-sr-robot"></i></div>
+          <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
           <div class="ai-bubble">
             ${t('ai_greeting')}<br>
             ${isFarmer ? t('ai_farmer_help') : t('ai_buyer_help')}
@@ -270,7 +270,7 @@ function openAiModal() {
       </div>
       <div class="ai-input-bar">
         <input type="text" id="ai-modal-input" placeholder="${t('ai_msg_placeholder')}" onkeydown="if(event.key==='Enter')aiSend(null,'modal')" />
-        <button class="ai-send" onclick="aiSend(null,'modal')"><i class="fi fi-sr-paper-plane"></i></button>
+        <button class="ai-send" onclick="aiSend(null,'modal')"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </div>`;
   document.body.appendChild(overlay);

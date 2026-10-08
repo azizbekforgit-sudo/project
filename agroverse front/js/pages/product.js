@@ -51,7 +51,7 @@ async function renderProduct(id) {
       <div class="pd-info-row">
         <div class="pd-info-icon"><i class="fa-solid fa-location-dot"></i></div>
         <div>
-          <div class="pd-info-label">Место получения</div>
+          <div class="pd-info-label">${t('pd_pickup')}</div>
           <div class="pd-info-value">${p.pickup_location}</div>
         </div>
       </div>
@@ -139,16 +139,20 @@ async function renderProduct(id) {
             <span class="pd-cat-badge">${p.category || ''}</span>
           </div>
 
-          <!-- Инфо о товаре -->
-          <div class="pd-info-block">
+          <!-- Название и цена -->
+          <div class="pd-info-block pd-head">
             <h1 class="pd-title">${p.name}</h1>
             <div class="pd-price-row">
               <div class="pd-price">${Number(p.price).toLocaleString('ru')} <small>${t('currency') || 'сум'} / ${p.unit || 'кг'}</small></div>
               ${deliveryBadge}
             </div>
+          </div>
+
+          <!-- Описание, место, фермер -->
+          <div class="pd-info-block pd-details">
             <div class="pd-desc">
-              <div class="pd-desc-title">Описание</div>
-              <p>${p.description || 'Описание не указано'}</p>
+              <div class="pd-desc-title">${t('pd_desc')}</div>
+              <p>${p.description || t('no_desc')}</p>
             </div>
             ${locationHtml}
             ${farmerHtml}
@@ -174,6 +178,7 @@ async function renderProduct(id) {
       document.getElementById('cart-btn')?.addEventListener('click', () => {
         const qty = parseInt(document.getElementById('qty').value) || 1;
         addToCart(p, qty);
+        if (typeof refreshCartBadges === 'function') refreshCartBadges();
         showToast(`«${p.name}» ${t('cart_added')}`);
       });
 

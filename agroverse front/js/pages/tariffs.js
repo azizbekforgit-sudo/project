@@ -395,6 +395,7 @@ function renderTariffs() {
       <!-- Таблица сравнения -->
       <div class="compare-section">
         <h2>${{ uz: `${fe('📊',20)} Tariflarni solishtirish`, ru: `${fe('📊',20)} Сравнение тарифов`, en: `${fe('📊',20)} Plan comparison` }[lang]}</h2>
+        <div class="table-scroll">
         <table class="compare-table">
           <thead>
             <tr>
@@ -449,11 +450,13 @@ function renderTariffs() {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <!-- Бонусная система -->
       <div class="bonus-section">
         <h2>${fe('🎁',20)} ${{ uz: "Bonus ball tizimi", ru: 'Бонусная система баллов', en: 'Bonus Point System' }[lang]}</h2>
+        <div class="table-scroll">
         <table class="bonus-table">
           <thead>
             <tr>
@@ -472,6 +475,7 @@ function renderTariffs() {
             `).join('')}
           </tbody>
         </table>
+        </div>
 
         <ul class="bonus-rules">
           ${(bonusRules[lang] || bonusRules.ru).map(r => `<li>${r}</li>`).join('')}

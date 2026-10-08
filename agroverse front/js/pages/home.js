@@ -68,10 +68,11 @@ function homeActions(isFarmer) {
   ];
   return list.map(a => `
     <button class="act-tile ${a.main ? 'main' : ''}" onclick="router.go('${a.go}')">
-      <span class="act-ic"><i class="${a.icon}"></i>${a.badge ? `<span class="act-badge">${a.badge}</span>` : ''}</span>
+      <span class="act-ic"><i class="${a.icon}"></i>${a.badge !== undefined ? `<span class="act-badge" data-cart-badge ${a.badge ? '' : 'hidden'}>${a.badge}</span>` : ''}</span>
       <span class="act-title">${t(a.title)}</span>
       <span class="act-desc">${t(a.desc)}</span>
       <span class="act-go">${t('open')} <i class="fa-solid fa-arrow-right"></i></span>
+      <i class="fa-solid fa-chevron-right act-chev" aria-hidden="true"></i>
     </button>`).join('');
 }
 
@@ -108,7 +109,20 @@ function fieldCalendarHtml(month) {
 
 function homeSelectMonth(i) {
   const box = document.getElementById('fieldCalendar');
-  if (box) box.innerHTML = fieldCalendarHtml(i);
+  if (!box) return;
+  const prev = box.querySelector('.fc-strip')?.scrollLeft || 0;
+  box.innerHTML = fieldCalendarHtml(i);
+  const strip = box.querySelector('.fc-strip');
+  if (strip) strip.scrollLeft = prev;
+}
+
+/* На телефоне месяцы листаются вбок — показываем текущий в центре */
+function centerCurrentMonth() {
+  const strip = document.querySelector('#fieldCalendar .fc-strip');
+  const sel = strip?.querySelector('.sel');
+  if (strip && sel && strip.scrollWidth > strip.clientWidth) {
+    strip.scrollLeft = sel.offsetLeft - strip.clientWidth / 2 + sel.clientWidth / 2;
+  }
 }
 window.homeSelectMonth = homeSelectMonth;
 
@@ -140,7 +154,7 @@ async function renderHome() {
   const app      = document.getElementById('app');
   const user     = Auth.getUser();
   const isFarmer = Auth.isFarmer();
-  const firstName = (user?.name || '').split(' ')[0];
+  const firstName = escHtml((user?.name || '').split(' ')[0]);
 
   app.innerHTML = pageShell(`
     <div class="fh">
@@ -152,6 +166,8 @@ async function renderHome() {
         </div>
         <div class="fh-greet-art" aria-hidden="true">${fieldSceneSvg()}</div>
       </section>
+
+      <section class="fh-search" aria-label="${t('search_btn')}">${searchFormHtml('homeSearch', 'big')}</section>
 
       <section class="fh-section">
         <h2 class="fh-h2">${t('what_todo')}</h2>
@@ -198,6 +214,8 @@ async function renderHome() {
       </section>
     </div>
   `);
+
+  centerCurrentMonth();
 
   try {
     const products = await API.getProducts({ limit: 8 });

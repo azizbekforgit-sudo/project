@@ -15,7 +15,7 @@ async function renderChatDetail(chatId) {
     <div class="chat-page">
       <div class="chat-page-header" id="chat-header">
         <button class="btn btn-ghost btn-sm" onclick="stopChatPolling();router.go('/chats')">
-          <i class="fi fi-rr-arrow-left"></i> Назад
+          <i class="fa-solid fa-arrow-left"></i> Назад
         </button>
         <div id="chat-header-info"><div class="spinner" style="width:20px;height:20px"></div></div>
       </div>
@@ -25,13 +25,13 @@ async function renderChatDetail(chatId) {
       <div class="chat-input-bar" id="chat-input-bar" style="display:none">
         <div class="chat-actions-left">
           <button class="chat-action-btn" id="chat-attach-btn" title="Прикрепить файл">
-            <i class="fi fi-rr-paperclip"></i>
+            <i class="fa-solid fa-paperclip"></i>
           </button>
           <input type="file" id="chat-file-input" accept="image/*,audio/*" style="display:none" />
         </div>
         <input type="text" id="chat-input" class="chat-text-input" placeholder="Введите сообщение..." maxlength="5000" />
         <button class="chat-send-btn" id="chat-send-btn" title="Отправить">
-          <i class="fi fi-rr-paper-plane"></i>
+          <i class="fa-solid fa-paper-plane"></i>
         </button>
       </div>
     </div>
@@ -78,7 +78,7 @@ function renderChatHeader(chat) {
   if (chat.type === 'buyer_driver' && user.role === 'xaridor' && !chat.delivery_request_id) {
     actionsHtml += `
       <button class="btn btn-primary btn-sm" id="btn-assign-driver" onclick="assignDriverFromChat(${chat.order_id}, ${chat.id})">
-        <i class="fi fi-rr-check" style="font-size:14px"></i> Заказать этого драйвера
+        <i class="fa-solid fa-check" style="font-size:14px"></i> Заказать этого драйвера
       </button>
     `;
   }
@@ -87,7 +87,7 @@ function renderChatHeader(chat) {
   if (chat.type === 'buyer_driver' && user.role === 'courier') {
     actionsHtml += `
       <button class="btn btn-ghost btn-sm" id="btn-chat-farmer" onclick="startDriverFarmerChat(${chat.order_id})">
-        <i class="fi fi-rr-comment" style="font-size:14px"></i> Чат с фермером
+        <i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с фермером
       </button>
     `;
   }
@@ -230,7 +230,7 @@ function messageHtml(msg, isOwn) {
     const src = msg.content.startsWith('http') ? msg.content : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + msg.content;
     contentHtml = `<img src="${src}" class="msg-photo" onclick="window.open('${src}','_blank')" />`;
   } else if (msg.type === 'voice') {
-    contentHtml = `<div class="msg-voice"><i class="fi fi-rr-play"></i> Голосовое сообщение</div>`;
+    contentHtml = `<div class="msg-voice"><i class="fa-solid fa-play"></i> Голосовое сообщение</div>`;
   } else if (msg.type === 'location') {
     try {
       const loc = JSON.parse(msg.content);
