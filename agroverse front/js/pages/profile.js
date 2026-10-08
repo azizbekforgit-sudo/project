@@ -929,7 +929,6 @@ window.switchProfileTab = switchProfileTab;
 window.openProfileEdit = openProfileEdit;
 window.openProductEdit = openProductEdit;
 window.deleteMyProduct = deleteMyProduct;
-window.renderCourierSetupForm = renderCourierSetupForm;
 window.togglePasswordVisibility = togglePasswordVisibility;
 window.openChangePassword = openChangePassword;
 window.loadFarmerOrders = loadFarmerOrders;
