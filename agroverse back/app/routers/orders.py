@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_
 from app.database import get_db
 from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest, CourierProfile, CourierTransaction
 from app.schemas import OrderCreate, OrderResponse, DriverCandidateRequest
@@ -16,14 +16,20 @@ async def create_order(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатели могут создавать заказы")
+    if current_user.role == UserRole.COURIER:
+        raise HTTPException(status_code=403, detail="Курьер не может оформлять покупки")
 
     result = await db.execute(select(Product).where(Product.id == order_data.product_id))
     product = result.scalar_one_or_none()
 
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
+
+    if product.fermer_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Нельзя купить свой собственный товар")
+
+    if getattr(product, "is_demo", False):
+        raise HTTPException(status_code=400, detail="Это пример объявления — его нельзя заказать")
 
     if product.status not in ("active", "pending"):
         raise HTTPException(status_code=400, detail="Товар недоступен для заказа")
@@ -61,6 +67,10 @@ async def create_order(
         xaridor_name=current_user.name,
         fermer_id=product.fermer_id,
         fermer_name=fermer.name,
+        fermer_phone=fermer.phone,
+        xaridor_phone=current_user.phone,
+        product_unit=product.unit,
+        my_role="buyer",
         quantity=float(new_order.quantity),
         total_price=float(new_order.total_price),
         commission=float(new_order.commission),
@@ -75,12 +85,11 @@ async def get_my_orders(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role == UserRole.XARIDOR:
-        query = select(Order).where(Order.xaridor_id == current_user.id)
-    elif current_user.role == UserRole.FERMER:
-        query = select(Order).where(Order.fermer_id == current_user.id)
-    else:
+    # Каждый видит и свои покупки, и свои продажи (фермер тоже может покупать)
+    if current_user.role == UserRole.ADMIN:
         query = select(Order)
+    else:
+        query = select(Order).where(or_(Order.xaridor_id == current_user.id, Order.fermer_id == current_user.id))
 
     query = query.order_by(Order.created_at.desc())
     result = await db.execute(query)
@@ -104,7 +113,7 @@ async def get_my_orders(
         product = products_map.get(order.product_id)
         fermer = fermers_map.get(order.fermer_id)
         xaridor = xaridors_map.get(order.xaridor_id)
-        if not product or not fermer or not xaridor:
+        if not fermer or not xaridor:
             continue
 
         # Load delivery request if linked
@@ -138,13 +147,18 @@ async def get_my_orders(
 
         orders_response.append(OrderResponse(
             id=order.id,
-            product_id=product.id,
-            product_title=product.title,
-            product_photo=product.photos[0] if product.photos else None,
+            product_id=order.product_id or 0,
+            product_title=product.title if product else "Товар удалён",
+            product_photo=(product.photos[0] if product and product.photos else None),
+            product_unit=product.unit if product else None,
             xaridor_id=order.xaridor_id,
             xaridor_name=xaridor.name,
+            xaridor_phone=xaridor.phone,
             fermer_id=order.fermer_id,
             fermer_name=fermer.name,
+            fermer_phone=fermer.phone,
+            my_role="seller" if order.fermer_id == current_user.id else "buyer",
+            cancelled_by=getattr(order, "cancelled_by", None),
             quantity=float(order.quantity),
             total_price=float(order.total_price),
             commission=float(order.commission),
@@ -192,8 +206,13 @@ async def get_order(
         product_photo=product.photos[0] if product.photos else None,
         xaridor_id=order.xaridor_id,
         xaridor_name=xaridor.name,
+        xaridor_phone=xaridor.phone,
         fermer_id=order.fermer_id,
         fermer_name=fermer.name,
+        fermer_phone=fermer.phone,
+        product_unit=product.unit,
+        my_role="seller" if order.fermer_id == current_user.id else "buyer",
+        cancelled_by=getattr(order, "cancelled_by", None),
         quantity=float(order.quantity),
         total_price=float(order.total_price),
         commission=float(order.commission),
@@ -209,8 +228,6 @@ async def pay_order(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может оплачивать")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -283,8 +300,6 @@ async def complete_order(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может подтверждать получение")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -333,9 +348,70 @@ async def cancel_order(
         fermer.wallet_balance -= (order.total_price - order.commission)
 
     order.status = OrderStatus.CANCELLED
+    if current_user.id == order.xaridor_id:
+        order.cancelled_by = "buyer"
+    elif current_user.id == order.fermer_id:
+        order.cancelled_by = "seller"
+    else:
+        order.cancelled_by = "admin"
     await db.commit()
 
-    return {"message": "Заказ отменен", "status": "cancelled"}
+    return {"message": "Заказ отменен", "status": "cancelled", "cancelled_by": order.cancelled_by}
+
+
+OPEN_STATUSES = (OrderStatus.CREATED, OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP)
+
+
+async def _seller_order(order_id: int, current_user: User, db: AsyncSession) -> Order:
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order or order.fermer_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+    if order.status not in OPEN_STATUSES:
+        raise HTTPException(status_code=400, detail="Этот заказ уже закрыт")
+    return order
+
+
+@router.patch("/{order_id}/sold")
+async def mark_sold(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Продавец отмечает: товар передан покупателю, сделка состоялась."""
+    order = await _seller_order(order_id, current_user, db)
+    order.status = OrderStatus.COMPLETED
+
+    if order.product_id:
+        product_result = await db.execute(select(Product).where(Product.id == order.product_id))
+        product = product_result.scalar_one_or_none()
+        if product:
+            left = Decimal(str(product.quantity_available)) - Decimal(str(order.quantity))
+            product.quantity_available = max(left, Decimal("0"))
+
+    db.add(BonusTransaction(user_id=current_user.id, points=5, reason=f"Продажа по заказу #{order.id}"))
+    current_user.bonus_points = (current_user.bonus_points or 0) + 5
+    await db.commit()
+    return {"message": "Отмечено как продано", "status": "completed"}
+
+
+@router.patch("/{order_id}/reject")
+async def reject_order(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Продавец отказывается от заказа (нет товара, не договорились)."""
+    order = await _seller_order(order_id, current_user, db)
+    if order.status == OrderStatus.PAID:
+        xaridor_result = await db.execute(select(User).where(User.id == order.xaridor_id))
+        xaridor = xaridor_result.scalar_one()
+        xaridor.wallet_balance += order.total_price
+        current_user.wallet_balance -= (order.total_price - order.commission)
+    order.status = OrderStatus.CANCELLED
+    order.cancelled_by = "seller"
+    await db.commit()
+    return {"message": "Заказ отклонён", "status": "cancelled", "cancelled_by": "seller"}
 
 
 @router.post("/{order_id}/select-driver-candidate")
@@ -345,8 +421,6 @@ async def select_driver_candidate(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может выбирать кандидата")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -378,8 +452,6 @@ async def assign_driver(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может назначать драйвера")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -426,8 +498,6 @@ async def pay_driver(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может оплачивать доставку")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -509,8 +579,6 @@ async def clear_driver_candidate(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != UserRole.XARIDOR:
-        raise HTTPException(status_code=403, detail="Только покупатель может менять кандидата")
 
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()

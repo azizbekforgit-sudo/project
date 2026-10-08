@@ -24,10 +24,11 @@ async function renderProduct(id) {
   `);
 
   const content = document.getElementById('product-content');
-  const isBuyer = Auth.isBuyer();
+  let isBuyer = Auth.canBuy(); // уточняется ниже: свой товар купить нельзя
 
   try {
     const p = await API.getProduct(id);
+    if (p.fermer_id === Auth.getUser()?.id || p.is_demo) isBuyer = false;
     
     // Default FontAwesome icons per category
     const FONT_ICONS = {
@@ -161,6 +162,7 @@ async function renderProduct(id) {
 
         <!-- Правая колонка: заказ / инфо -->
         <div class="pd-sidebar">
+          ${p.is_demo ? `<div class="pd-demo-note"><i class="fa-solid fa-circle-info"></i><div><b>${t('demo_badge')}</b><p>${t('demo_note')}</p></div></div>` : ''}
           ${orderPanel}
         </div>
       </div>

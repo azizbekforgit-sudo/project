@@ -79,6 +79,7 @@ class Product(Base):
     pickup_location = Column(String(300), nullable=True)
     photos = Column(JSON, default=list)
     certificates = Column(JSON, default=list)
+    is_demo = Column(Boolean, default=False)  # пример для наполнения рынка, заказать нельзя
     status = Column(String(20), default=ProductStatus.PENDING.value)
     rating = Column(Float, default=0)
     created_at = Column(DateTime, server_default=func.now())
@@ -105,6 +106,7 @@ class Order(Base):
     delivery_route_to = Column(String(200), nullable=True)
     delivery_distance_km = Column(Float, nullable=True)
     delivery_price = Column(Float, nullable=True)
+    cancelled_by = Column(String(20), nullable=True)  # buyer | seller | admin
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     

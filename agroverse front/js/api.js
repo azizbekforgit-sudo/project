@@ -38,7 +38,8 @@ async function request(method, path, { body, formData, params } = {}) {
     const res = await fetch(url, { method, headers, body: fetchBody });
 
     if (res.status === 401) {
-      const isAuthEndpoint = path.includes('/api/auth/login') || path.includes('/api/auth/register');
+      // ошибки входа (пароль, СМС, Google) — это не «сессия истекла»
+      const isAuthEndpoint = path.startsWith('/api/auth/') && !path.startsWith('/api/auth/me');
       if (!isAuthEndpoint) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('av_user');
@@ -104,6 +105,8 @@ function normalizeProduct(p) {
     rating: p.rating || 0,
     status: p.status,
     delivery_available: p.delivery_available || false,
+    pickup_location: p.pickup_location || '',
+    is_demo: !!p.is_demo,
     created_at: p.created_at,
   };
 }
@@ -112,6 +115,10 @@ const API = {
   // Auth
   login:         (body) => request('POST', '/api/auth/login', { body }),
   register:      (body) => request('POST', '/api/auth/register', { body }),
+  sendOtp:       (body) => request('POST', '/api/auth/otp/send', { body }),
+  verifyOtp:     (body) => request('POST', '/api/auth/otp/verify', { body }),
+  googleAuth:    (body) => request('POST', '/api/auth/google', { body }),
+  getConfig:     ()     => request('GET', '/api/config'),
   getMe:         ()     => request('GET', '/api/auth/me'),
   updateProfile: (body) => request('PATCH', '/api/auth/me', { body }),
   changePassword: (body) => request('POST', '/api/auth/change-password', { body }),
@@ -144,6 +151,8 @@ const API = {
   cancelOrder:   (id) => request('PATCH', `/api/orders/${id}/cancel`),
   completeOrder: (id) => request('PATCH', `/api/orders/${id}/complete`),
   markReady:     (id) => request('PATCH', `/api/orders/${id}/ready`),
+  markSold:      (id) => request('PATCH', `/api/orders/${id}/sold`),
+  rejectOrder:   (id) => request('PATCH', `/api/orders/${id}/reject`),
   payOrder:      (id) => request('PATCH', `/api/orders/${id}/pay`),
 
   // Wallet
@@ -357,3 +366,13 @@ const ChatWS = {
 };
 
 window.ChatWS = ChatWS;
+
+/* Настройки сервера (включён ли Google/СМС). Один запрос на сессию. */
+let _appConfigPromise = null;
+function loadAppConfig() {
+  if (!_appConfigPromise) {
+    _appConfigPromise = API.getConfig().catch(() => ({}));
+  }
+  return _appConfigPromise;
+}
+window.loadAppConfig = loadAppConfig;

@@ -17,6 +17,8 @@ const Auth = {
   isFarmer()      { return this.getRole() === 'fermer'; },
   isBuyer()       { return this.getRole() === 'xaridor'; },
   isAdmin()       { return this.getRole() === 'admin'; },
+  // покупать может и покупатель, и фермер (у других фермеров)
+  canBuy()        { return this.isLoggedIn() && ['xaridor', 'fermer'].includes(this.getRole()); },
 
   logout() {
     this.removeToken();
@@ -62,35 +64,27 @@ function showSpinner(container) {
   container.innerHTML = '<div class="spinner"></div>';
 }
 
+/* Одно меню для фермера и покупателя. У фермера дополнительно «Добавить продукт». */
 const NAV_COMMON = [
   { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
   { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
+  { path: '/cart',     icon: '<i class="fa-solid fa-basket-shopping"></i>',  key: 'nav_cart' },
   { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
   { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
   { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
 ];
-
-const NAV_FARMER = [
-  { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
-  { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
-  { path: '/product/new',icon: '<i class="fa-solid fa-plus"></i>',             key: 'nav_add_product' },
-  { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
-  { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
-  { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
-];
-
-const NAV_BUYER = [
-  { path: '/home',     icon: '<i class="fa-solid fa-house"></i>',            key: 'nav_home' },
-  { path: '/market',   icon: '<i class="fa-solid fa-store"></i>',            key: 'nav_market' },
-  { path: '/orders',   icon: '<i class="fa-solid fa-box"></i>',              key: 'nav_orders' },
-  { path: '/chats',    icon: '<i class="fa-solid fa-comment-dots"></i>',     key: 'nav_chats' },
-  { path: '/ai',       icon: '<i class="fa-solid fa-robot"></i>',            key: 'nav_ai' },
-];
+const NAV_ADD_PRODUCT = { path: '/product/new', icon: '<i class="fa-solid fa-plus"></i>', key: 'nav_add_product' };
 
 function getNavItems() {
-  if (Auth.isAdmin && Auth.isAdmin()) return [{ path: '/admin', icon: '<i class="fa-solid fa-gear"></i>', key: 'nav_admin' }, ...NAV_COMMON];
-  if (Auth.isFarmer()) return NAV_FARMER;
-  if (Auth.isBuyer()) return NAV_BUYER;
+  if (Auth.isAdmin && Auth.isAdmin()) {
+    return [{ path: '/admin', icon: '<i class="fa-solid fa-gear"></i>', key: 'nav_admin' },
+            ...NAV_COMMON.filter(i => !['/cart', '/orders'].includes(i.path))];
+  }
+  if (Auth.isFarmer()) {
+    const items = [...NAV_COMMON];
+    items.splice(2, 0, NAV_ADD_PRODUCT);
+    return items;
+  }
   return NAV_COMMON;
 }
 
@@ -201,7 +195,6 @@ function menuItems() {
   const items = [...getNavItems()];
   const add = (path, icon, key) => { if (!items.some(i => i.path === path)) items.push({ path, icon: `<i class="${icon}"></i>`, key }); };
   if (!Auth.isAdmin()) {
-    if (Auth.isBuyer()) add('/cart', 'fa-solid fa-basket-shopping', 'nav_cart');
     add('/wallet', 'fa-solid fa-wallet', 'nav_wallet');
     if (Auth.isFarmer()) add('/tariffs', 'fa-solid fa-medal', 'nav_tariffs');
   }
@@ -289,6 +282,26 @@ function refreshCartBadges() {
 }
 window.refreshCartBadges = refreshCartBadges;
 
+/* Сколько новых заказов ждут ответа продавца — бейдж у «Заказы».
+   Запрашиваем не чаще раза в 30 секунд. */
+let _ordersBadgeAt = 0;
+async function refreshOrdersBadge(force) {
+  if (!Auth.canBuy() || typeof API === 'undefined') return;
+  if (!force && Date.now() - _ordersBadgeAt < 30000) return applyOrdersBadge();
+  _ordersBadgeAt = Date.now();
+  try {
+    const list = await API.getMyOrders();
+    const open = ['created', 'paid', 'ready_for_pickup', 'ready'];
+    window._ordersNew = (list || []).filter(o => o.my_role === 'seller' && open.includes(o.status)).length;
+  } catch { /* бейдж не главное */ }
+  applyOrdersBadge();
+}
+function applyOrdersBadge() {
+  const n = window._ordersNew || 0;
+  document.querySelectorAll('[data-orders-badge]').forEach(el => { el.textContent = n; el.hidden = n === 0; });
+}
+window.refreshOrdersBadge = refreshOrdersBadge;
+
 /* Нижняя панель на телефоне — по роли */
 function bottomTabs() {
   if (Auth.isAdmin()) return [
@@ -304,10 +317,9 @@ function bottomTabs() {
   return [
     { path: '/home', icon: 'fa-solid fa-house', key: 'tab_home' },
     { path: '/market', icon: 'fa-solid fa-store', key: 'nav_market' },
-    Auth.isFarmer()
-      ? { path: '/product/new', icon: 'fa-solid fa-plus', key: 'nav_sell', main: true }
-      : { path: '/cart', icon: 'fa-solid fa-basket-shopping', key: 'nav_cart', cart: true },
-    { path: '/orders', icon: 'fa-solid fa-box', key: 'tab_orders' },
+    ...(Auth.isFarmer() ? [{ path: '/product/new', icon: 'fa-solid fa-plus', key: 'nav_sell', main: true }] : []),
+    { path: '/cart', icon: 'fa-solid fa-basket-shopping', key: 'nav_cart', cart: true },
+    { path: '/orders', icon: 'fa-solid fa-box', key: 'tab_orders', orders: true },
   ];
 }
 
@@ -318,14 +330,17 @@ function buildHeader() {
   const items = getNavItems();
   const cartCount = getCartCount();
   const chatsUnread = window._globalChatsUnread || 0;
+  const ordersNew = window._ordersNew || 0;
   const isFarmer = Auth.isFarmer();
-  const showCart = !isFarmer && !Auth.isAdmin() && Auth.getRole() !== 'courier';
+  const showCart = Auth.canBuy();
   const cur = (window.I18nManager && I18nManager.current) || 'uz';
 
   const links = items.map(it => {
     const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new');
     let badge = '';
     if (it.path === '/chats' && chatsUnread > 0) badge = `<span class="nav-badge">${chatsUnread}</span>`;
+    if (it.path === '/orders') badge = `<span class="nav-badge" data-orders-badge ${ordersNew ? '' : 'hidden'}>${ordersNew}</span>`;
+    if (it.path === '/cart') badge = `<span class="nav-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>`;
     const hint = NAV_HINTS[it.path] ? `<span class="nav-hint">${t(NAV_HINTS[it.path])}</span>` : '';
     return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')" ${active ? 'aria-current="page"' : ''}>
       <span class="nav-ic">${it.icon}</span>
@@ -338,7 +353,7 @@ function buildHeader() {
   const tabs = bottomTabs().map(tb => {
     const active = path === tb.path || (tb.path === '/market' && path.startsWith('/product/') && path !== '/product/new');
     return `<a class="mbb-item ${tb.main ? 'mbb-main' : ''} ${active ? 'active' : ''}" onclick="router.go('${tb.path}')" ${active ? 'aria-current="page"' : ''}>
-      <span class="mbb-ic"><i class="${tb.icon}"></i>${tb.cart ? `<span class="mbb-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>` : ''}</span>
+      <span class="mbb-ic"><i class="${tb.icon}"></i>${tb.cart ? `<span class="mbb-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>` : ''}${tb.orders ? `<span class="mbb-badge" data-orders-badge ${ordersNew ? '' : 'hidden'}>${ordersNew}</span>` : ''}</span>
       <span class="mbb-tx">${t(tb.key)}</span>
     </a>`;
   }).join('');
@@ -387,7 +402,7 @@ function buildHeader() {
       </div>
     </header>
 
-    <nav class="mobile-bottom-bar" aria-label="${t('menu')}">
+    <nav class="mobile-bottom-bar ${isFarmer ? 'six' : ''}" aria-label="${t('menu')}">
       ${tabs}
       <a class="mbb-item" onclick="openMenuSheet()">
         <span class="mbb-ic"><i class="fa-solid fa-bars"></i>${chatsUnread ? `<span class="mbb-badge">${chatsUnread}</span>` : ''}</span>
@@ -397,14 +412,61 @@ function buildHeader() {
   `;
 }
 
-/* Обёртка страницы: sidebar + header + контейнер */
+/* ── Футер. Соцсети: Telegram и Instagram ── */
+const SOCIAL = {
+  telegram: 'https://t.me/agroverseai',
+  instagram: 'https://instagram.com/agroverse_uz',
+};
+
+function footerHtml() {
+  const link = (path, key) => `<a onclick="router.go('${path}')">${t(key)}</a>`;
+  return `
+    <footer class="site-footer">
+      <div class="sf-grid">
+        <div class="sf-brand">
+          <div class="sf-logo"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span> AgroVerse</div>
+          <p>${t('ft_about')}</p>
+          <a class="sf-contact" href="${SOCIAL.telegram}" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> @agroverseai</a>
+          <a class="sf-contact" href="${SOCIAL.instagram}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> @agroverse_uz</a>
+        </div>
+        <nav class="sf-col" aria-label="${t('ft_platform')}">
+          <h3>${t('ft_platform')}</h3>
+          ${link('/market', 'nav_market')}
+          ${Auth.isFarmer() ? link('/product/new', 'ft_sell') : ''}
+          ${link('/orders', 'nav_orders')}
+          ${link('/cart', 'nav_cart')}
+          ${Auth.isFarmer() ? link('/tariffs', 'nav_tariffs') : ''}
+        </nav>
+        <nav class="sf-col" aria-label="${t('ft_help')}">
+          <h3>${t('ft_help')}</h3>
+          ${link('/ai', 'nav_ai')}
+          ${link('/home', 'ft_how_buy')}
+          <a href="${SOCIAL.telegram}" target="_blank" rel="noopener">${t('ft_write_tg')}</a>
+        </nav>
+        <div class="sf-col">
+          <h3>${t('ft_social')}</h3>
+          <div class="sf-social">
+            <a href="${SOCIAL.telegram}" target="_blank" rel="noopener" aria-label="Telegram"><i class="fa-brands fa-telegram"></i></a>
+            <a href="${SOCIAL.instagram}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="sf-word" aria-hidden="true">Agro<span>Verse</span></div>
+      <div class="sf-copy">© ${new Date().getFullYear()} AgroVerse. ${t('ft_rights')}</div>
+    </footer>`;
+}
+window.footerHtml = footerHtml;
+
+/* Обёртка страницы: sidebar + header + контейнер (+ футер, кроме чатов) */
 function pageShell(contentHtml, opts = {}) {
   closeSheet();
+  const path = currentPath();
+  const noFooter = opts.noFooter || path.startsWith('/chats') || path === '/ai';
   return `
     <div class="app-layout">
       ${buildHeader()}
       <main class="app-main-content ${opts.wide ? 'wide' : ''}">
-        <div class="main-zoom">${contentHtml}</div>
+        <div class="main-zoom">${contentHtml}${noFooter ? '' : footerHtml()}</div>
       </main>
     </div>
   `;

@@ -1,62 +1,48 @@
-/* pages/orders.js — Мои заказы (покупатель и фермер) */
+/* pages/orders.js — Заказы: «Мои покупки» и «Мне заказали».
+   Логика: покупатель оформляет заказ → он сразу приходит фермеру, который
+   выставил товар. Оба видят телефон друг друга, созваниваются или пишут.
+   Фермер жмёт «Продано» или «Отклонить», покупатель может «Отменить». */
 
-const ORDER_STEPS = ['created', 'paid', 'ready_for_pickup', 'completed'];
+const OPEN_ORDER = ['created', 'paid', 'ready_for_pickup', 'ready'];
+let _odCache = [];
+let _odTab = null;
 
-function stepIndex(status) {
-  if (status === 'ready') return 2;
-  return ORDER_STEPS.indexOf(status);
+function fmtPhone(p) {
+  const d = String(p || '').replace(/\D/g, '');
+  if (d.length === 12 && d.startsWith('998')) return `+998 ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}`;
+  return p || '';
 }
+function fmtSum(n) { return `${Math.round(Number(n) || 0).toLocaleString('ru-RU')} ${t('currency') || 'сум'}`; }
+function fmtQty(q, unit) { return `${Number(q).toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ${unit || t('unit_kg') || 'кг'}`; }
 
-function badgeOrderHtml(status) {
-  const map = {
-    created:           ['badge-created',    '⏳'],
-    paid:              ['badge-paid',        '💳'],
-    ready_for_pickup:  ['badge-ready',       '📦'],
-    ready:             ['badge-ready',       '📦'],
-    completed:         ['badge-completed',   '✅'],
-    cancelled:         ['badge-cancelled',   '❌'],
-  };
-  const [cls, icon] = map[status] || ['badge-created', '•'];
-  const label = t('order_status_' + status) || status;
-  return `<span class="badge ${cls}">${fe(icon, 14)} ${label}</span>`;
-}
-
-function timelineHtml(status) {
-  if (status === 'cancelled') {
-    return `<div class="oc-timeline">
-      <div class="oct-step cancelled">
-        <div class="oct-dot">✕</div>
-        <div class="oct-label">${t('order_status_cancelled')}</div>
-      </div>
-    </div>`;
+/* Статус человеческими словами — с точки зрения того, кто смотрит */
+function orderState(o) {
+  const seller = o.my_role === 'seller';
+  if (OPEN_ORDER.includes(o.status)) {
+    return seller
+      ? { cls: 'new', icon: 'fa-solid fa-bell', text: t('os_seller_new') }
+      : { cls: 'wait', icon: 'fa-solid fa-hourglass-half', text: t('os_buyer_wait') };
   }
-  const labels = [
-    t('order_status_created'),
-    t('order_status_paid'),
-    t('order_status_ready'),
-    t('order_status_completed'),
-  ];
-  const cur = stepIndex(status);
-  return `<div class="oc-timeline">
-    ${labels.map((lbl, i) => {
-      const cls = i < cur ? 'done' : i === cur ? 'active' : '';
-      const dot = i < cur ? '✓' : '';
-      return `<div class="oct-step ${cls}">
-        <div class="oct-dot">${dot}</div>
-        <div class="oct-label">${lbl}</div>
-      </div>`;
-    }).join('')}
-  </div>`;
+  if (o.status === 'completed') {
+    return { cls: 'done', icon: 'fa-solid fa-circle-check', text: seller ? t('os_sold') : t('os_bought') };
+  }
+  // cancelled
+  if (o.cancelled_by === 'seller') return { cls: 'off', icon: 'fa-solid fa-ban', text: seller ? t('os_you_rejected') : t('os_seller_rejected') };
+  if (o.cancelled_by === 'buyer')  return { cls: 'off', icon: 'fa-solid fa-xmark', text: seller ? t('os_buyer_cancelled') : t('os_you_cancelled') };
+  return { cls: 'off', icon: 'fa-solid fa-xmark', text: t('os_cancelled') };
 }
 
 async function renderOrders() {
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
-    <div class="page-head">
-      <h1 class="page-title"><i class="fa-solid fa-box-open" style="font-size:24px"></i> ${t('nav_orders')}</h1>
-      <p class="page-desc">${t('orders_desc')}</p>
+    <div class="od">
+      <div class="page-head">
+        <h1 class="page-title">${t('nav_orders')}</h1>
+        <p class="page-desc">${t('od_desc')}</p>
+      </div>
+      <div class="seg od-tabs" role="tablist" id="od-tabs"></div>
+      <div id="orders-wrap"><div class="spinner"></div></div>
     </div>
-    <div id="orders-wrap"><div class="spinner"></div></div>
   `);
   loadOrdersList();
 }
@@ -65,159 +51,145 @@ async function loadOrdersList() {
   const wrap = document.getElementById('orders-wrap');
   if (!wrap) return;
   try {
-    const user = Auth.getUser();
-    const isFermer = user && user.role === 'fermer';
     const data = await API.getMyOrders();
-    const orders = data?.orders || data || [];
-    if (!orders?.length) {
+    _odCache = data?.orders || data || [];
+    const sales = _odCache.filter(o => o.my_role === 'seller');
+    const buys  = _odCache.filter(o => o.my_role !== 'seller');
+    const newSales = sales.filter(o => OPEN_ORDER.includes(o.status)).length;
+    const qsTab = new URLSearchParams(location.hash.split('?')[1] || '').get('tab');
+    if (!_odTab) _odTab = qsTab || ((Auth.isFarmer() && (newSales || !buys.length)) ? 'sales' : 'buys');
+    const showSales = Auth.isFarmer() || sales.length > 0;
+    if (!showSales) _odTab = 'buys';
+
+    document.getElementById('od-tabs').innerHTML = `
+      <button class="seg-btn ${_odTab === 'buys' ? 'active' : ''}" role="tab" aria-selected="${_odTab === 'buys'}" onclick="switchOrdersTab('buys')">
+        <i class="fa-solid fa-basket-shopping"></i> ${t('od_tab_buys')} <span class="od-count">${buys.length}</span>
+      </button>
+      ${showSales ? `<button class="seg-btn ${_odTab === 'sales' ? 'active' : ''}" role="tab" aria-selected="${_odTab === 'sales'}" onclick="switchOrdersTab('sales')">
+        <i class="fa-solid fa-store"></i> ${t('od_tab_sales')} ${newSales ? `<span class="od-count hot">${newSales}</span>` : `<span class="od-count">${sales.length}</span>`}
+      </button>` : ''}`;
+
+    const list = _odTab === 'sales' ? sales : buys;
+    if (!list.length) {
       wrap.innerHTML = `
-        <div class="empty-state big">
-          <div class="icon"><i class="fa-solid fa-box-open" style="font-size:48px"></i></div>
-          <p>${t('orders_empty')}</p>
-          ${!isFermer ? `<button class="btn btn-primary" onclick="router.go('/market')">${t('go_market')}</button>` : ''}
+        <div class="od-empty">
+          <i class="fa-solid ${_odTab === 'sales' ? 'fa-store' : 'fa-basket-shopping'}"></i>
+          <p>${_odTab === 'sales' ? t('od_empty_sales') : t('od_empty_buys')}</p>
+          ${_odTab === 'sales'
+            ? `<button class="btn btn-primary btn-lg" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('act_sell')}</button>`
+            : `<button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fa-solid fa-store"></i> ${t('go_market')}</button>`}
         </div>`;
       return;
     }
-    wrap.innerHTML = `<div class="orders-list">${orders.map(o => orderCardHtml(o, isFermer)).join('')}</div>`;
+    const open = list.filter(o => OPEN_ORDER.includes(o.status));
+    const closed = list.filter(o => !OPEN_ORDER.includes(o.status));
+    wrap.innerHTML = `
+      ${open.length ? `<h2 class="od-h2">${t('od_open')} <span>${open.length}</span></h2><div class="od-list">${open.map(orderCardHtml).join('')}</div>` : ''}
+      ${closed.length ? `<h2 class="od-h2 muted">${t('od_closed')} <span>${closed.length}</span></h2><div class="od-list">${closed.map(orderCardHtml).join('')}</div>` : ''}`;
   } catch (e) {
-    wrap.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
+    if (e.message === 'BLOCKED') return;
+    wrap.innerHTML = `<div class="empty-state"><p><i class="fa-solid fa-triangle-exclamation"></i> ${e.message}</p></div>`;
   }
 }
 
-function orderCardHtml(o, isFermer) {
-  const date  = o.created_at ? new Date(o.created_at).toLocaleDateString() : '—';
-  const total = o.total_price != null ? `${Number(o.total_price).toLocaleString()} ${t('currency')}` : '—';
-  const unit = o.quantity >= 1000 ? 'кг' : (t('pcs') || 'шт');
+function switchOrdersTab(tab) { _odTab = tab; loadOrdersList(); }
 
-  const canCancel    = !isFermer && ['created', 'paid'].includes(o.status);
-  const canComplete  = !isFermer && (o.status === 'ready_for_pickup' || o.status === 'ready');
-  const canMarkReady = isFermer && o.status === 'paid';
-  const canPay       = !isFermer && o.status === 'created';
-  const canChatFarmer = !isFermer && ['created', 'paid'].includes(o.status);
-  const canChatDriver = !isFermer && o.driver_candidate_id && o.pickup_method === 'external';
-  const canPayDriver = !isFermer && o.delivery_request && o.delivery_request.status === 'delivered';
-
+function orderCardHtml(o) {
+  const seller = o.my_role === 'seller';
+  const st = orderState(o);
+  const isOpen = OPEN_ORDER.includes(o.status);
+  const date = o.created_at ? new Date(o.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const other = seller
+    ? { label: t('od_buyer'), name: o.xaridor_name, phone: o.xaridor_phone, icon: 'fa-solid fa-user' }
+    : { label: t('od_farmer'), name: o.fermer_name, phone: o.fermer_phone, icon: 'fa-solid fa-tractor' };
   const img = o.product_photo
-    ? `<img src="${API_PHOTO(o.product_photo)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'oc-ph',textContent:'🥬'}))" style="width:100%;height:100%;object-fit:cover;display:block;"/>`
-    : '<div class="oc-ph">🥬</div>';
+    ? `<img src="${API_PHOTO(o.product_photo)}" alt="" onerror="this.remove()" />`
+    : '';
+  const phoneDigits = String(other.phone || '').replace(/[^\d+]/g, '');
 
-  const personLabel = isFermer
-    ? `<i class="fa-solid fa-cart-shopping" style="font-size:14px"></i> ${o.xaridor_name || t('buyer_word')}`
-    : `<i class="fa-solid fa-leaf" style="font-size:14px"></i> ${o.fermer_name || t('farmer_word')}`;
+  const delivery = o.delivery_request
+    ? `<div class="od-note"><i class="fa-solid fa-truck"></i> ${o.delivery_request.route_from} → ${o.delivery_request.route_to} · ${fmtSum(o.delivery_request.total_price)}${o.delivery_request.courier_name ? ` · ${o.delivery_request.courier_name} ${fmtPhone(o.delivery_request.courier_phone)}` : ''}</div>`
+    : (o.driver_candidate_id ? `<div class="od-note"><i class="fa-solid fa-truck"></i> ${t('od_driver')}: ${o.driver_candidate_name || ''}</div>` : '');
 
-  // Status description
-  let statusNote = '';
-  if (!isFermer && o.status === 'created') {
-    statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Заказ ожидает оплаты. Нажмите "Оплатить" чтобы перевести деньги фермеру.</div>`;
-  } else if (!isFermer && o.status === 'paid') {
-    statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Оплачено. Фермер готовит ваш заказ.</div>`;
-  } else if (isFermer && o.status === 'created') {
-    statusNote = `<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#92400e">⏳ Покупатель ещё не оплатил заказ.</div>`;
-  } else if (isFermer && o.status === 'paid') {
-    statusNote = `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Заказ оплачен. Можете начать подготовку.</div>`;
-  }
-
-  // Delivery delivered note
-  if (!isFermer && o.delivery_request && o.delivery_request.status === 'delivered') {
-    statusNote += `<div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#1e40af">🚗 Драйвер доставил заказ. Нажмите "Оплатить драйверу" чтобы перевести деньги.</div>`;
-  } else if (!isFermer && o.delivery_request && o.delivery_request.status === 'completed') {
-    statusNote += `<div style="background:#d1fae5;border:1px solid #a7f3d0;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;color:#065f46">✅ Доставка оплачена. Драйвер получил оплату.</div>`;
-  }
-
-  // Driver candidate info
-  let candidateHtml = '';
-  if (o.driver_candidate_id && !o.delivery_request) {
-    const routeInfo = o.delivery_route_from && o.delivery_route_to
-      ? `<div style="font-size:13px;color:#374151;margin-top:6px">
-           📍 ${o.delivery_route_from} → ${o.delivery_route_to}
-           ${o.delivery_distance_km ? ` &nbsp;|&nbsp; 📏 ${o.delivery_distance_km} км` : ''}
-         </div>
-         ${o.delivery_price ? `<div style="font-size:13px;color:#059669;font-weight:600;margin-top:4px">💰 ${Number(o.delivery_price).toLocaleString()} сум</div>` : ''}`
-      : '';
-
-    candidateHtml = `
-      <div style="background:#eff6ff;border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-top:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <b style="font-size:13px">🚗 Кандидат-драйвер</b>
-          <span style="color:#2563eb;font-size:12px;font-weight:600">Ожидает подтверждения</span>
-        </div>
-        <div style="font-size:13px;color:#374151">
-          👤 ${o.driver_candidate_name || 'Драйвер'}
-        </div>
-        ${routeInfo}
-      </div>
-    `;
-  }
-
-  // Delivery request info
-  let deliveryHtml = '';
-  if (o.delivery_request) {
-    const dr = o.delivery_request;
-    const statusLabels = {
-      pending: 'Ожидание драйвера',
-      driver_accepted: 'Драйвер принял',
-      collecting: 'Собирается',
-      in_transit: 'В пути',
-      delivered: 'Доставлен',
-      completed: 'Завершён',
-      cancelled_by_buyer: 'Отменено покупателем',
-      cancelled_by_driver: 'Отменено драйвером',
-    };
-    const drStatus = statusLabels[dr.status] || dr.status;
-    const drStatusColor = dr.status === 'driver_accepted' ? '#059669' : dr.status === 'pending' ? '#d97706' : '#6b7280';
-
-    deliveryHtml = `
-      <div style="background:#f0fdf4;border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;margin-top:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <b style="font-size:13px">🚗 Доставка</b>
-          <span style="color:${drStatusColor};font-size:12px;font-weight:600">${drStatus}</span>
-        </div>
-        <div style="font-size:13px;color:#374151">
-          📍 ${dr.route_from} → ${dr.route_to} &nbsp;|&nbsp; 📏 ${dr.distance_km} км
-        </div>
-        <div style="font-size:13px;color:#059669;font-weight:600;margin-top:4px">
-          💰 ${Number(dr.total_price).toLocaleString()} сум
-        </div>
-        ${dr.courier_name ? `<div style="font-size:13px;color:#6b7280;margin-top:4px">👤 Драйвер: ${dr.courier_name} (${dr.courier_phone})</div>` : ''}
-      </div>
-    `;
-  }
+  const canPayDriver = !seller && o.delivery_request && o.delivery_request.status === 'delivered';
 
   return `
-    <div class="order-card" id="order-${o.id}">
-      <div class="oc-img">${img}</div>
-      <div class="oc-main">
-        <div class="oc-top">
-          <span class="oc-name">${o.product_title || (t('product_word') + ' #' + o.product_id)}</span>
-          ${badgeOrderHtml(o.status)}
-          <span class="oc-id">#${o.id}</span>
+    <article class="od-card ${st.cls}" id="order-${o.id}">
+      <div class="od-status ${st.cls}"><i class="${st.icon}"></i> ${st.text}<span class="od-id">№${o.id}${date ? ' · ' + date : ''}</span></div>
+      <div class="od-body">
+        <div class="od-product">
+          <div class="od-img"><i class="fa-solid fa-leaf"></i>${img}</div>
+          <div class="od-title">
+            <b>${o.product_title}</b>
+            ${o.product_id ? `<a onclick="router.go('/product/${o.product_id}')">${t('od_open_product')} <i class="fa-solid fa-chevron-right"></i></a>` : ''}
+          </div>
         </div>
-        <div class="oc-meta">
-          ${personLabel}
-          <span class="oc-meta-dot"></span>
-          ${o.quantity} ${unit}
-          <span class="oc-meta-dot"></span>
-          ${fe('📅',14)} ${date}
+        <div class="od-figs">
+          <div><span>${t('od_qty')}</span><b>${fmtQty(o.quantity, o.product_unit)}</b></div>
+          <div><span>${t('od_sum')}</span><b>${fmtSum(o.total_price)}</b></div>
         </div>
-        ${total !== '—' ? `<div class="oc-total">${total}</div>` : ''}
-        ${statusNote}
-        ${candidateHtml}
-        ${deliveryHtml}
-        ${timelineHtml(o.status)}
+        <div class="od-person">
+          <div class="od-person-ic"><i class="${other.icon}"></i></div>
+          <div class="od-person-tx">
+            <span>${other.label}</span>
+            <b>${escHtml(other.name || '')}</b>
+            ${other.phone ? `<span class="od-phone">${fmtPhone(other.phone)}</span>` : ''}
+          </div>
+        </div>
+        ${delivery}
+        ${isOpen ? `
+          <div class="od-contact">
+            ${phoneDigits ? `<a class="btn btn-outline" href="tel:${phoneDigits}"><i class="fa-solid fa-phone"></i> ${t('od_call')}</a>` : ''}
+            <button class="btn btn-outline" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fa-solid fa-comment-dots"></i> ${t('od_write')}</button>
+          </div>
+          <p class="od-hint">${seller ? t('od_hint_seller') : t('od_hint_buyer')}</p>
+          <div class="od-actions">
+            ${seller ? `
+              <button class="btn btn-primary btn-lg" onclick="orderSold(${o.id})"><i class="fa-solid fa-check"></i> ${t('od_sold_btn')}</button>
+              <button class="btn btn-reject-o btn-lg" onclick="orderReject(${o.id})"><i class="fa-solid fa-xmark"></i> ${t('od_reject_btn')}</button>
+            ` : `
+              <button class="btn btn-reject-o btn-lg" onclick="orderCancelAsk(${o.id})"><i class="fa-solid fa-xmark"></i> ${t('od_cancel_btn')}</button>
+            `}
+            ${canPayDriver ? `<button class="btn btn-primary" onclick="payDriverOrder(${o.id}, ${o.delivery_request.total_price})"><i class="fa-solid fa-credit-card"></i> ${t('od_pay_driver')}</button>` : ''}
+            ${(!seller && o.driver_candidate_id && o.pickup_method === 'external') ? `<button class="btn btn-outline" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fa-regular fa-comment"></i> ${t('od_chat_driver')}</button>` : ''}
+          </div>` : ''}
       </div>
-      <div class="oc-actions">
-        ${canPay       ? `<button class="btn btn-primary btn-sm" onclick="payOrder(${o.id}, ${o.total_price})"><i class="fa-solid fa-credit-card" style="font-size:14px"></i> Оплатить</button>` : ''}
-        ${canCancel    ? `<button class="btn btn-danger btn-sm"  onclick="cancelOrder(${o.id})">${t('cancel_order')}</button>` : ''}
-        ${canComplete  ? `<button class="btn btn-primary btn-sm" onclick="confirmReceived(${o.id})">${t('confirm_received')}</button>` : ''}
-        ${canMarkReady ? `<button class="btn btn-primary btn-sm" onclick="markOrderReady(${o.id})">${t('mark_ready') || 'Готово к выдаче'}</button>` : ''}
-        ${canPayDriver ? `<button class="btn btn-primary btn-sm" onclick="payDriverOrder(${o.id}, ${o.delivery_request.total_price})"><i class="fa-solid fa-credit-card" style="font-size:14px"></i> Оплатить драйверу ${Number(o.delivery_request.total_price).toLocaleString()} сум</button>` : ''}
-        ${canChatFarmer ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_farmer')"><i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с фермером</button>` : ''}
-        ${canChatDriver ? `<button class="btn btn-ghost btn-sm" onclick="openOrderChat(${o.id}, 'buyer_driver')"><i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с драйвером</button>` : ''}
-        ${(!isFermer && o.driver_candidate_id && !o.delivery_request && o.pickup_method === 'external') ? `<button class="btn btn-ghost btn-sm" onclick="changeDriver(${o.id})"><i class="fa-solid fa-rotate" style="font-size:14px"></i> Сменить драйвера</button>` : ''}
-      </div>
-    </div>
-  `;
+    </article>`;
 }
+
+/* Подтверждение действия в нижней шторке (alert/confirm пожилым неудобны) */
+function confirmSheet(title, text, okLabel, okClass, onOk) {
+  openSheet('confirm', title, `
+    <p class="cf-text">${text}</p>
+    <div class="cf-actions">
+      <button class="btn ${okClass} btn-lg btn-full" id="cf-ok">${okLabel}</button>
+      <button class="btn btn-outline btn-lg btn-full" onclick="closeSheet()">${t('od_back')}</button>
+    </div>`);
+  document.getElementById('cf-ok').onclick = async () => { closeSheet(); await onOk(); };
+}
+window.confirmSheet = confirmSheet;
+
+async function orderAction(fn, okMsg) {
+  try { await fn(); showToast(okMsg); _odTab = _odTab || null; loadOrdersList(); if (typeof refreshOrdersBadge === 'function') refreshOrdersBadge(true); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+function orderSold(id) {
+  confirmSheet(t('od_sold_q'), t('od_sold_text'), `<i class="fa-solid fa-check"></i> ${t('od_sold_btn')}`, 'btn-primary',
+    () => orderAction(() => API.markSold(id), t('od_sold_ok')));
+}
+function orderReject(id) {
+  confirmSheet(t('od_reject_q'), t('od_reject_text'), `<i class="fa-solid fa-xmark"></i> ${t('od_reject_btn')}`, 'btn-danger',
+    () => orderAction(() => API.rejectOrder(id), t('od_reject_ok')));
+}
+function orderCancelAsk(id) {
+  confirmSheet(t('od_cancel_q'), t('od_cancel_text'), `<i class="fa-solid fa-xmark"></i> ${t('od_cancel_btn')}`, 'btn-danger',
+    () => orderAction(() => API.cancelOrder(id), t('od_cancel_ok')));
+}
+window.orderSold = orderSold;
+window.orderReject = orderReject;
+window.orderCancelAsk = orderCancelAsk;
+window.switchOrdersTab = switchOrdersTab;
+window.fmtPhone = fmtPhone;
 
 function API_PHOTO(u) {
   if (!u) return '';
@@ -347,6 +319,7 @@ async function payDriverOrder(orderId, amount) {
 }
 
 window.renderOrders     = renderOrders;
+window.loadOrdersList   = loadOrdersList;
 window.cancelOrder      = cancelOrder;
 window.confirmReceived  = confirmReceived;
 window.markOrderReady   = markOrderReady;

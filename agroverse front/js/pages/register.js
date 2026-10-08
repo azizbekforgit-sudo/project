@@ -35,11 +35,17 @@ function renderRegister() {
         <span>${t('auth_password')}</span>
         ${passwordFieldHtml('reg-password', t('auth_pass_ph'), 'new-password')}
       </label>
+      <div id="reg-otp-wrap"></div>
 
       <button type="submit" class="btn btn-primary btn-lg btn-full" id="reg-btn">
         <i class="fa-solid fa-check"></i> <span>${t('auth_reg_btn')}</span>
       </button>
     </form>
+
+    <div class="auth2-or" id="google-box" hidden>
+      <span>${t('or_word')}</span>
+      <div class="g-btn"></div>
+    </div>
 
     <div class="auth2-switch">
       <span>${t('have_account')}</span>
@@ -53,6 +59,16 @@ function renderRegister() {
   const btn = document.getElementById('reg-btn');
   const errBox = document.getElementById('reg-error');
   const showErr = (text) => { errBox.textContent = text; errBox.hidden = false; errBox.scrollIntoView({ block: 'nearest' }); };
+  let smsOn = false;
+
+  // Подтверждение номера по СМС — только если СМС настроены на сервере
+  loadAppConfig().then(cfg => {
+    if (!cfg.sms_enabled) return;
+    smsOn = true;
+    document.getElementById('reg-otp-wrap').innerHTML = otpBlockHtml('rg');
+    bindOtp('rg', 'register', () => normalizePhone(document.getElementById('reg-phone').value), showErr);
+  });
+  mountGoogleButton('google-box', showErr);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -66,11 +82,13 @@ function renderRegister() {
     const digits = phone.replace(/\D/g, '').length;
     if (digits < 10 || digits > 15) return showErr(t('auth_phone_bad'));
     if (password.length < 6) return showErr(t('auth_pass_short'));
+    const code = document.getElementById('rg-code')?.value.trim();
+    if (smsOn && !code) return showErr(t('otp_need'));
 
     btn.disabled = true;
     btn.querySelector('span').textContent = t('auth_reg_wait');
     try {
-      const data = await API.register({ name, phone, password, role });
+      const data = await API.register({ name, phone, password, role, code });
       if (data.access_token) {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('av_user', JSON.stringify(data.user));
