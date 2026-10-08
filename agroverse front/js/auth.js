@@ -98,13 +98,58 @@ function currentPath() {
   return (window.location.hash || '#/home').replace(/^#/, '') || '/home';
 }
 
-/* Главный layout-обёртка со сбоковым меню в стиле Modern Agriculture */
+/* ── Размер текста: три ступени, запоминается ── */
+const TextSize = {
+  levels: ['m', 'l', 'xl'],
+  get() { try { return localStorage.getItem('av_text') || 'm'; } catch { return 'm'; } },
+  apply(v) { document.documentElement.dataset.text = v; },
+  set(v) {
+    try { localStorage.setItem('av_text', v); } catch {}
+    this.apply(v);
+    document.querySelectorAll('.ts-btn').forEach(b => b.classList.toggle('active', b.dataset.size === v));
+  },
+};
+TextSize.apply(TextSize.get());
+window.TextSize = TextSize;
+
+const NAV_HINTS = {
+  '/home': 'hint_home', '/market': 'hint_market', '/product/new': 'hint_add_product',
+  '/orders': 'hint_orders', '/chats': 'hint_chats', '/ai': 'hint_ai', '/admin': 'hint_admin',
+};
+
+function roleLabel() {
+  if (Auth.isAdmin()) return t('role_admin');
+  if (Auth.isFarmer()) return t('role_farmer');
+  if (Auth.isBuyer()) return t('role_buyer');
+  return t('role_user');
+}
+
+function textSizeControl() {
+  const cur = TextSize.get();
+  const btn = (v, px) => `<button class="ts-btn ${cur === v ? 'active' : ''}" data-size="${v}" onclick="TextSize.set('${v}')" aria-label="${t('text_size')} ${v.toUpperCase()}"><span style="font-size:${px}px">A</span></button>`;
+  return `<div class="ts-group" role="group" aria-label="${t('text_size')}" title="${t('text_size')}">
+    ${btn('m', 15)}${btn('l', 19)}${btn('xl', 23)}
+  </div>`;
+}
+
+function langControl() {
+  const cur = (window.I18nManager && I18nManager.current) || 'uz';
+  const langs = window.I18nManager ? I18nManager.langs() : [];
+  return `<div class="lang-group" role="group" aria-label="${t('lang_label')}">
+    ${langs.map(l => `<button class="lang-btn ${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')">
+      <span class="lang-full">${l.label}</span><span class="lang-short">${l.code.toUpperCase()}</span>
+    </button>`).join('')}
+  </div>`;
+}
+
+/* Главный layout: боковое меню с подписями, верхняя панель, нижняя панель на телефоне */
 function buildHeader() {
   const user = Auth.getUser();
   const path = currentPath();
   const items = getNavItems();
   const cartCount = getCartCount();
   const chatsUnread = window._globalChatsUnread || 0;
+  const isFarmer = Auth.isFarmer();
 
   const links = items.map(it => {
     const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new');
@@ -114,89 +159,78 @@ function buildHeader() {
     } else if (it.path === '/chats' && chatsUnread > 0) {
       badge = `<span class="nav-badge">${chatsUnread}</span>`;
     }
-    if (it.external) {
-      return `<a class="nav-item-link" href="${it.url}" target="_blank">
-        <span class="nav-ic">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>
-      </a>`;
-    }
-    return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')">
-      <span class="nav-ic">${it.icon}</span><span class="nav-tx">${t(it.key)}</span>${badge}
+    const hint = NAV_HINTS[it.path] ? `<span class="nav-hint">${t(NAV_HINTS[it.path])}</span>` : '';
+    return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')" ${active ? 'aria-current="page"' : ''}>
+      <span class="nav-ic">${it.icon}</span>
+      <span class="nav-txt-wrap"><span class="nav-tx">${t(it.key)}</span>${hint}</span>${badge}
     </a>`;
   }).join('');
 
-  const cur = (window.I18nManager && I18nManager.current) || 'uz';
-  const langOpts = (window.I18nManager ? I18nManager.langs() : [])
-    .map(l => `<option value="${l.code}" ${l.code === cur ? 'selected' : ''}>${l.code.toUpperCase()}</option>`)
-    .join('');
-
   const userInitial = (user?.name || user?.phone || 'A')[0].toUpperCase();
-  const roleName = Auth.isFarmer() ? 'Фермер' : Auth.isBuyer() ? 'Покупатель' : 'Пользователь';
+
+  const mbb = (p, icon, label, extra = '') => `
+    <a class="mbb-item ${path === p ? 'active' : ''}" onclick="router.go('${p}')">
+      <span class="mbb-ic"><i class="${icon}"></i>${extra}</span><span>${label}</span>
+    </a>`;
+  const cartBadge = cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : '';
+  const middle = isFarmer
+    ? `<a class="mbb-item mbb-main ${path === '/product/new' ? 'active' : ''}" onclick="router.go('/product/new')">
+         <span class="mbb-ic"><i class="fa-solid fa-plus"></i></span><span>${t('nav_sell')}</span></a>`
+    : mbb('/cart', 'fa-solid fa-basket-shopping', t('nav_cart'), cartBadge);
 
   return `
     <aside class="sidebar-green">
       <div class="sidebar-brand" onclick="router.go('/home')">
-        <div class="sb-logo-icon">🌿</div>
+        <div class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></div>
         <div class="sb-logo-text">
           <div class="sb-logo-title">AgroVerse</div>
-          <div class="sb-logo-sub">Сельское хозяйство</div>
+          <div class="sb-logo-sub">${roleLabel()}</div>
         </div>
+        <button class="sb-close" onclick="event.stopPropagation(); document.querySelector('.sidebar-green').classList.remove('mobile-open')" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <nav class="sidebar-nav">
-        ${links}
-      </nav>
+      <nav class="sidebar-nav">${links}</nav>
 
       <div class="sidebar-user" onclick="router.go('/profile')">
         <div class="su-avatar">${userInitial}</div>
         <div class="su-info">
-          <div class="su-name">${user?.name || 'Алишер Абдуллаев'}</div>
-          <div class="su-role">${roleName}</div>
+          <div class="su-name">${user?.name || user?.phone || ''}</div>
+          <div class="su-role">${t('hint_profile')}</div>
         </div>
-        <button class="su-logout" onclick="event.stopPropagation(); Auth.logout()" title="${t('nav_logout')}">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        </button>
       </div>
+      <button class="sb-logout" onclick="Auth.logout()">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}
+      </button>
     </aside>
+    <div class="sidebar-scrim" onclick="document.querySelector('.sidebar-green').classList.remove('mobile-open')"></div>
 
     <header class="top-header-bar">
       <div class="top-header-left">
-        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar-green').classList.toggle('mobile-open')">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar-green').classList.add('mobile-open')" aria-label="Menu">
           <i class="fa-solid fa-bars"></i>
         </button>
-        <div class="top-search-box">
+        <form class="top-search-box" onsubmit="event.preventDefault(); router.go('/market?q=' + encodeURIComponent(this.q.value))">
           <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" placeholder="Что вы ищете?" onkeydown="if(event.key==='Enter'){ router.go('/market?q=' + encodeURIComponent(this.value)); }" />
-        </div>
+          <input type="search" name="q" id="topSearch" placeholder="${t('search_ph')}" />
+          <button type="submit" class="tsb-go">${t('search_btn')}</button>
+        </form>
       </div>
       <div class="top-header-right">
-        <button class="cart-header-btn" onclick="router.go('/cart')" title="Корзина">
-          <i class="fa-solid fa-cart-shopping"></i>
+        ${textSizeControl()}
+        ${langControl()}
+        ${!isFarmer && !Auth.isAdmin() ? `<button class="cart-header-btn" onclick="router.go('/cart')">
+          <i class="fa-solid fa-basket-shopping"></i><span class="chb-tx">${t('nav_cart')}</span>
           ${cartCount > 0 ? `<span class="cart-header-badge">${cartCount}</span>` : ''}
-        </button>
-        <select class="lang-select" onchange="I18nManager.set(this.value)">${langOpts}</select>
+        </button>` : ''}
       </div>
     </header>
 
     <nav class="mobile-bottom-bar">
-      <a class="mbb-item ${path === '/home' ? 'active' : ''}" onclick="router.go('/home')">
-        <i class="fa-solid fa-house" style="font-size:24px;"></i><span>Главная</span>
-      </a>
-      <a class="mbb-item ${path === '/market' ? 'active' : ''}" onclick="router.go('/market')">
-        <i class="fa-solid fa-store" style="font-size:24px;"></i><span>Рынок</span>
-      </a>
-      <a class="mbb-item ${path === '/cart' ? 'active' : ''}" onclick="router.go('/cart')">
-        <div style="position:relative;">
-          <i class="fa-solid fa-cart-shopping" style="font-size:24px;"></i>
-          ${cartCount > 0 ? `<span class="mbb-badge">${cartCount}</span>` : ''}
-        </div>
-        <span>Корзина</span>
-      </a>
-      <a class="mbb-item ${path === '/orders' ? 'active' : ''}" onclick="router.go('/orders')">
-        <i class="fa-solid fa-box" style="font-size:24px;"></i><span>Заказы</span>
-      </a>
-      <a class="mbb-item ${path === '/profile' ? 'active' : ''}" onclick="router.go('/profile')">
-        <i class="fa-solid fa-user" style="font-size:24px;"></i><span>Профиль</span>
-      </a>
+      ${mbb('/home', 'fa-solid fa-house', t('nav_home'))}
+      ${mbb('/market', 'fa-solid fa-store', t('nav_market'))}
+      ${middle}
+      ${mbb('/orders', 'fa-solid fa-box', t('nav_orders'))}
+      ${mbb('/profile', 'fa-solid fa-user', t('nav_profile'))}
     </nav>
   `;
 }
@@ -207,7 +241,7 @@ function pageShell(contentHtml, opts = {}) {
     <div class="app-layout">
       ${buildHeader()}
       <main class="app-main-content ${opts.wide ? 'wide' : ''}">
-        ${contentHtml}
+        <div class="main-zoom">${contentHtml}</div>
       </main>
     </div>
   `;
