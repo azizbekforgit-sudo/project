@@ -84,7 +84,7 @@ class ProductResponse(BaseModel):
     status: ProductStatus
     delivery_available: bool = False
     pickup_location: str = ""
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
 
 class ProductListResponse(BaseModel):

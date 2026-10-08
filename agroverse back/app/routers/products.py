@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, and_, func, update
 from typing import Optional, List
 import os
+import re
 import shutil
 from datetime import datetime
 from app.database import get_db
@@ -24,7 +25,10 @@ async def save_photo(file: UploadFile, product_id: int) -> str:
     product_dir = os.path.join(settings.upload_dir, "products", str(product_id))
     os.makedirs(product_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_{file.filename}"
+    # Имя с телефона может содержать пробелы, кириллицу и «/» — оставляем безопасные символы
+    original = os.path.basename(file.filename or "photo.jpg")
+    safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", original)[-80:] or "photo.jpg"
+    filename = f"{timestamp}_{safe_name}"
     filepath = os.path.join(product_dir, filename)
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -202,6 +206,15 @@ async def create_product(
     )
     active_products = result.scalars().all()
 
+    if price_per_unit <= 0:
+        raise HTTPException(status_code=400, detail="Цена должна быть больше нуля")
+    if price_per_unit > 999_999_999_999:
+        raise HTTPException(status_code=400, detail="Слишком большая цена")
+    if quantity_available <= 0:
+        raise HTTPException(status_code=400, detail="Количество должно быть больше нуля")
+    if quantity_available > 9_999_999_999:
+        raise HTTPException(status_code=400, detail="Слишком большое количество")
+
     if len(active_products) >= max_products:
         raise HTTPException(
             status_code=403,
@@ -221,29 +234,27 @@ async def create_product(
         status=ProductStatus.ACTIVE
     )
     db.add(new_product)
-    await db.commit()
-    await db.refresh(new_product)
+    # flush даёт id для папки с фото, но всё сохраняется одним commit ниже:
+    # если что-то упадёт, не останется «половинного» товара и дублей при повторе
+    await db.flush()
 
     photo_urls = []
     valid_photos = [p for p in (photos or []) if getattr(p, "filename", None)]
-    for i, photo in enumerate(valid_photos[:10]):
+    for photo in valid_photos[:10]:
         url = await save_photo(photo, new_product.id)
         photo_urls.append(url)
-
     new_product.photos = photo_urls
-    await db.commit()
 
-    bonus_txn = BonusTransaction(
+    db.add(BonusTransaction(
         user_id=current_user.id,
         points=10,
-        reason=f"Добавление товара: {title}"
-    )
-    db.add(bonus_txn)
-    current_user.bonus_points += 10
+        reason=f"Добавление товара: {title}"[:200]
+    ))
+    current_user.bonus_points = (current_user.bonus_points or 0) + 10
     await db.commit()
+    await db.refresh(new_product)
 
-    fermer_result = await db.execute(select(User).where(User.id == current_user.id))
-    fermer = fermer_result.scalar_one()
+    fermer = current_user
 
     return ProductResponse(
         id=new_product.id,
@@ -260,6 +271,7 @@ async def create_product(
         rating=new_product.rating,
         status=new_product.status,
         delivery_available=new_product.delivery_available or False,
+        pickup_location=new_product.pickup_location or "",
         created_at=new_product.created_at
     )
 

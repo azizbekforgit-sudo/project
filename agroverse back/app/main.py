@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 import os
+import traceback
 import uvicorn
 
 print("========== ВЕРСИЯ ФАЙЛА: MARKER-7789 ==========")
@@ -312,6 +313,29 @@ CREATE TABLE IF NOT EXISTS chat_messages (
         await safe_exec("CREATE INDEX IF NOT EXISTS idx_chats_participant_b ON chats(participant_b_id)")
         await safe_exec("CREATE INDEX IF NOT EXISTS idx_chat_messages_chat ON chat_messages(chat_id)")
 
+        # ── created_at: в таблицах, созданных старым монолитом, нет DEFAULT ──
+        # Без него новые строки получают created_at = NULL, ответ API падает
+        # на валидации (500), и браузер показывает «нет связи с сервером».
+        for table in ("users", "products", "orders", "reviews", "bonus_transactions",
+                      "courier_profiles", "courier_orders", "courier_transactions",
+                      "courier_ratings", "topup_requests", "delivery_requests",
+                      "chats", "chat_messages"):
+            await safe_exec(f"ALTER TABLE {table} ALTER COLUMN created_at SET DEFAULT NOW()")
+            await safe_exec(f"UPDATE {table} SET created_at = NOW() WHERE created_at IS NULL")
+
+        # ── products: в старой схеме quantity_available был INTEGER, цена FLOAT ──
+        await safe_exec(
+            "ALTER TABLE products ALTER COLUMN quantity_available TYPE NUMERIC(12,2) "
+            "USING quantity_available::numeric",
+            label="products.quantity_available → NUMERIC(12,2)")
+        await safe_exec(
+            "ALTER TABLE products ALTER COLUMN price_per_unit TYPE NUMERIC(14,2) "
+            "USING price_per_unit::numeric",
+            label="products.price_per_unit → NUMERIC(14,2)")
+        await safe_exec("UPDATE products SET photos = '[]'::json WHERE photos IS NULL")
+        await safe_exec("UPDATE products SET rating = 0 WHERE rating IS NULL")
+        await safe_exec("UPDATE users SET bonus_points = 0 WHERE bonus_points IS NULL")
+
     await seed_admin()
     print("🌾 AgroVerse API запущен")
     yield
@@ -328,6 +352,43 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:8000",
 ]
+
+class CatchServerErrors:
+    """Ловит необработанные исключения и отдаёт JSON 500 ВНУТРИ CORS.
+    Иначе ответ 500 уходит без Access-Control-Allow-Origin, браузер его
+    прячет, и сайт показывает «Нет связи с сервером» вместо настоящей ошибки."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = False
+
+        async def send_wrapper(message):
+            nonlocal started
+            if message["type"] == "http.response.start":
+                started = True
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        except Exception as exc:
+            traceback.print_exc()
+            if started:
+                raise
+            response = JSONResponse(
+                status_code=500,
+                content={"detail": f"Ошибка на сервере ({type(exc).__name__}). Попробуйте ещё раз."},
+            )
+            await response(scope, receive, send)
+
+
+# Порядок важен: добавленный позже middleware — внешний.
+# CatchServerErrors должен быть ВНУТРИ CORS, поэтому добавляем его первым.
+app.add_middleware(CatchServerErrors)
 
 app.add_middleware(
     CORSMiddleware,

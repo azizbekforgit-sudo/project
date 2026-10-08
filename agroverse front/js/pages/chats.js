@@ -7,7 +7,7 @@ async function renderChats() {
   const app = document.getElementById('app');
   app.innerHTML = pageShell(`
     <div class="page-head">
-      <h1 class="page-title"><i class="fi fi-rr-comment" style="font-size:24px"></i> Чаты</h1>
+      <h1 class="page-title"><i class="fa-regular fa-comment" style="font-size:24px"></i> Чаты</h1>
       <p class="page-desc">Общение по заказам</p>
     </div>
     <div id="chats-wrap"><div class="spinner"></div></div>
@@ -25,7 +25,7 @@ async function loadChatsList() {
     if (!chats?.length) {
       wrap.innerHTML = `
         <div class="empty-state big">
-          <div class="icon"><i class="fi fi-rr-comment" style="font-size:48px"></i></div>
+          <div class="icon"><i class="fa-regular fa-comment" style="font-size:48px"></i></div>
           <p>У вас пока нет чатов</p>
           <p style="color:#9ca3af;font-size:14px;margin-top:8px">Чаты появятся после создания заказов</p>
         </div>`;

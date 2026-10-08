@@ -69,7 +69,7 @@ const I18N = {
     // системные / ошибки / тосты
     err_session: 'Sessiya tugadi, qaytadan kiring',
     err_role_access: "Bu bo'lim sizning rolingiz uchun mavjud emas",
-    err_no_connection: 'Server bilan aloqa yo\'q. Iltimos, keyinroq urinib ko\'ring.',
+    err_no_connection: 'Server bilan aloqa yo\'q. Internetni tekshiring va bir daqiqadan so\'ng qayta urinib ko\'ring.',
     err_generic: 'Xatolik yuz berdi',
     err_fill: 'Barcha maydonlarni toʻldiring',
     blocked_reason_default: 'Sabab koʻrsatilmagan',
@@ -446,7 +446,7 @@ const I18N = {
     // системные / ошибки / тосты
     err_session: 'Сессия истекла, войдите снова',
     err_server: 'Ошибка сервера. Попробуйте позже.',
-    err_no_connection: 'Нет связи с сервером. Попробуйте позже.',
+    err_no_connection: 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз через минуту.',
     err_role_access: 'Этот раздел недоступен для вашей роли',
     err_generic: 'Произошла ошибка',
     err_fill: 'Заполните все поля',
@@ -805,7 +805,7 @@ const I18N = {
     // system / errors / toasts
     err_session: 'Session expired, sign in again',
     err_role_access: 'This section is not available for your role',
-    err_no_connection: 'No connection to server. Please try later.',
+    err_no_connection: 'No connection to the server. Check your internet and try again in a minute.',
     err_generic: 'An error occurred',
     err_fill: 'Fill in all fields',
     blocked_reason_default: 'No reason specified',
