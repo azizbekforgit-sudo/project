@@ -11,7 +11,7 @@ const ROUTES = {
 
   '/product/new': { render: renderProductNew, role: 'fermer' },
   '/orders':      { render: renderOrders,     auth: true },
-  '/cart':        { render: renderCart,       role: 'xaridor' },
+  '/cart':        { render: renderCart,       auth: true },
   '/admin':       { render: renderAdmin,      role: 'admin' },
 
   // Доставка
@@ -116,6 +116,7 @@ function afterRender() {
   if (msg) setTimeout(() => showToast(msg), 100);
   // следим за блокировкой аккаунта в фоне
   if (Auth.isLoggedIn() && typeof startBlockHeartbeat === 'function') startBlockHeartbeat();
+  if (Auth.isLoggedIn() && typeof refreshOrdersBadge === 'function') refreshOrdersBadge();
   // WebSocket для реалтайм-сообщений
   if (Auth.isLoggedIn() && typeof ChatWS !== 'undefined') {
     ChatWS.connect();

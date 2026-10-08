@@ -57,16 +57,25 @@ function renderAI() {
 
 /* ============================================================
    AI BACKEND CONFIG
-   Ключ Grok/xAI хранится ТОЛЬКО на backend (переменная окружения
-   GROK_API_KEY в Railway). Фронт обращается к нашему собственному
+   Ключ ИИ хранится ТОЛЬКО на backend (переменная окружения
+   GEMINI_API_KEY на сервере). Фронт обращается к нашему собственному
    эндпоинту /api/ai/chat, который проксирует запрос к xAI.
    ============================================================ */
 function _aiBackendBase() {
-  if (window.API && window.API._base) return window.API._base;
-  return window.location.hostname.includes('localhost')
-    ? 'http://127.0.0.1:8000'
-    : 'https://project-production-7a95.up.railway.app';
+  // тот же сервер, что и у всего сайта (api.js) — раньше здесь был старый адрес Railway
+  return typeof BASE_URL !== 'undefined' ? BASE_URL : '';
 }
+/* Ответ ИИ — это текст, не HTML: сначала экранируем, потом простая разметка */
+function aiEsc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function aiFormat(text) {
+  return aiEsc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/^\s*[-*•]\s+/gm, '• ')
+    .replace(/\n/g, '<br>');
+}
+
 function _aiChatUrl() {
   return _aiBackendBase() + '/api/ai/chat';
 }
@@ -93,7 +102,7 @@ async function aiSend(text, context) {
 
   // Show user message
   chat.insertAdjacentHTML('beforeend', `
-    <div class="ai-msg user"><div class="ai-bubble">${msg}</div></div>
+    <div class="ai-msg user"><div class="ai-bubble">${aiEsc(msg)}</div></div>
   `);
   chat.scrollTop = chat.scrollHeight;
 
@@ -127,8 +136,12 @@ async function aiSend(text, context) {
       })
     });
 
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const e = new Error(typeof data.detail === 'string' ? data.detail : `API error: ${res.status}`);
+      e.friendly = typeof data.detail === 'string';
+      throw e;
+    }
     const reply = data.reply || '...';
 
     // Save AI reply to history
@@ -138,12 +151,12 @@ async function aiSend(text, context) {
     chat.insertAdjacentHTML('beforeend', `
       <div class="ai-msg bot">
         <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>
-        <div class="ai-bubble">${reply.replace(/\n/g, '<br>')}</div>
+        <div class="ai-bubble">${aiFormat(reply)}</div>
       </div>
     `);
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    const errMsg = typeof t === 'function' ? (t('ai_error') || 'Xatolik yuz berdi. Qayta urinib ko\'ring.') : 'Ошибка. Попробуйте ещё раз.';
+    const errMsg = err.friendly ? aiEsc(err.message) : (typeof t === 'function' ? (t('ai_error') || 'Xatolik yuz berdi. Qayta urinib ko\'ring.') : 'Ошибка. Попробуйте ещё раз.');
     chat.insertAdjacentHTML('beforeend', `
       <div class="ai-msg bot">
         <div class="ai-ava"><i class="fa-solid fa-robot"></i></div>

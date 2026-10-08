@@ -50,7 +50,9 @@ function starsHtml(rating) {
 }
 
 function productCardHtml(p) {
-  const isBuyer = Auth.isBuyer();
+  const me = Auth.getUser();
+  const own = me && p.fermer_id === me.id;
+  const isBuyer = Auth.canBuy() && !own && !p.is_demo;
   const pending = p.status === 'pending';
   const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #105C38, #187548)';
   const img = p.images?.length
@@ -58,7 +60,7 @@ function productCardHtml(p) {
     : `<div class="pc-img-ph" style="background:${bg}"><i class="${CAT_EMOJI[p.category] || 'fa-solid fa-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.85)"></i></div>`;
   const action = isBuyer
     ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fa-solid fa-cart-shopping"></i> ${t('add_to_cart')}</button>`
-    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fa-solid fa-eye"></i> ${t('details_btn')}</button>`;
+    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fa-solid ${own ? 'fa-pen' : 'fa-eye'}"></i> ${own ? t('your_product') : t('details_btn')}</button>`;
   const discountBadge = p.discount ? `<span class="pc-discount">-${p.discount}%</span>` : '';
   return `
     <div class="agri-product-card" onclick="router.go('/product/${p.id}')">
@@ -66,6 +68,7 @@ function productCardHtml(p) {
         ${img}
         ${pending ? `<span class="apc-badge">${t('on_moderation')}</span>` : ''}
         ${discountBadge}
+        ${p.is_demo ? `<span class="apc-demo"><i class="fa-solid fa-circle-info"></i> ${t('demo_badge')}</span>` : ''}
         <span class="apc-cat-tag">${p.category || 'Продукция'}</span>
       </div>
       <div class="apc-body">

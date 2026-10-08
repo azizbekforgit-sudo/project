@@ -98,6 +98,7 @@ async def get_products(
             rating=product.rating,
             status=product.status,
             delivery_available=product.delivery_available or False,
+            is_demo=bool(getattr(product, 'is_demo', False)),
             pickup_location=getattr(product, 'pickup_location', '') or '',
             created_at=product.created_at
         ))
@@ -115,7 +116,7 @@ async def get_my_products(
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
-        select(Product).where(Product.fermer_id == current_user.id)
+        select(Product).where(Product.fermer_id == current_user.id).order_by(Product.id.desc())
     )
     products = result.scalars().all()
 
@@ -136,6 +137,7 @@ async def get_my_products(
             rating=product.rating,
             status=product.status,
             delivery_available=product.delivery_available or False,
+            is_demo=bool(getattr(product, 'is_demo', False)),
             pickup_location=getattr(product, 'pickup_location', '') or '',
             created_at=product.created_at
         ))
@@ -171,6 +173,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         rating=product.rating,
         status=product.status,
         delivery_available=product.delivery_available or False,
+        is_demo=bool(getattr(product, 'is_demo', False)),
         pickup_location=getattr(product, 'pickup_location', '') or '',
         created_at=product.created_at
     )
@@ -271,6 +274,7 @@ async def create_product(
         rating=new_product.rating,
         status=new_product.status,
         delivery_available=new_product.delivery_available or False,
+        is_demo=bool(getattr(new_product, 'is_demo', False)),
         pickup_location=new_product.pickup_location or "",
         created_at=new_product.created_at
     )
@@ -309,6 +313,7 @@ async def update_product(
         rating=product.rating,
         status=product.status,
         delivery_available=product.delivery_available or False,
+        is_demo=bool(getattr(product, 'is_demo', False)),
         pickup_location=getattr(product, 'pickup_location', '') or '',
         created_at=product.created_at
     )

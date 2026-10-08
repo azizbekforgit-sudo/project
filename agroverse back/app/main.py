@@ -336,7 +336,19 @@ CREATE TABLE IF NOT EXISTS chat_messages (
         await safe_exec("UPDATE products SET rating = 0 WHERE rating IS NULL")
         await safe_exec("UPDATE users SET bonus_points = 0 WHERE bonus_points IS NULL")
 
+        # ── orders: кто отменил заказ + updated_at без DEFAULT в старой схеме ──
+        await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS is_demo BOOLEAN DEFAULT FALSE")
+        await safe_exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_by VARCHAR(20)")
+        await safe_exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()")
+        await safe_exec("ALTER TABLE orders ALTER COLUMN updated_at SET DEFAULT NOW()")
+        await safe_exec("UPDATE orders SET updated_at = COALESCE(created_at, NOW()) WHERE updated_at IS NULL")
+
     await seed_admin()
+    from app.demo_seed import seed_demo
+    try:
+        await seed_demo()
+    except Exception as e:
+        print(f"[DEMO] пропущено: {e}")
     print("🌾 AgroVerse API запущен")
     yield
     await engine.dispose()
@@ -450,7 +462,7 @@ async def my_products_compat(
     current_user: User = Depends(get_current_user),
     db=Depends(get_db),
 ):
-    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id))
+    result = await db.execute(select(Product).where(Product.fermer_id == current_user.id).order_by(Product.id.desc()))
     products = result.scalars().all()
     product_responses = []
     for product in products:
@@ -462,6 +474,7 @@ async def my_products_compat(
             quantity_available=float(product.quantity_available),
             photos=product.photos or [], rating=product.rating,
             status=product.status, delivery_available=product.delivery_available or False,
+ is_demo=bool(getattr(product, 'is_demo', False)),
             created_at=product.created_at,
         ))
     return ProductListResponse(total=len(products), page=1, limit=len(products), products=product_responses)
@@ -481,6 +494,8 @@ async def health():
 async def get_config():
     return {
         "google_maps_key": settings.google_maps_key,
+        "google_client_id": settings.google_client_id,
+        "sms_enabled": bool(settings.eskiz_email and settings.eskiz_password),
         "version": "2.0",
     }
 

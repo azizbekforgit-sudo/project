@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from app.dependencies import get_current_fermer, get_current_user
 from app.models import User
 from app.config import settings
+import asyncio
 import random
 import httpx
 
@@ -23,10 +24,79 @@ class AIChatRequest(BaseModel):
 
 
 _SYSTEM_PROMPTS = {
-    "uz": "Sen AgroVerse agromaydon platformasining AI yordamchisissan. Foydalanuvchilarga qishloq xo'jaligi mahsulotlarini sotish va sotib olish, narx belgilash, mavsumiy maslahatlar va platformadan foydalanish bo'yicha yordam berasan. Qisqa va foydali javoblar ber.",
-    "ru": "Ты AI-ассистент платформы AgroVerse — агромаркетплейс для фермеров и покупателей. Помогаешь с вопросами о сельскохозяйственных товарах, ценах, сезонных советах, покупке и продаже, использовании платформы. Отвечай кратко и по делу.",
+    "uz": "Sen AgroVerse — O'zbekiston fermerlari bozori platformasining yordamchisisan. Ko'p foydalanuvchilar keksa yoshdagi odamlar. O'zbek tilida, oddiy so'zlar bilan, qisqa javob ber (6 gapgacha yoki qisqa ro'yxat). Hosil, parvarish, narxlar, O'zbekistondagi mavsumlar va saytdan foydalanish bo'yicha yordam ber: mahsulot «Sotish» tugmasi bilan qo'shiladi, «Bozor»da sotib olinadi, buyurtma fermerga boradi, ular telefonda gaplashadi, fermer «Sotildi» yoki «Rad etish»ni bosadi.",
+    "ru": "Ты помощник платформы AgroVerse — рынка фермеров Узбекистана. Многие пользователи — люди старшего возраста. Отвечай по-русски, простыми словами, коротко (до 6 предложений или короткий список). Помогай с урожаем, уходом за растениями, ценами, сезонами в Узбекистане и с тем, как пользоваться сайтом: товар добавляют кнопкой «Продать», покупают на «Рынке», заказ приходит фермеру, стороны созваниваются, фермер отмечает «Продано» или «Отклонить».",
     "en": "You are the AI assistant of AgroVerse — an agricultural marketplace for farmers and buyers. Help with questions about farm products, pricing, seasonal tips, buying and selling, and using the platform. Be concise and helpful.",
 }
+
+
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+
+async def _ask_gemini(system_prompt: str, history: list) -> str:
+    """Спрашиваем Gemini. Модели перебираются по очереди: если одна перегружена
+    (503/429) или снята (404) — пробуем следующую."""
+    contents = [
+        {"role": "model" if m.role == "assistant" else "user", "parts": [{"text": m.content[:4000]}]}
+        for m in history
+    ]
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents,
+        "generationConfig": {"temperature": 0.6, "maxOutputTokens": 800},
+    }
+    models = [m.strip() for m in settings.gemini_models.split(",") if m.strip()]
+    last_status = None
+    async with httpx.AsyncClient(timeout=40.0) as client:
+        for model in models:
+            for attempt in range(2):
+                try:
+                    resp = await client.post(
+                        GEMINI_URL.format(model=model),
+                        headers={"x-goog-api-key": settings.gemini_api_key, "Content-Type": "application/json"},
+                        json=payload,
+                    )
+                except httpx.RequestError:
+                    last_status = "network"
+                    break
+                last_status = resp.status_code
+                if resp.status_code == 200:
+                    data = resp.json()
+                    parts = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+                    text = "".join(p.get("text", "") for p in parts).strip()
+                    if text:
+                        return text
+                    break  # пустой ответ (фильтр) — пробуем другую модель
+                if resp.status_code in (429, 500, 503) and attempt == 0:
+                    await asyncio.sleep(1.5)
+                    continue
+                if resp.status_code in (401, 403):
+                    raise HTTPException(502, "Ключ ИИ не принят. Проверьте GEMINI_API_KEY на сервере.")
+                break  # 404 и прочее — следующая модель
+    if last_status in (429, 503):
+        raise HTTPException(503, "Помощник сейчас перегружен. Попробуйте через минуту.")
+    raise HTTPException(502, "Не удалось получить ответ помощника. Попробуйте ещё раз.")
+
+
+async def _ask_grok(system_prompt: str, history: list) -> str:
+    payload = {
+        "model": GROK_MODEL,
+        "messages": [{"role": "system", "content": system_prompt}] + [m.model_dump() for m in history],
+        "temperature": 0.7,
+        "max_tokens": 512,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                GROK_API_URL,
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {settings.grok_api_key}"},
+                json=payload,
+            )
+    except httpx.RequestError:
+        raise HTTPException(502, "Не удалось связаться с AI сервисом")
+    if resp.status_code != 200:
+        raise HTTPException(502, "AI сервис вернул ошибку")
+    return resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
 @router.post("/chat")
@@ -34,43 +104,19 @@ async def ai_chat(
     data: AIChatRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Проксирует чат к Grok (xAI). Ключ хранится только на сервере."""
-    if not settings.grok_api_key:
-        raise HTTPException(500, "AI сервис временно не настроен")
-
+    """Чат с помощником. Ключи хранятся только на сервере (GEMINI_API_KEY или GROK_API_KEY)."""
     # Игнорируем любой 'system' от клиента — промпт задаётся только сервером
     history = [m for m in data.messages if m.role in ("user", "assistant")][-10:]
+    if not history:
+        raise HTTPException(400, "Пустой вопрос")
     system_prompt = _SYSTEM_PROMPTS.get(data.lang, _SYSTEM_PROMPTS["ru"])
 
-    payload = {
-        "model": GROK_MODEL,
-        "messages": [{"role": "system", "content": system_prompt}] + [m.model_dump() for m in history],
-        "temperature": 0.7,
-        "max_tokens": 512,
-    }
-
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                GROK_API_URL,
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {settings.grok_api_key}",
-                },
-                json=payload,
-            )
-    except httpx.RequestError:
-        raise HTTPException(502, "Не удалось связаться с AI сервисом")
-
-    if resp.status_code != 200:
-        raise HTTPException(502, "AI сервис вернул ошибку")
-
-    result = resp.json()
-    reply = (
-        result.get("choices", [{}])[0]
-        .get("message", {})
-        .get("content", "")
-    )
+    if settings.gemini_api_key:
+        reply = await _ask_gemini(system_prompt, history)
+    elif settings.grok_api_key:
+        reply = await _ask_grok(system_prompt, history)
+    else:
+        raise HTTPException(503, "Помощник ещё не настроен: добавьте GEMINI_API_KEY на сервере")
     return {"reply": reply}
 
 @router.get("/demand-forecast")

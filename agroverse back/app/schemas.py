@@ -13,6 +13,7 @@ class UserRegister(BaseModel):
     city: Optional[str] = None
     password: str = Field(..., min_length=6)
     role: str = "xaridor"
+    code: Optional[str] = None  # код из СМС, обязателен, когда включены СМС
 
     @field_validator('role')
     @classmethod
@@ -33,11 +34,20 @@ class UserLogin(BaseModel):
 
 class OTPSend(BaseModel):
     phone: str
+    purpose: str = Field(default="login", pattern="^(login|register)$")
 
 
 class OTPVerify(BaseModel):
     phone: str
     code: str
+
+
+class GoogleAuth(BaseModel):
+    credential: str
+    # для нового пользователя — дозаполняем профиль
+    phone: Optional[str] = None
+    role: Optional[str] = None
+    code: Optional[str] = None
 
 
 class Token(BaseModel):
@@ -84,6 +94,7 @@ class ProductResponse(BaseModel):
     status: ProductStatus
     delivery_available: bool = False
     pickup_location: str = ""
+    is_demo: bool = False
     created_at: Optional[datetime] = None
 
 
@@ -107,10 +118,15 @@ class OrderResponse(BaseModel):
     product_id: int
     product_title: str
     product_photo: Optional[str] = None
+    product_unit: Optional[str] = None
     xaridor_id: int
     xaridor_name: str
+    xaridor_phone: Optional[str] = None
     fermer_id: int
     fermer_name: str
+    fermer_phone: Optional[str] = None
+    my_role: Optional[str] = None          # "buyer" | "seller" — кем я являюсь в этом заказе
+    cancelled_by: Optional[str] = None     # "buyer" | "seller" | "admin"
     quantity: float
     total_price: float
     commission: float
@@ -123,8 +139,8 @@ class OrderResponse(BaseModel):
     delivery_route_to: Optional[str] = None
     delivery_distance_km: Optional[float] = None
     delivery_price: Optional[float] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 # ── Bonus schemas ─────────────────────────────────────────────────────────────
 

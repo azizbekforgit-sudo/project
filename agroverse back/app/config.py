@@ -11,6 +11,15 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 30
     upload_dir: str = "uploads"
     grok_api_key: str = ""
+    # Google Gemini: ключ задаётся ТОЛЬКО переменной окружения GEMINI_API_KEY на сервере
+    gemini_api_key: str = ""
+    gemini_models: str = "gemini-flash-latest,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-2.5-flash"
+    # Вход через Google: OAuth Client ID (Web) из Google Cloud Console
+    google_client_id: str = ""
+    # СМС-коды через Eskiz.uz
+    eskiz_email: str = ""
+    eskiz_password: str = ""
+    eskiz_from: str = "4546"
     google_maps_key: str = ""
     admin_phone: str = "+998000000000"
     admin_password: str = "admin123"
