@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, String, Integer, Numeric, Text, Boolean, 
-    DateTime, Enum, ForeignKey, Float, Index, JSON
+    DateTime, Enum, ForeignKey, Float, Index, JSON, LargeBinary
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -329,3 +329,17 @@ Index("idx_chats_order", Chat.order_id)
 Index("idx_chats_participant_a", Chat.participant_a_id)
 Index("idx_chats_participant_b", Chat.participant_b_id)
 Index("idx_chat_messages_chat", ChatMessage.chat_id)
+
+class StoredFile(Base):
+    """Загруженный файл (фото товара, чек, вложение чата) — хранится в самой базе.
+    Диск сервера на Render временный и очищается при каждом деплое, база — нет."""
+    __tablename__ = "stored_files"
+
+    id           = Column(String(32), primary_key=True)          # uuid4().hex — в ссылке /api/files/<id>
+    kind         = Column(String(20), nullable=False, index=True) # product | receipt | chat
+    owner_id     = Column(Integer, nullable=True, index=True)     # кто загрузил
+    filename     = Column(String(200), nullable=True)
+    content_type = Column(String(100), nullable=False)
+    size         = Column(Integer, nullable=False)
+    data         = Column(LargeBinary, nullable=False)
+    created_at   = Column(DateTime, server_default=func.now())

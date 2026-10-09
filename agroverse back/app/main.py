@@ -13,7 +13,7 @@ print("========== ВЕРСИЯ ФАЙЛА: MARKER-7789 ==========")
 
 from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.config import settings
-from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery, chats, ws
+from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery, chats, ws, files
 from app.models import User, Product
 from app.schemas import ProductResponse, ProductListResponse
 from app.dependencies import get_current_user
@@ -456,6 +456,7 @@ app.include_router(ai.router)
 app.include_router(delivery.router)
 app.include_router(chats.router)
 app.include_router(ws.router)
+app.include_router(files.router)
 
 
 @app.get("/api/my/products")

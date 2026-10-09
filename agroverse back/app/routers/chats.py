@@ -12,6 +12,7 @@ from app.schemas import (
 )
 from app.dependencies import get_current_user, get_current_admin
 from app.ws_manager import manager
+from app.storage import save_upload
 import re
 import os
 import uuid
@@ -298,19 +299,10 @@ async def upload_chat_file(
     if current_user.id not in (chat.participant_a_id, chat.participant_b_id):
         raise HTTPException(status_code=403, detail="Вы не участник этого чата")
 
-    # Save file
-    upload_dir = os.path.join("uploads", "chats", str(chat_id))
-    os.makedirs(upload_dir, exist_ok=True)
-
-    ext = os.path.splitext(file.filename or "")[1] or ".bin"
-    filename = f"{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(upload_dir, filename)
-
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    url = f"/uploads/chats/{chat_id}/{filename}"
+    # Файл хранится в базе: диск сервера очищается при каждом деплое
+    url = await save_upload(db, file, "chat", owner_id=current_user.id)
+    await db.commit()
+    filename = url.rsplit("/", 1)[-1]
     return {"url": url, "filename": filename}
 
 

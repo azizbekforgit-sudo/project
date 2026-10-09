@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User, BonusTransaction, UserRole
 from app.schemas import DepositRequest, WithdrawRequest
 from app.dependencies import get_current_user
+from app.storage import save_upload
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -109,18 +110,9 @@ async def upload_receipt(
     if req.user_id != current_user.id:
         raise HTTPException(403, "Нет доступа")
 
-    # Save file
-    upload_dir = os.path.join(os.getcwd(), "uploads", "receipts")
-    os.makedirs(upload_dir, exist_ok=True)
-    ext = file.filename.split(".")[-1] if "." in (file.filename or "") else "jpg"
-    filename = f"receipt_{request_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(upload_dir, filename)
-
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    req.receipt_url = f"/uploads/receipts/{filename}"
+    # Чек хранится в базе: диск сервера очищается при каждом деплое
+    url = await save_upload(db, file, "receipt", owner_id=current_user.id)
+    req.receipt_url = url
     await db.commit()
     return {"ok": True, "receipt_url": req.receipt_url}
 

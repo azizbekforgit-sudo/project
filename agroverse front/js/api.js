@@ -256,6 +256,20 @@ window.API = API;
 window.BASE_URL = BASE_URL;
 window.normalizeProduct = normalizeProduct;
 
+/* Фото, загруженные до переноса в базу, лежали на диске сервера и пропали после деплоя.
+   Вместо «битой» картинки показываем спокойную заглушку (у кого есть свой onerror — не трогаем). */
+const IMG_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#E4F1E8"/>' +
+  '<path d="M200 205c0-46 22-78 62-92-6 44-28 76-62 92zm0 0c0-36-17-60-48-71 4 34 21 58 48 71z" fill="#105C38" opacity=".35"/>' +
+  '<rect x="197" y="200" width="6" height="40" rx="3" fill="#105C38" opacity=".35"/></svg>');
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || img.dataset.fallback || img.hasAttribute('onerror')) return;
+  if (!img.src.startsWith(BASE_URL)) return;
+  img.dataset.fallback = '1';
+  img.src = IMG_FALLBACK;
+}, true);
+
 /* ═══════════════════════════════════════════════════════════════════════════
    WebSocket — реалтайм-доставка сообщений
    ═══════════════════════════════════════════════════════════════════════════ */
