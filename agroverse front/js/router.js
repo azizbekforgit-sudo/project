@@ -1,4 +1,10 @@
 const ROUTES = {
+  // Стартовая (рекламная) страница — открыта всем, гость попадает сюда первым
+  '/welcome':     { render: renderLanding,  open: true },
+  '/about':       { render: renderLanding,  open: true },
+  '/contacts':    { render: renderLanding,  open: true },
+  '/how':         { render: renderLanding,  open: true },
+
   '/login':       { render: renderLogin,    public: true },
   '/register':    { render: renderRegister, public: true },
 
@@ -65,7 +71,13 @@ function dispatch() {
   const route = ROUTES[path];
 
   if (!route) {
-    navigate(Auth.isLoggedIn() ? '/home' : '/login');
+    navigate(Auth.isLoggedIn() ? '/home' : '/welcome');
+    return;
+  }
+
+  if (route.open) {
+    route.render();
+    afterRender();
     return;
   }
 
@@ -81,9 +93,9 @@ function dispatch() {
     return;
   }
 
-  // защищённые — требуют логина
+  // защищённые — требуют логина; гость с главной идёт на стартовую страницу
   if (!route.public && !Auth.isLoggedIn()) {
-    navigate('/login');
+    navigate(path === '/home' ? '/welcome' : '/login');
     return;
   }
 
