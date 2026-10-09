@@ -28,9 +28,6 @@ async def create_order(
     if product.fermer_id == current_user.id:
         raise HTTPException(status_code=400, detail="Нельзя купить свой собственный товар")
 
-    if getattr(product, "is_demo", False):
-        raise HTTPException(status_code=400, detail="Это пример объявления — его нельзя заказать")
-
     if product.status not in ("active", "pending"):
         raise HTTPException(status_code=400, detail="Товар недоступен для заказа")
 

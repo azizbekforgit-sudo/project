@@ -106,7 +106,6 @@ function normalizeProduct(p) {
     status: p.status,
     delivery_available: p.delivery_available || false,
     pickup_location: p.pickup_location || '',
-    is_demo: !!p.is_demo,
     created_at: p.created_at,
   };
 }

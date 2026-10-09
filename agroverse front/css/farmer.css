@@ -965,19 +965,6 @@ html[data-text="l"] .fc-strip, html[data-text="xl"] .fc-strip { grid-template-co
 .g-btn { min-height: 44px; display: flex; justify-content: center; width: 100%; }
 #login-mode .seg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
-/* Примерные объявления */
-.apc-demo {
-  position: absolute; right: 10px; top: 10px; z-index: 2;
-  background: rgba(22, 34, 26, .78); color: #fff; font-size: 13px; font-weight: 700;
-  padding: 4px 10px; border-radius: 10px; display: inline-flex; gap: 6px; align-items: center;
-}
-.pd-demo-note {
-  display: flex; gap: 12px; align-items: flex-start; padding: 16px; margin-bottom: 14px;
-  background: var(--sun-lt); border: 1px solid #F3D78A; border-radius: var(--r-md); color: #6B4A00;
-}
-.pd-demo-note i { font-size: 22px; margin-top: 2px; }
-.pd-demo-note b { font-size: 17px; }
-.pd-demo-note p { font-size: 16px; margin-top: 2px; }
 
 /* ============================================================
    ПРОФИЛЬ — «Паспорт фермера»
