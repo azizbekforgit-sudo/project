@@ -23,7 +23,7 @@ const Auth = {
   logout() {
     this.removeToken();
     this.removeUser();
-    window.router.go('/login');
+    window.router.go('/welcome');
   },
 };
 
@@ -225,6 +225,11 @@ function openMenuSheet() {
       <button class="seg-btn ${TextSize.get() === 'l' ? 'active' : ''}" data-size="l" onclick="TextSize.set('l')" style="font-size:17px">${t('size_l')}</button>
       <button class="seg-btn ${TextSize.get() === 'xl' ? 'active' : ''}" data-size="xl" onclick="TextSize.set('xl')" style="font-size:19px">${t('size_xl')}</button>
     </div>
+    <a class="menu-row menu-help" href="tel:${SUPPORT_PHONE}">
+      <span class="menu-ic"><i class="fa-solid fa-phone"></i></span>
+      <span class="menu-tx"><b>${t('need_help')}</b><small>${SUPPORT_PHONE_VIEW}</small></span>
+      <i class="fa-solid fa-chevron-right menu-go"></i>
+    </a>
     <button class="menu-logout" onclick="closeSheet(); Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}</button>
   `);
 }
@@ -417,35 +422,49 @@ const SOCIAL = {
   telegram: 'https://t.me/agroverseai',
   instagram: 'https://instagram.com/agroverse_uz',
 };
+// Телефон поддержки: футер, стартовая страница, вход/регистрация, меню
+const SUPPORT_PHONE = '+998509002541';
+const SUPPORT_PHONE_VIEW = '+998 50 900 25 41';
 
 function footerHtml() {
   const link = (path, key) => `<a onclick="router.go('${path}')">${t(key)}</a>`;
+  const logged = Auth.isLoggedIn();
+  // гостю — разделы стартовой страницы и вход, вошедшему — разделы рынка
+  const platform = logged ? `
+          ${link('/market', 'nav_market')}
+          ${Auth.isFarmer() ? link('/product/new', 'ft_sell') : ''}
+          ${link('/orders', 'nav_orders')}
+          ${link('/cart', 'nav_cart')}
+          ${Auth.isFarmer() ? link('/tariffs', 'nav_tariffs') : ''}` : `
+          ${link('/how', 'ft_how')}
+          ${link('/login', 'lp_login')}
+          ${link('/register', 'lp_register')}`;
   return `
     <footer class="site-footer">
       <div class="sf-grid">
         <div class="sf-brand">
           <div class="sf-logo"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span> AgroVerse</div>
           <p>${t('ft_about')}</p>
+          <a class="sf-contact" href="tel:${SUPPORT_PHONE}"><i class="fa-solid fa-phone"></i> ${SUPPORT_PHONE_VIEW}</a>
           <a class="sf-contact" href="${SOCIAL.telegram}" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i> @agroverseai</a>
           <a class="sf-contact" href="${SOCIAL.instagram}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> @agroverse_uz</a>
         </div>
         <nav class="sf-col" aria-label="${t('ft_platform')}">
           <h3>${t('ft_platform')}</h3>
-          ${link('/market', 'nav_market')}
-          ${Auth.isFarmer() ? link('/product/new', 'ft_sell') : ''}
-          ${link('/orders', 'nav_orders')}
-          ${link('/cart', 'nav_cart')}
-          ${Auth.isFarmer() ? link('/tariffs', 'nav_tariffs') : ''}
+          ${platform}
         </nav>
         <nav class="sf-col" aria-label="${t('ft_help')}">
           <h3>${t('ft_help')}</h3>
-          ${link('/ai', 'nav_ai')}
-          ${link('/home', 'ft_how_buy')}
+          ${link('/about', 'ft_about_us')}
+          ${link('/contacts', 'ft_contacts')}
+          ${logged ? link('/ai', 'nav_ai') : ''}
+          <a href="tel:${SUPPORT_PHONE}">${t('lp_call')}:&nbsp;<span class="nw">${SUPPORT_PHONE_VIEW}</span></a>
           <a href="${SOCIAL.telegram}" target="_blank" rel="noopener">${t('ft_write_tg')}</a>
         </nav>
         <div class="sf-col">
           <h3>${t('ft_social')}</h3>
           <div class="sf-social">
+            <a href="tel:${SUPPORT_PHONE}" aria-label="${t('lp_call')}"><i class="fa-solid fa-phone"></i></a>
             <a href="${SOCIAL.telegram}" target="_blank" rel="noopener" aria-label="Telegram"><i class="fa-brands fa-telegram"></i></a>
             <a href="${SOCIAL.instagram}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
           </div>

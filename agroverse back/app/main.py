@@ -344,11 +344,12 @@ CREATE TABLE IF NOT EXISTS chat_messages (
         await safe_exec("UPDATE orders SET updated_at = COALESCE(created_at, NOW()) WHERE updated_at IS NULL")
 
     await seed_admin()
-    from app.demo_seed import seed_demo
-    try:
-        await seed_demo()
-    except Exception as e:
-        print(f"[DEMO] пропущено: {e}")
+    from app.cleanup import remove_demo, wipe_products_once
+    for step in (remove_demo, wipe_products_once):
+        try:
+            await step()
+        except Exception as e:
+            print(f"[CLEANUP] {step.__name__} пропущено: {e}")
     print("🌾 AgroVerse API запущен")
     yield
     await engine.dispose()

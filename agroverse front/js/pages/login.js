@@ -24,12 +24,14 @@ function authShell(bodyHtml) {
       </aside>
       <main class="auth2-main">
         <div class="auth2-top">
-          <div class="auth2-brand small"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span> AgroVerse</div>
+          <a class="auth2-brand small" onclick="router.go('/welcome')" title="${t('back_home')}"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span> AgroVerse</a>
           <div class="seg auth2-lang" role="group" aria-label="${t('choose_lang')}">
             ${I18nManager.langs().map(l => `<button type="button" class="seg-btn ${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')">${l.label}</button>`).join('')}
           </div>
         </div>
+        <button type="button" class="auth2-back" onclick="router.go('/welcome')"><i class="fa-solid fa-arrow-left"></i> ${t('back_home')}</button>
         <div class="auth2-box">${bodyHtml}</div>
+        <a class="auth2-help" href="tel:${SUPPORT_PHONE}"><i class="fa-solid fa-phone"></i> ${t('need_help')} <b>${SUPPORT_PHONE_VIEW}</b></a>
       </main>
     </div>`;
 }

@@ -52,7 +52,7 @@ function starsHtml(rating) {
 function productCardHtml(p) {
   const me = Auth.getUser();
   const own = me && p.fermer_id === me.id;
-  const isBuyer = Auth.canBuy() && !own && !p.is_demo;
+  const isBuyer = Auth.canBuy() && !own;
   const pending = p.status === 'pending';
   const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #105C38, #187548)';
   const img = p.images?.length
@@ -68,7 +68,6 @@ function productCardHtml(p) {
         ${img}
         ${pending ? `<span class="apc-badge">${t('on_moderation')}</span>` : ''}
         ${discountBadge}
-        ${p.is_demo ? `<span class="apc-demo"><i class="fa-solid fa-circle-info"></i> ${t('demo_badge')}</span>` : ''}
         <span class="apc-cat-tag">${p.category || 'Продукция'}</span>
       </div>
       <div class="apc-body">

@@ -55,6 +55,13 @@ function renderRegister() {
     </div>
   `);
 
+  // со стартовой страницы приходят с ?role=fermer или ?role=xaridor
+  const wantRole = new URLSearchParams((location.hash.split('?')[1]) || '').get('role');
+  if (wantRole === 'fermer' || wantRole === 'xaridor') {
+    const r = document.querySelector(`input[name="role"][value="${wantRole}"]`);
+    if (r) r.checked = true;
+  }
+
   const form = document.getElementById('reg-form');
   const btn = document.getElementById('reg-btn');
   const errBox = document.getElementById('reg-error');
