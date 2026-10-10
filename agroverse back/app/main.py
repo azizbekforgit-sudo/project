@@ -239,6 +239,10 @@ END $$;
         # пароли открытым текстом больше не храним — стираем то, что накопилось
         await safe_exec("UPDATE users SET plain_password = NULL WHERE plain_password IS NOT NULL")
 
+        # ── Chats: вопрос по товару до заказа ──
+        await safe_exec("ALTER TABLE chats ALTER COLUMN order_id DROP NOT NULL")
+        await safe_exec("ALTER TABLE chats ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES products(id) ON DELETE SET NULL")
+
         # ── Product: pickup_location ──
         await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_location VARCHAR(300) DEFAULT ''")
 

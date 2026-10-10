@@ -290,7 +290,9 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    # чат по заказу — order_id; вопрос по товару до заказа — product_id без заказа
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
     type = Column(String(20), nullable=False)
     participant_a_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     participant_b_id = Column(Integer, ForeignKey("users.id"), nullable=False)
