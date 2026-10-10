@@ -177,7 +177,7 @@ html[data-theme="dark"] .tn-link .nav-badge { color: #1A0B09; }
 }
 .app-main-content.wide { max-width: none !important; }
 
-@media (max-width: 1400px) {
+@media (max-width: 1560px) {
   .tn-lang { display: none; }
   .tn-lang-btn { display: inline-flex; }
 }
