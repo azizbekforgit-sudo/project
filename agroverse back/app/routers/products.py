@@ -12,6 +12,7 @@ from app.models import User, Product, UserRole, ProductStatus, BonusTransaction
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 from app.dependencies import get_current_user, get_current_fermer
 from app.config import settings
+from app.storage import save_upload, delete_by_urls
 
 try:
     from PIL import Image
@@ -21,18 +22,9 @@ except ImportError:
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
-async def save_photo(file: UploadFile, product_id: int) -> str:
-    product_dir = os.path.join(settings.upload_dir, "products", str(product_id))
-    os.makedirs(product_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # Имя с телефона может содержать пробелы, кириллицу и «/» — оставляем безопасные символы
-    original = os.path.basename(file.filename or "photo.jpg")
-    safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", original)[-80:] or "photo.jpg"
-    filename = f"{timestamp}_{safe_name}"
-    filepath = os.path.join(product_dir, filename)
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    return f"/uploads/products/{product_id}/{filename}"
+async def save_photo(db: AsyncSession, file: UploadFile, owner_id: int) -> str:
+    # фото хранится в базе, а не на диске: диск Render очищается при каждом деплое
+    return await save_upload(db, file, "product", owner_id=owner_id, images_only=True)
 
 @router.get("/", response_model=ProductListResponse)
 async def get_products(
@@ -237,14 +229,14 @@ async def create_product(
         status=ProductStatus.ACTIVE
     )
     db.add(new_product)
-    # flush даёт id для папки с фото, но всё сохраняется одним commit ниже:
+    # flush даёт id товара, но всё (товар, фото, бонус) сохраняется одним commit ниже:
     # если что-то упадёт, не останется «половинного» товара и дублей при повторе
     await db.flush()
 
     photo_urls = []
     valid_photos = [p for p in (photos or []) if getattr(p, "filename", None)]
     for photo in valid_photos[:10]:
-        url = await save_photo(photo, new_product.id)
+        url = await save_photo(db, photo, current_user.id)
         photo_urls.append(url)
     new_product.photos = photo_urls
 
@@ -335,6 +327,7 @@ async def delete_product(
     from app.models import Order, Review
     await db.execute(update(Order).where(Order.product_id == product_id).values(product_id=None))
     await db.execute(update(Review).where(Review.product_id == product_id).values(product_id=None))
+    await delete_by_urls(db, product.photos)
     await db.delete(product)
     await db.commit()
     return {"message": "Product deleted successfully"}
@@ -350,9 +343,9 @@ async def upload_product_photos(
     product = result.scalar_one_or_none()
     if not product or product.fermer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
-    photo_urls = product.photos or []
+    photo_urls = list(product.photos or [])
     for photo in photos[:10]:
-        url = await save_photo(photo, product_id)
+        url = await save_photo(db, photo, current_user.id)
         photo_urls.append(url)
     product.photos = photo_urls
     await db.commit()

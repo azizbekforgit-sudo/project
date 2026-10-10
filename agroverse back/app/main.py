@@ -13,7 +13,7 @@ print("========== ВЕРСИЯ ФАЙЛА: MARKER-7789 ==========")
 
 from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.config import settings
-from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery, chats, ws
+from app.routers import auth, products, orders, payment, bonus, admin, ai, delivery, chats, ws, files
 from app.models import User, Product
 from app.schemas import ProductResponse, ProductListResponse
 from app.dependencies import get_current_user
@@ -23,6 +23,8 @@ ADMIN_PASSWORD = settings.admin_password or "admin123"
 
 
 async def seed_admin():
+    if ADMIN_PASSWORD == "admin123":
+        print("[ADMIN] ВНИМАНИЕ: ADMIN_PASSWORD не задан, стоит пароль по умолчанию. Задайте его в настройках сервера.")
     from sqlalchemy import text
     from app.auth import get_password_hash
     async with AsyncSessionLocal() as db:
@@ -84,7 +86,7 @@ async def seed_admin():
             {"name": "Администратор", "phone": ADMIN_PHONE, "email": "admin@agroverse.uz", "hash": new_hash},
         )
         await db.commit()
-        print(f"[ADMIN] Создан: phone={ADMIN_PHONE}, password={ADMIN_PASSWORD}")
+        print(f"[ADMIN] Создан: phone={ADMIN_PHONE}")
 
 
 @asynccontextmanager
@@ -234,6 +236,12 @@ END $$;
         # ── Новые колонки: city и plain_password ──
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100)")
         await safe_exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS plain_password VARCHAR(255)")
+        # пароли открытым текстом больше не храним — стираем то, что накопилось
+        await safe_exec("UPDATE users SET plain_password = NULL WHERE plain_password IS NOT NULL")
+
+        # ── Chats: вопрос по товару до заказа ──
+        await safe_exec("ALTER TABLE chats ALTER COLUMN order_id DROP NOT NULL")
+        await safe_exec("ALTER TABLE chats ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES products(id) ON DELETE SET NULL")
 
         # ── Product: pickup_location ──
         await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS pickup_location VARCHAR(300) DEFAULT ''")
@@ -456,6 +464,7 @@ app.include_router(ai.router)
 app.include_router(delivery.router)
 app.include_router(chats.router)
 app.include_router(ws.router)
+app.include_router(files.router)
 
 
 @app.get("/api/my/products")
@@ -499,80 +508,6 @@ async def get_config():
         "sms_enabled": bool(settings.eskiz_email and settings.eskiz_password),
         "version": "2.0",
     }
-
-
-@app.get("/api/debug/admin-info")
-async def debug_admin_info():
-    """Debug endpoint — shows admin account info (no auth needed)"""
-    from sqlalchemy import text
-    from app.auth import verify_password
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            text("SELECT id, phone, name, is_active, password_hash FROM users WHERE lower(role) = 'admin'")
-        )
-        rows = result.fetchall()
-
-        admin_list = []
-        for row in rows:
-            password_works = verify_password(ADMIN_PASSWORD, row[4])
-            admin_list.append({
-                "id": row[0],
-                "phone": row[1],
-                "name": row[2],
-                "is_active": row[3],
-                "password_works_with_default": password_works,
-            })
-
-        return {
-            "admin_phone_setting": ADMIN_PHONE,
-            "admin_password_is_default": ADMIN_PASSWORD == "admin123",
-            "admins_found": len(admin_list),
-            "admins": admin_list,
-            "secret_key_length": len(settings.secret_key),
-        }
-
-
-@app.post("/api/debug/reset-admin")
-async def debug_reset_admin():
-    """Force-reset admin password to admin123 (no auth needed)"""
-    from sqlalchemy import text
-    from app.auth import get_password_hash
-    async with AsyncSessionLocal() as db:
-        new_hash = get_password_hash(ADMIN_PASSWORD)
-
-        result = await db.execute(
-            text("SELECT id FROM users WHERE phone = :phone"),
-            {"phone": ADMIN_PHONE},
-        )
-        admin = result.fetchone()
-
-        if admin:
-            await db.execute(
-                text("UPDATE users SET password_hash = :h, is_active = true, role = 'admin' WHERE id = :id"),
-                {"h": new_hash, "id": admin[0]},
-            )
-            await db.commit()
-            return {"ok": True, "message": f"Admin password reset for phone {ADMIN_PHONE}"}
-
-        result2 = await db.execute(
-            text("SELECT id FROM users WHERE lower(role) = 'admin' LIMIT 1")
-        )
-        any_admin = result2.fetchone()
-        if any_admin:
-            await db.execute(
-                text("UPDATE users SET phone = :phone, password_hash = :h, is_active = true WHERE id = :id"),
-                {"phone": ADMIN_PHONE, "h": new_hash, "id": any_admin[0]},
-            )
-            await db.commit()
-            return {"ok": True, "message": f"Admin updated: id={any_admin[0]}, phone={ADMIN_PHONE}"}
-
-        await db.execute(
-            text("INSERT INTO users (name, phone, email, password_hash, role, tariff, bonus_points, is_active) "
-                 "VALUES (:name, :phone, :email, :hash, 'admin', 'premium', 0, true)"),
-            {"name": "Администратор", "phone": ADMIN_PHONE, "email": "admin@agroverse.uz", "hash": new_hash},
-        )
-        await db.commit()
-        return {"ok": True, "message": f"Admin created: phone={ADMIN_PHONE}"}
 
 
 if __name__ == "__main__":

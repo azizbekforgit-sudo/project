@@ -11,181 +11,157 @@ function cityOptions(selected) {
   return UZ_CITIES.map(c => `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`).join('');
 }
 
-function starsHtml(rating) {
+function pdStars(rating) {
   const r = Math.round(rating || 0);
-  return Array.from({length: 5}, (_, i) => `<i class="fa-solid fa-star" style="color:${i < r ? '#f59e0b' : '#e5e7eb'};font-size:14px"></i>`).join('');
+  return Array.from({ length: 5 }, (_, i) => `<i class="${i < r ? 'fa-solid' : 'fa-regular'} fa-star"></i>`).join('');
 }
+
+function pdDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return isNaN(d) ? '—' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function pdShowPhoto(i) {
+  const main = document.getElementById('pd2-main-img');
+  const thumbs = document.querySelectorAll('.pd2-thumb');
+  const src = thumbs[i]?.dataset.src;
+  if (main && src) main.src = src;
+  thumbs.forEach((tb, k) => tb.classList.toggle('active', k === i));
+}
+window.pdShowPhoto = pdShowPhoto;
+
+/* «Написать продавцу»: открываем (или создаём) переписку по этому товару */
+async function pdContactSeller(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const chat = await API.askAboutProduct(id);
+    router.go('/chats/' + chat.id);
+  } catch (e) {
+    if (e.message !== 'BLOCKED') showToast(e.message, 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+window.pdContactSeller = pdContactSeller;
 
 async function renderProduct(id) {
   const app = document.getElementById('app');
-  app.innerHTML = pageShell(`
-    <div class="back-link" onclick="router.go('/market')">${t('back_market')}</div>
-    <div id="product-content"><div class="spinner"></div></div>
-  `);
+  app.innerHTML = pageShell(`<div id="product-content"><div class="spinner"></div></div>`);
 
   const content = document.getElementById('product-content');
   let isBuyer = Auth.canBuy(); // уточняется ниже: свой товар купить нельзя
 
   try {
     const p = await API.getProduct(id);
-    if (p.fermer_id === Auth.getUser()?.id) isBuyer = false;
-    
-    // Default FontAwesome icons per category
-    const FONT_ICONS = {
-      'Овощи': 'fa-solid fa-carrot',
-      'Фрукты': 'fa-solid fa-apple-whole',
-      'Зерновые': 'fa-solid fa-wheat-awn',
-      'Молочные': 'fa-solid fa-bottle-droplet',
-      'Мясо': 'fa-solid fa-drumstick-bite',
-      'Семена': 'fa-solid fa-seedling',
-      'Удобрения': 'fa-solid fa-flask'
-    };
-    const faIcon = FONT_ICONS[p.category] || 'fa-solid fa-leaf';
-    const emojiHtml = `<i class="${faIcon}" style="font-size:20px; color: #1B5C3B; margin-right: 5px;"></i>`;
-    
-    const photos = p.images || p.photos || [];
-    const hasPhotos = photos.length > 0;
-    const photoSrc = hasPhotos ? (photos[0].startsWith('http') ? photos[0] : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + photos[0]) : '';
+    const own = p.fermer_id === Auth.getUser()?.id;
+    if (own) isBuyer = false;
 
-    // Pickup location
-    const locationHtml = p.pickup_location ? `
-      <div class="pd-info-row">
-        <div class="pd-info-icon"><i class="fa-solid fa-location-dot"></i></div>
-        <div>
-          <div class="pd-info-label">${t('pd_pickup')}</div>
-          <div class="pd-info-value">${p.pickup_location}</div>
-        </div>
-      </div>
-    ` : '';
+    const name = escHtml(p.name);
+    const photos = (p.images || []).map(u => u.startsWith('http') ? u : BASE_URL + u);
+    const icon = (window.CAT_EMOJI || {})[p.category] || 'fa-solid fa-leaf';
+    const seller = escHtml(p.fermer_name || t('pc_farmer'));
+    const unit = unitLabel(p.unit);
 
-    // Delivery available badge
-    const deliveryBadge = p.delivery_available
-      ? `<span class="pd-badge pd-badge-green"><i class="fa-solid fa-truck"></i> Доставка от фермера</span>`
-      : '';
+    let radios = `<label><input type="radio" name="pickup" value="self" checked /> <i class="fa-solid fa-person-walking"></i> ${t('pickup_self')}</label>`;
+    if (p.delivery_available) radios += `<label><input type="radio" name="pickup" value="farmer" /> <i class="fa-solid fa-tractor"></i> ${t('pickup_farmer')}</label>`;
+    radios += `<label><input type="radio" name="pickup" value="external" /> <i class="fa-solid fa-truck"></i> ${t('pickup_ext')}</label>`;
 
-    // Build radio buttons for pickup
-    let radiosHtml = `<label class="radio-label"><input type="radio" name="pickup" value="self" checked /> <i class="fa-solid fa-person-walking-box"></i> ${t('pickup_self')}</label>`;
-    if (p.delivery_available) {
-      radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="farmer" /> <i class="fa-solid fa-tractor"></i> ${t('pickup_farmer')}</label>`;
-    }
-    radiosHtml += `<label class="radio-label"><input type="radio" name="pickup" value="external" /> <i class="fa-solid fa-box-open"></i> ${t('pickup_ext')}</label>`;
-
-    // Farmer info card
-    const farmerHtml = `
-      <div class="pd-farmer-card">
-        <div class="pd-farmer-avatar">
-          <i class="fa-solid fa-user-tie"></i>
-        </div>
-        <div class="pd-farmer-info">
-          <div class="pd-farmer-label">Фермер</div>
-          <div class="pd-farmer-name">${p.fermer_name || 'Фермер'}</div>
-          <div class="pd-farmer-rating">${starsHtml(p.rating)} <span>${p.rating ? p.rating.toFixed(1) : '0.0'}</span></div>
-        </div>
-      </div>
-    `;
-
-    // Order panel for buyer
     const orderPanel = isBuyer ? `
-      <div class="pd-order-panel">
-        <div class="pd-order-title">Оформление заказа</div>
-        <div class="pd-order-row">
-          <label>Количество (${p.unit || 'кг'})</label>
-          <input type="number" id="qty" value="1" min="1" max="${p.quantity || 9999}" class="pd-qty-input" />
+      <div class="v3-card pd2-order">
+        <h2>${t('pd_order_title')}</h2>
+        <label class="pd2-row"><span>${t('pd_qty')} (${unit})</span>
+          <input type="number" id="qty" value="1" min="1" max="${p.quantity || 9999}" inputmode="decimal" />
+        </label>
+        <div class="pd2-row"><span>${t('pd_how_get')}</span><div class="pd2-radios">${radios}</div></div>
+        <div class="pd2-total"><span>${t('pd_total')}</span><b id="total-price">${fmtNum(p.price)} ${t('currency')}</b></div>
+        <div class="pd2-btns">
+          <button class="btn btn-primary btn-lg" id="order-btn"><i class="fa-solid fa-check"></i> ${t('pd_order_btn')}</button>
+          <button class="btn btn-outline btn-lg" id="cart-btn"><i class="fa-solid fa-basket-shopping"></i> ${t('pd_to_cart')}</button>
         </div>
-        <div class="pd-order-row">
-          <label>Способ получения</label>
-          <div class="pd-radio-col">${radiosHtml}</div>
-        </div>
-        <div class="pd-order-total">
-          <span>Итого</span>
-          <b id="total-price">${Number(p.price).toLocaleString('ru')} ${t('currency') || 'сум'}</b>
-        </div>
-        <button class="btn btn-primary btn-full pd-btn-main" id="order-btn">
-          <i class="fa-solid fa-credit-card"></i> Оплатить
-        </button>
-        <button class="btn btn-ghost btn-full pd-btn-cart" id="cart-btn">
-          <i class="fa-solid fa-cart-plus"></i> В корзину
-        </button>
-      </div>
-    ` : `
-      <div class="pd-order-panel">
-        <div class="pd-order-title">Информация о товаре</div>
-        <div class="pd-info-row">
-          <div class="pd-info-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-          <div>
-            <div class="pd-info-label">В наличии</div>
-            <div class="pd-info-value">${p.quantity} ${p.unit || 'кг'}</div>
-          </div>
-        </div>
-        <div class="pd-info-row">
-          <div class="pd-info-icon"><i class="fa-solid fa-tag"></i></div>
-          <div>
-            <div class="pd-info-label">Категория</div>
-            <div class="pd-info-value">${p.category || '—'}</div>
-          </div>
-        </div>
-        ${locationHtml}
-      </div>
-    `;
+      </div>` : own ? `
+      <div class="v3-card pd2-own">
+        <span><i class="fa-solid fa-seedling" style="color:var(--field)"></i> ${t('pd_your_product')}</span>
+        <button class="btn btn-outline btn-sm" onclick="router.go('/profile?tab=listings')"><i class="fa-solid fa-pen"></i> ${t('pd_edit')}</button>
+      </div>` : '';
 
     content.innerHTML = `
-      <div class="pd-layout">
-        <!-- Левая колонка: инфо -->
-        <div class="pd-main">
-          <!-- Фото -->
-          <div class="pd-photo-block">
-            ${hasPhotos
-              ? `<img src="${photoSrc}" alt="${p.name}" class="pd-photo" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pd-photo-placeholder'}))" />`
-              : `<div class="pd-photo-placeholder">${emojiHtml}</div>`}
-            <span class="pd-cat-badge">${p.category || ''}</span>
+      <nav class="crumbs" aria-label="breadcrumb">
+        <a onclick="router.go('/home')">${t('nav_home')}</a><i class="fa-solid fa-chevron-right"></i>
+        <a onclick="router.go('/market')">${t('mk_title')}</a><i class="fa-solid fa-chevron-right"></i>
+        <b>${name}</b>
+      </nav>
+      <div class="pd2">
+        <div class="pd2-gallery">
+          <div class="pd2-photo">
+            <i class="${icon}" aria-hidden="true"></i>
+            ${photos.length ? `<img id="pd2-main-img" src="${photos[0]}" alt="${name}" onerror="this.remove()" />` : ''}
+            ${p.status === 'pending' ? `<span class="pill wait pc2-flag">${t('on_moderation')}</span>` : ''}
           </div>
-
-          <!-- Название и цена -->
-          <div class="pd-info-block pd-head">
-            <h1 class="pd-title">${p.name}</h1>
-            <div class="pd-price-row">
-              <div class="pd-price">${Number(p.price).toLocaleString('ru')} <small>${t('currency') || 'сум'} / ${p.unit || 'кг'}</small></div>
-              ${deliveryBadge}
-            </div>
-          </div>
-
-          <!-- Описание, место, фермер -->
-          <div class="pd-info-block pd-details">
-            <div class="pd-desc">
-              <div class="pd-desc-title">${t('pd_desc')}</div>
-              <p>${p.description || t('no_desc')}</p>
-            </div>
-            ${locationHtml}
-            ${farmerHtml}
-          </div>
+          ${photos.length > 1 ? `<div class="pd2-thumbs">${photos.map((src, i) => `
+            <button class="pd2-thumb ${i === 0 ? 'active' : ''}" data-src="${src}" onclick="pdShowPhoto(${i})" aria-label="${i + 1}"><img src="${src}" alt="" loading="lazy" /></button>`).join('')}</div>` : ''}
         </div>
 
-        <!-- Правая колонка: заказ / инфо -->
-        <div class="pd-sidebar">
+        <div class="pd2-info">
+          <div>
+            <h1 class="pd2-title">${name}</h1>
+            <div class="pd2-price">${priceHtml(p)}</div>
+            <div class="pd2-stock">${t('pd_available')}: <b>${fmtNum(p.quantity)} ${unit}</b></div>
+          </div>
+          <div class="pd2-specs">
+            <div class="pd2-spec"><i class="fa-solid fa-tag"></i><span>${t('pd_kind')}</span><b>${catLabel(p.category) || '—'}</b></div>
+            ${p.pickup_location ? `<div class="pd2-spec"><i class="fa-solid fa-location-dot"></i><span>${t('pd_region')}</span><b>${escHtml(p.pickup_location)}</b></div>` : ''}
+            <div class="pd2-spec"><i class="fa-regular fa-calendar"></i><span>${t('pd_posted')}</span><b>${pdDate(p.created_at)}</b></div>
+            ${p.delivery_available ? `<div class="pd2-spec"><i class="fa-solid fa-truck"></i><span>${t('pd_how_get')}</span><b>${t('pd_delivery_badge')}</b></div>` : ''}
+          </div>
+
+          <div class="v3-card pd2-seller">
+            <div class="pd2-seller-top">
+              <span class="pd2-seller-ava">${seller[0] || 'F'}</span>
+              <div>
+                <small>${t('pd_seller')}</small>
+                <div class="pd2-seller-name">${seller}</div>
+                <div class="pd2-seller-meta">
+                  <span>${pdStars(p.rating)} ${p.rating ? Number(p.rating).toFixed(1) : '0.0'}</span>
+                  ${p.pickup_location ? `<span><i class="fa-solid fa-location-dot"></i> ${escHtml(p.pickup_location)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            ${!own && Auth.isLoggedIn() ? `
+              <button class="btn btn-primary btn-lg btn-full" onclick="pdContactSeller(${p.id}, this)"><i class="fa-solid fa-comment-dots"></i> ${t('pd_contact')}</button>
+              <small>${t('pd_contact_hint')}</small>` : ''}
+          </div>
+
           ${orderPanel}
         </div>
       </div>
+
+      <section class="pd2-about">
+        <h2 class="v3-h2">${t('pd_about')}</h2>
+        <p>${escHtml(p.description || t('no_desc'))}</p>
+        <div class="pd2-trust">
+          <div class="v3-card"><i class="fa-solid fa-seedling"></i> ${t('pd_badge_fresh')}</div>
+          <div class="v3-card"><i class="fa-solid fa-comments"></i> ${t('pd_badge_check')}</div>
+          <div class="v3-card"><i class="fa-solid fa-handshake"></i> ${t('pd_badge_direct')}</div>
+        </div>
+      </section>
     `;
 
     if (isBuyer) {
-      // Quantity → price recalc
-      document.getElementById('qty')?.addEventListener('input', () => {
-        const qty = parseFloat(document.getElementById('qty').value) || 1;
-        document.getElementById('total-price').textContent =
-          `${(qty * Number(p.price)).toLocaleString('ru')} ${t('currency') || 'сум'}`;
+      const qtyEl = document.getElementById('qty');
+      qtyEl?.addEventListener('input', () => {
+        const qty = parseFloat(qtyEl.value) || 1;
+        document.getElementById('total-price').textContent = `${fmtNum(qty * Number(p.price))} ${t('currency')}`;
       });
 
-      // Add to cart
       document.getElementById('cart-btn')?.addEventListener('click', () => {
-        const qty = parseInt(document.getElementById('qty').value) || 1;
+        const qty = parseInt(qtyEl.value) || 1;
         addToCart(p, qty);
         if (typeof refreshCartBadges === 'function') refreshCartBadges();
-        showToast(`«${p.name}» ${t('cart_added')}`);
+        showToast(`«${name}» ${t('cart_added')}`);
       });
 
-      // Order button
       document.getElementById('order-btn')?.addEventListener('click', async () => {
-        const quantity = parseInt(document.getElementById('qty').value) || 1;
+        const quantity = parseInt(qtyEl.value) || 1;
         const pickup_method = document.querySelector('input[name="pickup"]:checked')?.value || 'self';
         const btn = document.getElementById('order-btn');
 
@@ -203,12 +179,12 @@ async function renderProduct(id) {
         } catch (e) {
           showToast(e.message, 'error');
           btn.disabled = false;
-          btn.textContent = 'Оплатить';
+          btn.innerHTML = `<i class="fa-solid fa-check"></i> ${t('pd_order_btn')}`;
         }
       });
     }
   } catch (e) {
-    content.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
+    content.innerHTML = `<div class="empty-state"><p><i class="fa-solid fa-triangle-exclamation"></i> ${escHtml(e.message)}</p></div>`;
   }
 }
 

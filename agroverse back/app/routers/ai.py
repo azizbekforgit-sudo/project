@@ -78,6 +78,47 @@ async def _ask_gemini(system_prompt: str, history: list) -> str:
     raise HTTPException(502, "Не удалось получить ответ помощника. Попробуйте ещё раз.")
 
 
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+
+async def _ask_groq(system_prompt: str, history: list) -> str:
+    """Спрашиваем Groq (OpenAI-совместимый API). Модели — по очереди, как у Gemini:
+    перегружена (429/503) или снята (404/400) — пробуем следующую."""
+    messages = [{"role": "system", "content": system_prompt}] + [
+        {"role": m.role, "content": m.content[:4000]} for m in history
+    ]
+    models = [m.strip() for m in settings.groq_models.split(",") if m.strip()]
+    last_status = None
+    async with httpx.AsyncClient(timeout=40.0) as client:
+        for model in models:
+            for attempt in range(2):
+                try:
+                    resp = await client.post(
+                        GROQ_URL,
+                        headers={"Authorization": f"Bearer {settings.groq_api_key}", "Content-Type": "application/json"},
+                        json={"model": model, "messages": messages, "temperature": 0.6, "max_tokens": 800},
+                    )
+                except httpx.RequestError:
+                    last_status = "network"
+                    break
+                last_status = resp.status_code
+                if resp.status_code == 200:
+                    text = (resp.json().get("choices") or [{}])[0].get("message", {}).get("content", "")
+                    text = (text or "").strip()
+                    if text:
+                        return text
+                    break
+                if resp.status_code in (429, 500, 503) and attempt == 0:
+                    await asyncio.sleep(1.5)
+                    continue
+                if resp.status_code in (401, 403):
+                    raise HTTPException(502, "Ключ ИИ не принят. Проверьте GROQ_API_KEY на сервере.")
+                break
+    if last_status in (429, 503):
+        raise HTTPException(503, "Помощник сейчас перегружен. Попробуйте через минуту.")
+    raise HTTPException(502, "Не удалось получить ответ помощника. Попробуйте ещё раз.")
+
+
 async def _ask_grok(system_prompt: str, history: list) -> str:
     payload = {
         "model": GROK_MODEL,
@@ -104,19 +145,27 @@ async def ai_chat(
     data: AIChatRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Чат с помощником. Ключи хранятся только на сервере (GEMINI_API_KEY или GROK_API_KEY)."""
+    """Чат с помощником. Ключи хранятся только на сервере: GROQ_API_KEY, GEMINI_API_KEY или GROK_API_KEY.
+    Если заданы несколько — сначала Groq, при его сбое — Gemini."""
     # Игнорируем любой 'system' от клиента — промпт задаётся только сервером
     history = [m for m in data.messages if m.role in ("user", "assistant")][-10:]
     if not history:
         raise HTTPException(400, "Пустой вопрос")
     system_prompt = _SYSTEM_PROMPTS.get(data.lang, _SYSTEM_PROMPTS["ru"])
 
-    if settings.gemini_api_key:
+    if settings.groq_api_key:
+        try:
+            reply = await _ask_groq(system_prompt, history)
+        except HTTPException:
+            if not settings.gemini_api_key:
+                raise
+            reply = await _ask_gemini(system_prompt, history)
+    elif settings.gemini_api_key:
         reply = await _ask_gemini(system_prompt, history)
     elif settings.grok_api_key:
         reply = await _ask_grok(system_prompt, history)
     else:
-        raise HTTPException(503, "Помощник ещё не настроен: добавьте GEMINI_API_KEY на сервере")
+        raise HTTPException(503, "Помощник ещё не настроен: добавьте GROQ_API_KEY или GEMINI_API_KEY на сервере")
     return {"reply": reply}
 
 @router.get("/demand-forecast")

@@ -89,6 +89,7 @@ function renderLanding() {
         <nav class="lp-nav" aria-label="${t('menu')}">${nav}</nav>
         <div class="lp-top-right">
           <div class="seg lp-lang" role="group" aria-label="${t('choose_lang')}">${langs}</div>
+          <button type="button" class="lp-theme" data-theme-btn onclick="Theme.toggle()" aria-label="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(Theme.get())}</button>
           ${authBtns}
         </div>
       </div>

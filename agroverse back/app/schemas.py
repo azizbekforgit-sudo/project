@@ -225,7 +225,8 @@ class ChatParticipant(BaseModel):
 
 class ChatResponse(BaseModel):
     id: int
-    order_id: int
+    order_id: Optional[int] = None
+    product_id: Optional[int] = None
     type: str
     participant_a: ChatParticipant
     participant_b: ChatParticipant
@@ -234,6 +235,9 @@ class ChatResponse(BaseModel):
     unread_count: int = 0
     order_product_title: Optional[str] = None
     order_product_photo: Optional[str] = None
+    product_price: Optional[float] = None
+    product_unit: Optional[str] = None
+    product_location: Optional[str] = None
     created_at: datetime
 
 

@@ -68,7 +68,6 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)):
         email=user_data.email,
         city=user_data.city,
         password_hash=get_password_hash(user_data.password),
-        plain_password=user_data.password,
         role=user_data.role,
         tariff="standart",
         bonus_points=20 if user_data.role == "xaridor" else 0
@@ -126,7 +125,6 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
             "phone": user.phone,
             "email": user.email,
             "city": user.city,
-            "plain_password": user.plain_password,
             "role": getattr(user.role, "value", user.role) if user.role else "xaridor",
             "wallet_balance": float(user.wallet_balance or 0),  # FIX: раньше отсутствовало
             "bonus_points": user.bonus_points,
@@ -141,7 +139,6 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "phone": current_user.phone,
         "email": current_user.email,
         "city": current_user.city,
-        "plain_password": current_user.plain_password,
         "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
         "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
@@ -180,7 +177,6 @@ async def update_profile(
         "phone": current_user.phone,
         "email": current_user.email,
         "city": current_user.city,
-        "plain_password": current_user.plain_password,
         "role": getattr(current_user.role, "value", current_user.role) if current_user.role else None,
         "tariff": getattr(current_user.tariff, "value", current_user.tariff) if current_user.tariff else None,
         "bonus_points": current_user.bonus_points,
@@ -292,7 +288,6 @@ async def change_password(
         raise HTTPException(status_code=400, detail="Неверный текущий пароль")
     
     current_user.password_hash = get_password_hash(data.new_password)
-    current_user.plain_password = data.new_password
     await db.commit()
     
     return {"message": "Пароль успешно изменён"}

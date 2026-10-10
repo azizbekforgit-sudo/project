@@ -1,135 +1,158 @@
-/* pages/chats.js — Список чатов с WebSocket */
+/* pages/chats.js — «Сообщения»: список переписок слева, переписка справа (ПК).
+   На телефоне — либо список (/chats), либо переписка (/chats/:id). */
 
 let _chatsWsHandler = null;
+let _chatsFilter = 'all';
+
+/* Общая разметка страницы: список + правая часть (заглушка или переписка) */
+function chatsLayoutHtml(convHtml, hasConv) {
+  return `
+    <div class="ch ${hasConv ? 'has-conv' : ''}">
+      <section class="v3-card ch-list" aria-label="${t('ch_title')}">
+        <div class="ch-list-head">
+          <h1 class="v3-h2">${t('ch_title')}</h1>
+          <div class="ch-tabs" role="tablist">
+            <button class="ch-tab ${_chatsFilter === 'all' ? 'active' : ''}" role="tab" data-f="all" onclick="setChatsFilter('all')">${t('ch_all')} <span id="ch-n-all"></span></button>
+            <button class="ch-tab ${_chatsFilter === 'unread' ? 'active' : ''}" role="tab" data-f="unread" onclick="setChatsFilter('unread')">${t('ch_unread')} <span id="ch-n-unread"></span></button>
+          </div>
+        </div>
+        <div class="ch-items" id="chats-wrap"><div class="spinner"></div></div>
+      </section>
+      <section class="v3-card ch-conv">${convHtml}</section>
+    </div>`;
+}
 
 async function renderChats() {
   stopChatsPolling();
+  if (typeof stopChatPolling === 'function') stopChatPolling();
   const app = document.getElementById('app');
-  app.innerHTML = pageShell(`
-    <div class="page-head">
-      <h1 class="page-title"><i class="fa-regular fa-comment" style="font-size:24px"></i> Чаты</h1>
-      <p class="page-desc">Общение по заказам</p>
-    </div>
-    <div id="chats-wrap"><div class="spinner"></div></div>
-  `);
+  app.innerHTML = pageShell(chatsLayoutHtml(`
+    <div class="ch-pick"><div><i class="fa-regular fa-comments"></i>${t('ch_pick')}</div></div>`, false));
   await loadChatsList();
   startChatsPolling();
 }
 
-async function loadChatsList() {
+function setChatsFilter(f) {
+  _chatsFilter = f;
+  document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  loadChatsList();
+}
+window.setChatsFilter = setChatsFilter;
+
+async function loadChatsList(activeId) {
   const wrap = document.getElementById('chats-wrap');
   if (!wrap) return;
+  const current = activeId ?? (location.hash.match(/^#\/chats\/(\d+)/) || [])[1];
 
   try {
     const chats = await API.getChats();
-    if (!chats?.length) {
+    const unread = (chats || []).filter(c => c.unread_count > 0);
+    const nAll = document.getElementById('ch-n-all');
+    const nUnread = document.getElementById('ch-n-unread');
+    if (nAll) nAll.textContent = chats?.length ? `(${chats.length})` : '';
+    if (nUnread) nUnread.textContent = unread.length ? `(${unread.length})` : '';
+    window._globalChatsUnread = unread.reduce((n, c) => n + c.unread_count, 0);
+
+    const list = _chatsFilter === 'unread' ? unread : (chats || []);
+    if (!list.length) {
       wrap.innerHTML = `
-        <div class="empty-state big">
-          <div class="icon"><i class="fa-regular fa-comment" style="font-size:48px"></i></div>
-          <p>У вас пока нет чатов</p>
-          <p style="color:#9ca3af;font-size:14px;margin-top:8px">Чаты появятся после создания заказов</p>
+        <div class="ch-empty">
+          <i class="fa-regular fa-comment-dots"></i>
+          <b>${t('ch_empty')}</b>
+          <p>${t('ch_empty_d')}</p>
         </div>`;
       return;
     }
-
-    wrap.innerHTML = `<div class="chat-list">${chats.map(c => chatItemHtml(c)).join('')}</div>`;
+    wrap.innerHTML = list.map(c => chatItemHtml(c, String(c.id) === String(current))).join('');
   } catch (e) {
-    wrap.innerHTML = `<div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>`;
+    wrap.innerHTML = `<div class="ch-empty"><p><i class="fa-solid fa-triangle-exclamation"></i> ${escHtml(e.message)}</p></div>`;
   }
 }
 
 function startChatsPolling() {
   stopChatsPolling();
 
-  // WebSocket handler — обновляем список при новом сообщении
+  // WebSocket: при новом сообщении обновляем список (и коротко сообщаем, от кого)
   function onNewMessage(data) {
-    const wrap = document.getElementById('chats-wrap');
-    if (!wrap) return;
-
+    if (!document.getElementById('chats-wrap')) return;
     const msg = data.message;
     if (!msg) return;
-
     const user = Auth.getUser();
-    const isFromMe = msg.sender_id === user?.id;
-
-    // Toast для сообщений от других
-    if (!isFromMe) {
-      const preview = msg.type === 'photo' ? '📷 Фото' :
-                    msg.type === 'voice' ? '🎤 Голос' :
-                    msg.type === 'location' ? '📍 Локация' :
-                    (msg.content || '').substring(0, 50);
-      showToast(`💬 ${msg.sender_name}: ${preview}`, 'info', 4000);
+    if (msg.sender_id !== user?.id && String(data.chat_id) !== String(window._chatCurrentIdPublic || '')) {
+      showToast(`${escHtml(msg.sender_name)}: ${escHtml(chatPreview(msg))}`, 'info', 4000);
     }
-
-    // Перезагружаем список чтобы обновить last_message и порядок
     loadChatsList();
   }
 
   _chatsWsHandler = onNewMessage;
-  if (typeof ChatWS !== 'undefined') {
-    ChatWS.on('new_message', onNewMessage);
-  }
+  if (typeof ChatWS !== 'undefined') ChatWS.on('new_message', onNewMessage);
 }
 
 function stopChatsPolling() {
-  if (_chatsWsHandler && typeof ChatWS !== 'undefined') {
-    ChatWS.off('new_message', _chatsWsHandler);
-  }
+  if (_chatsWsHandler && typeof ChatWS !== 'undefined') ChatWS.off('new_message', _chatsWsHandler);
   _chatsWsHandler = null;
 }
 
-function chatItemHtml(chat) {
+function chatPreview(m) {
+  if (!m) return t('ch_no_msgs');
+  if (m.type === 'photo') return t('ch_photo');
+  if (m.type === 'voice') return t('ch_voice');
+  if (m.type === 'location') return t('ch_location');
+  return (m.content || '').substring(0, 60);
+}
+
+/* Время последнего сообщения: сегодня — часы, вчера — «Вчера», иначе дата */
+function chatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const now = new Date();
+  const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = (day(now) - day(d)) / 86400000;
+  if (diff === 0) return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  if (diff === 1) return t('ch_yesterday');
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+}
+
+/* Собеседник и подпись «кто он» */
+function chatOther(chat) {
   const user = Auth.getUser();
-  const isParticipantA = chat.participant_a.id === user.id;
-  const other = isParticipantA ? chat.participant_b : chat.participant_a;
+  return chat.participant_a.id === user?.id ? chat.participant_b : chat.participant_a;
+}
+function chatRoleLabel(role) {
+  const r = String(role || '').toLowerCase();
+  if (r.includes('fermer')) return t('ch_with_farmer');
+  if (r.includes('courier')) return t('ch_with_driver');
+  return t('ch_with_buyer');
+}
 
-  const typeLabels = {
-    buyer_farmer: 'Покупатель ↔ Фермер',
-    buyer_driver: 'Покупатель ↔ Курьер',
-    driver_farmer: 'Курьер ↔ Фермер'
-  };
-  const typeIcons = {
-    buyer_farmer: '<i class="fa-solid fa-comments" style="color:#105C38"></i>',
-    buyer_driver: '<i class="fa-solid fa-truck-fast" style="color:#3B82F6"></i>',
-    driver_farmer: '<i class="fa-solid fa-tractor" style="color:#D97706"></i>'
-  };
-
+function chatItemHtml(chat, active) {
+  const other = chatOther(chat);
+  const name = escHtml(other.name || '—');
   const lastMsg = chat.last_message;
-  const lastMsgText = lastMsg
-    ? (lastMsg.type === 'photo' ? '📷 Фото' : lastMsg.type === 'voice' ? '🎤 Голос' : lastMsg.type === 'location' ? '📍 Локация' : (lastMsg.content || '...').substring(0, 50))
-    : 'Нет сообщений';
-
-  const lastMsgTime = lastMsg?.created_at
-    ? new Date(lastMsg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-    : '';
-
   const unread = chat.unread_count || 0;
-  const isFromOther = lastMsg && lastMsg.sender_name !== user?.name;
+  const about = chat.order_product_title ? escHtml(chat.order_product_title) : '';
+  const photo = chat.order_product_photo
+    ? (chat.order_product_photo.startsWith('http') ? chat.order_product_photo : BASE_URL + chat.order_product_photo) : '';
 
   return `
-    <div class="chat-item ${unread > 0 ? 'chat-item-unread' : ''}" onclick="stopChatsPolling();router.go('/chats/${chat.id}')">
-      <div class="chat-item-avatar">
-        ${typeIcons[chat.type] || '💬'}
-      </div>
-      <div class="chat-item-body">
-        <div class="chat-item-top">
-          <span class="chat-item-name">${other.name}</span>
-          <span class="chat-item-type">${typeLabels[chat.type] || chat.type}</span>
-        </div>
-        <div class="chat-item-order">
-          Заказ #${chat.order_id}${chat.order_product_title ? ' — ' + chat.order_product_title : ''}
-        </div>
-        <div class="chat-item-bottom">
-          <span class="chat-item-preview ${isFromOther ? 'chat-item-preview-new' : ''}">${lastMsgText}</span>
-          <div class="chat-item-meta">
-            ${lastMsgTime ? `<span class="chat-item-time">${lastMsgTime}</span>` : ''}
-            ${unread > 0 ? `<span class="chat-item-badge">${unread}</span>` : ''}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+    <button class="ch-item ${unread ? 'unread' : ''} ${active ? 'active' : ''}" onclick="stopChatsPolling(); router.go('/chats/${chat.id}')">
+      <span class="ch-ava">${name[0] || '?'}${photo ? `<img src="${photo}" alt="" loading="lazy" onerror="this.remove()" />` : ''}</span>
+      <span style="min-width:0">
+        <span class="ch-name" style="display:block">${name}</span>
+        <span class="ch-sub" style="display:block">${chatRoleLabel(other.role)}${about ? ' · ' + about : ''}</span>
+        <span class="ch-prev" style="display:block">${escHtml(chatPreview(lastMsg))}</span>
+      </span>
+      <span class="ch-meta">
+        <span>${chatTime(lastMsg?.created_at || chat.created_at)}</span>
+        ${unread ? `<em>${unread}</em>` : ''}
+      </span>
+    </button>`;
 }
 
 window.renderChats = renderChats;
 window.stopChatsPolling = stopChatsPolling;
+window.loadChatsList = loadChatsList;
+window.chatsLayoutHtml = chatsLayoutHtml;
+window.chatOther = chatOther;
+window.chatRoleLabel = chatRoleLabel;

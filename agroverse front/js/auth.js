@@ -106,6 +106,35 @@ const TextSize = {
 TextSize.apply(TextSize.get());
 window.TextSize = TextSize;
 
+/* ── Тема: светлая / тёмная. Пока человек не выбрал сам — как в телефоне ── */
+const Theme = {
+  saved() { try { const v = localStorage.getItem('av_theme'); return v === 'light' || v === 'dark' ? v : null; } catch { return null; } },
+  system() { return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; },
+  get() { return this.saved() || this.system(); },
+  apply(v) {
+    document.documentElement.dataset.theme = v;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = v === 'dark' ? '#0E1712' : '#F6F6F1';
+    document.querySelectorAll('[data-theme-btn]').forEach(b => {
+      b.innerHTML = themeIconHtml(v);
+      b.setAttribute('aria-label', t(v === 'dark' ? 'theme_to_light' : 'theme_to_dark'));
+      b.title = b.getAttribute('aria-label');
+    });
+    document.querySelectorAll('[data-theme-opt]').forEach(b => b.classList.toggle('active', b.dataset.themeOpt === v));
+  },
+  set(v) {
+    try { localStorage.setItem('av_theme', v); } catch {}
+    this.apply(v);
+  },
+  toggle() { this.set(this.get() === 'dark' ? 'light' : 'dark'); },
+};
+function themeIconHtml(v) {
+  return v === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+}
+Theme.apply(Theme.get());
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (!Theme.saved()) Theme.apply(Theme.system()); });
+window.Theme = Theme;
+
 const NAV_HINTS = {
   '/home': 'hint_home', '/market': 'hint_market', '/product/new': 'hint_add_product',
   '/orders': 'hint_orders', '/chats': 'hint_chats', '/ai': 'hint_ai', '/admin': 'hint_admin',
@@ -185,6 +214,15 @@ function sizeOptionsHtml() {
   return `<div class="opt-list">${row('m', t('size_m'), 17)}${row('l', t('size_l'), 20)}${row('xl', t('size_xl'), 23)}</div>`;
 }
 
+function themeSegHtml() {
+  const cur = Theme.get();
+  return `<div class="seg">
+    <button class="seg-btn ${cur === 'light' ? 'active' : ''}" data-theme-opt="light" onclick="Theme.set('light')"><i class="fa-solid fa-sun"></i> ${t('theme_light')}</button>
+    <button class="seg-btn ${cur === 'dark' ? 'active' : ''}" data-theme-opt="dark" onclick="Theme.set('dark')"><i class="fa-solid fa-moon"></i> ${t('theme_dark')}</button>
+  </div>`;
+}
+window.themeSegHtml = themeSegHtml;
+
 function openLangSheet() { openSheet('lang', t('choose_lang'), langOptionsHtml()); }
 function openSizeSheet() { openSheet('size', t('choose_size'), sizeOptionsHtml()); }
 window.openLangSheet = openLangSheet;
@@ -225,6 +263,13 @@ function openMenuSheet() {
       <button class="seg-btn ${TextSize.get() === 'l' ? 'active' : ''}" data-size="l" onclick="TextSize.set('l')" style="font-size:17px">${t('size_l')}</button>
       <button class="seg-btn ${TextSize.get() === 'xl' ? 'active' : ''}" data-size="xl" onclick="TextSize.set('xl')" style="font-size:19px">${t('size_xl')}</button>
     </div>
+    <h3 class="sheet-sub"><i class="fa-solid fa-circle-half-stroke"></i> ${t('theme_title')}</h3>
+    ${themeSegHtml()}
+    <a class="menu-row menu-help" href="${SOCIAL.feedback}" target="_blank" rel="noopener">
+      <span class="menu-ic"><i class="fa-brands fa-telegram"></i></span>
+      <span class="menu-tx"><b>${t('fb_title')}</b><small>${t('fb_hint')}</small></span>
+      <i class="fa-solid fa-chevron-right menu-go"></i>
+    </a>
     <a class="menu-row menu-help" href="tel:${SUPPORT_PHONE}">
       <span class="menu-ic"><i class="fa-solid fa-phone"></i></span>
       <span class="menu-tx"><b>${t('need_help')}</b><small>${SUPPORT_PHONE_VIEW}</small></span>
@@ -328,32 +373,33 @@ function bottomTabs() {
   ];
 }
 
-/* Главный layout: боковое меню (ПК), верхняя панель, нижняя панель (телефон) */
+/* Главный layout: верхнее меню (ПК и телефон) + нижняя панель вкладок (телефон) */
 function buildHeader() {
   const user = Auth.getUser();
   const path = currentPath();
-  const items = getNavItems();
   const cartCount = getCartCount();
   const chatsUnread = window._globalChatsUnread || 0;
   const ordersNew = window._ordersNew || 0;
   const isFarmer = Auth.isFarmer();
   const showCart = Auth.canBuy();
   const cur = (window.I18nManager && I18nManager.current) || 'uz';
+  const theme = Theme.get();
 
+  // в верхнем меню — главные разделы; «Продать» и корзина — отдельными кнопками справа
+  const items = getNavItems().filter(it => !['/cart', '/product/new'].includes(it.path));
   const links = items.map(it => {
-    const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new');
+    const active = path === it.path || (it.path === '/market' && path.startsWith('/product') && path !== '/product/new')
+      || (it.path === '/chats' && path.startsWith('/chats'));
     let badge = '';
     if (it.path === '/chats' && chatsUnread > 0) badge = `<span class="nav-badge">${chatsUnread}</span>`;
     if (it.path === '/orders') badge = `<span class="nav-badge" data-orders-badge ${ordersNew ? '' : 'hidden'}>${ordersNew}</span>`;
-    if (it.path === '/cart') badge = `<span class="nav-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>`;
-    const hint = NAV_HINTS[it.path] ? `<span class="nav-hint">${t(NAV_HINTS[it.path])}</span>` : '';
-    return `<a class="nav-item-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')" ${active ? 'aria-current="page"' : ''}>
-      <span class="nav-ic">${it.icon}</span>
-      <span class="nav-txt-wrap"><span class="nav-tx">${t(it.key)}</span>${hint}</span>${badge}
+    return `<a class="tn-link ${active ? 'active' : ''}" onclick="router.go('${it.path}')" ${active ? 'aria-current="page"' : ''}>
+      <span class="tn-link-tx">${t(it.key)}</span>${badge}
     </a>`;
   }).join('');
 
   const userInitial = escHtml((user?.name || user?.phone || 'A')[0].toUpperCase());
+  const homePath = Auth.isAdmin() ? '/admin' : '/home';
 
   const tabs = bottomTabs().map(tb => {
     const active = path === tb.path || (tb.path === '/market' && path.startsWith('/product/') && path !== '/product/new');
@@ -364,46 +410,34 @@ function buildHeader() {
   }).join('');
 
   return `
-    <aside class="sidebar-green">
-      <div class="sidebar-brand" onclick="router.go('/home')">
-        <div class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></div>
-        <div class="sb-logo-text">
-          <div class="sb-logo-title">AgroVerse</div>
-          <div class="sb-logo-sub">${roleLabel()}</div>
+    <header class="topnav">
+      <div class="tn-inner">
+        <a class="tn-brand" onclick="router.go('${homePath}')" aria-label="AgroVerse">
+          <span class="tn-logo"><i class="fa-solid fa-seedling"></i></span>
+          <span class="tn-brand-tx">AgroVerse</span>
+        </a>
+        <nav class="tn-links" aria-label="${t('menu')}">${links}</nav>
+        <div class="tn-tools">
+          <div class="tn-lang" role="group" aria-label="${t('choose_lang')}">
+            ${I18nManager.langs().map(l => `<button class="${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')" ${l.code === cur ? 'aria-current="true"' : ''}>${l.code === 'uz' ? 'O‘zbek' : l.code === 'ru' ? 'Русский' : 'English'}</button>`).join('<span aria-hidden="true">|</span>')}
+          </div>
+          <button class="tn-btn tn-lang-btn" onclick="openLangSheet()" aria-label="${t('choose_lang')}">
+            <i class="fa-solid fa-globe"></i><span>${cur.toUpperCase()}</span>
+          </button>
+          <button class="tn-btn" onclick="openSizeSheet()" aria-label="${t('choose_size')}" title="${t('choose_size')}">
+            <span class="tb-aa">A<small>A</small></span>
+          </button>
+          <button class="tn-btn" data-theme-btn onclick="Theme.toggle()" aria-label="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(theme)}</button>
+          ${isFarmer ? `<button class="tn-sell" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i><span>${t('nav_sell')}</span></button>` : ''}
+          ${showCart ? `<button class="tn-btn tn-cart" onclick="router.go('/cart')" aria-label="${t('nav_cart')}" title="${t('nav_cart')}">
+            <i class="fa-solid fa-basket-shopping"></i>
+            <span class="tn-cart-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>
+          </button>` : ''}
+          <button class="tn-user" onclick="openMenuSheet()" aria-label="${t('nav_account')}" title="${escHtml(user?.name || '')}">
+            <span class="tn-ava">${userInitial}</span>
+            ${chatsUnread ? `<span class="tn-cart-badge">${chatsUnread}</span>` : ''}
+          </button>
         </div>
-      </div>
-
-      <nav class="sidebar-nav">${links}</nav>
-
-      <div class="sidebar-user" onclick="router.go('/profile')">
-        <div class="su-avatar">${userInitial}</div>
-        <div class="su-info">
-          <div class="su-name">${escHtml(user?.name || user?.phone || '')}</div>
-          <div class="su-role">${t('hint_profile')}</div>
-        </div>
-      </div>
-      <button class="sb-logout" onclick="Auth.logout()">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}
-      </button>
-    </aside>
-
-    <header class="top-header-bar">
-      <div class="tb-brand" onclick="router.go('/home')">
-        <span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span>
-        <span class="tb-brand-tx">AgroVerse</span>
-      </div>
-      <div class="top-header-left">${searchFormHtml('topSearch', 'top-search')}</div>
-      <div class="top-header-right">
-        <button class="tb-btn" onclick="openLangSheet()" aria-label="${t('choose_lang')}">
-          <i class="fa-solid fa-globe"></i><span>${cur.toUpperCase()}</span>
-        </button>
-        <button class="tb-btn tb-size" onclick="openSizeSheet()" aria-label="${t('choose_size')}">
-          <span class="tb-aa">A<small>A</small></span>
-        </button>
-        ${showCart ? `<button class="cart-header-btn" onclick="router.go('/cart')">
-          <i class="fa-solid fa-basket-shopping"></i><span class="chb-tx">${t('nav_cart')}</span>
-          <span class="cart-header-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>
-        </button>` : ''}
       </div>
     </header>
 
@@ -421,6 +455,8 @@ function buildHeader() {
 const SOCIAL = {
   telegram: 'https://t.me/agroverseai',
   instagram: 'https://instagram.com/agroverse_uz',
+  // Отзывы и идеи. Когда появится отдельный бот — поменять ссылку здесь
+  feedback: 'https://t.me/agroverseai',
 };
 // Телефон поддержки: футер, стартовая страница, вход/регистрация, меню
 const SUPPORT_PHONE = '+998509002541';
@@ -460,6 +496,7 @@ function footerHtml() {
           ${logged ? link('/ai', 'nav_ai') : ''}
           <a href="tel:${SUPPORT_PHONE}">${t('lp_call')}:&nbsp;<span class="nw">${SUPPORT_PHONE_VIEW}</span></a>
           <a href="${SOCIAL.telegram}" target="_blank" rel="noopener">${t('ft_write_tg')}</a>
+          <a href="${SOCIAL.feedback}" target="_blank" rel="noopener">${t('fb_title')}</a>
         </nav>
         <div class="sf-col">
           <h3>${t('ft_social')}</h3>

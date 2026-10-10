@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     grok_api_key: str = ""
     # Google Gemini: ключ задаётся ТОЛЬКО переменной окружения GEMINI_API_KEY на сервере
     gemini_api_key: str = ""
+    # Groq (ключ вида gsk_...): только переменной окружения GROQ_API_KEY на сервере
+    groq_api_key: str = ""
+    groq_models: str = "llama-3.3-70b-versatile,openai/gpt-oss-120b,llama-3.1-8b-instant"
     gemini_models: str = "gemini-flash-latest,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-2.5-flash"
     # Вход через Google: OAuth Client ID (Web) из Google Cloud Console
     google_client_id: str = ""

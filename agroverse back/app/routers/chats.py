@@ -12,6 +12,7 @@ from app.schemas import (
 )
 from app.dependencies import get_current_user, get_current_admin
 from app.ws_manager import manager
+from app.storage import save_upload
 import re
 import os
 import uuid
@@ -34,12 +35,12 @@ def contains_phone(text: str) -> bool:
     return bool(PHONE_PATTERN.search(text))
 
 
-def participant_dict(user: User) -> ChatParticipant:
+def participant_dict(user: User, show_phone: bool = True) -> ChatParticipant:
     return ChatParticipant(
         id=user.id,
         name=user.name,
         role=user.role,
-        phone=user.phone
+        phone=user.phone if show_phone else None
     )
 
 
@@ -99,6 +100,44 @@ async def create_chat(
     await db.refresh(new_chat)
 
     return await _build_chat_response(new_chat, current_user.id, db)
+
+
+@router.post("/chats/product/{product_id}", response_model=ChatResponse)
+async def ask_about_product(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Вопрос продавцу до заказа: один чат на пару «покупатель — товар»."""
+    from app.models import Product
+    product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+    if product.fermer_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Это ваш товар")
+
+    existing = (await db.execute(
+        select(Chat).where(
+            Chat.product_id == product_id,
+            Chat.order_id.is_(None),
+            Chat.participant_a_id == current_user.id,
+            Chat.status == "active",
+        )
+    )).scalars().first()
+    if existing:
+        return await _build_chat_response(existing, current_user.id, db)
+
+    chat = Chat(
+        product_id=product_id,
+        type=ChatType.BUYER_FARMER.value,
+        participant_a_id=current_user.id,
+        participant_b_id=product.fermer_id,
+        status="active",
+    )
+    db.add(chat)
+    await db.commit()
+    await db.refresh(chat)
+    return await _build_chat_response(chat, current_user.id, db)
 
 
 @router.get("/chats", response_model=list[ChatResponse])
@@ -298,19 +337,10 @@ async def upload_chat_file(
     if current_user.id not in (chat.participant_a_id, chat.participant_b_id):
         raise HTTPException(status_code=403, detail="Вы не участник этого чата")
 
-    # Save file
-    upload_dir = os.path.join("uploads", "chats", str(chat_id))
-    os.makedirs(upload_dir, exist_ok=True)
-
-    ext = os.path.splitext(file.filename or "")[1] or ".bin"
-    filename = f"{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(upload_dir, filename)
-
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    url = f"/uploads/chats/{chat_id}/{filename}"
+    # Файл хранится в базе: диск сервера очищается при каждом деплое
+    url = await save_upload(db, file, "chat", owner_id=current_user.id)
+    await db.commit()
+    filename = url.rsplit("/", 1)[-1]
     return {"url": url, "filename": filename}
 
 
@@ -391,18 +421,18 @@ async def _build_chat_response(chat: Chat, current_user_id: int, db: AsyncSessio
     b_result = await db.execute(select(User).where(User.id == chat.participant_b_id))
     b_user = b_result.scalar_one()
 
-    # Get order info
+    # Товар: из заказа или, для вопроса до заказа, прямо из чата
     from app.models import Product
-    order_result = await db.execute(select(Order).where(Order.id == chat.order_id))
-    order = order_result.scalar_one()
-    product_title = None
-    product_photo = None
-    if order:
-        p_result = await db.execute(select(Product).where(Product.id == order.product_id))
-        product = p_result.scalar_one_or_none()
-        if product:
-            product_title = product.title
-            product_photo = product.photos[0] if product.photos else None
+    product_id = chat.product_id
+    if chat.order_id:
+        order = (await db.execute(select(Order).where(Order.id == chat.order_id))).scalar_one_or_none()
+        if order:
+            product_id = order.product_id
+    product = None
+    if product_id:
+        product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
+    product_title = product.title if product else None
+    product_photo = product.photos[0] if product and product.photos else None
 
     # Get last message
     last_msg_result = await db.execute(
@@ -426,13 +456,18 @@ async def _build_chat_response(chat: Chat, current_user_id: int, db: AsyncSessio
     return ChatResponse(
         id=chat.id,
         order_id=chat.order_id,
+        product_id=product.id if product else None,
         type=chat.type,
-        participant_a=participant_dict(a_user),
-        participant_b=participant_dict(b_user),
+        # до заказа телефоны не показываем — как и в карточке товара
+        participant_a=participant_dict(a_user, show_phone=bool(chat.order_id)),
+        participant_b=participant_dict(b_user, show_phone=bool(chat.order_id)),
         status=chat.status,
         last_message=last_msg_dict,
         unread_count=0,
         order_product_title=product_title,
         order_product_photo=product_photo,
+        product_price=float(product.price_per_unit) if product else None,
+        product_unit=product.unit if product else None,
+        product_location=product.pickup_location if product else None,
         created_at=chat.created_at
     )

@@ -1,5 +1,5 @@
-/* pages/profile.js — «Паспорт фермера»: обложка-поле, кольцо роста, цифры,
-   быстрые действия, мои товары, настройки. Все правки — в нижней шторке. */
+/* pages/profile.js — кабинет: меню слева (обзор, объявления, сообщения, заказы, профиль),
+   цифры, таблица объявлений, уровень, настройки. Все правки — в нижней шторке. */
 
 const ROLE_LABELS = {
   fermer: () => t('role_farmer'),
@@ -28,41 +28,21 @@ function prLevel(points) {
   return { ...cur, next, pct, toNext: next ? next.min - p : 0 };
 }
 
-function prRing(pct) {
-  const r = 58, c = 2 * Math.PI * r;
-  return `<svg class="pr-ring" viewBox="0 0 132 132" aria-hidden="true">
-    <circle cx="66" cy="66" r="${r}" class="pr-ring-bg"/>
-    <circle cx="66" cy="66" r="${r}" class="pr-ring-fg" style="stroke-dasharray:${c};stroke-dashoffset:${c}" data-off="${c * (1 - pct / 100)}"/>
-  </svg>`;
-}
-
-function prCountUp() {
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const target = Number(el.dataset.count) || 0;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches || target === 0) { el.textContent = target.toLocaleString('ru-RU'); return; }
-    const start = performance.now();
-    const step = now => {
-      const k = Math.min((now - start) / 900, 1);
-      el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))).toLocaleString('ru-RU');
-      if (k < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-  requestAnimationFrame(() => document.querySelectorAll('.pr-ring-fg').forEach(c => { c.style.strokeDashoffset = c.dataset.off; }));
-}
-
 async function renderProfile() {
   const app = document.getElementById('app');
   let user = Auth.getUser() || {};
   const isFarmer = user.role === 'fermer';
+  const qs = new URLSearchParams(location.hash.split('?')[1] || '');
+  const tab = ['overview', 'listings', 'profile'].includes(qs.get('tab')) ? qs.get('tab') : 'overview';
 
-  app.innerHTML = pageShell(`<div class="pr2" id="pr2"><div class="spinner"></div></div>`);
+  app.innerHTML = pageShell(`<div id="pr2"><div class="spinner"></div></div>`);
 
-  // свежие данные: профиль, заказы, товары (параллельно)
-  const [me, orders, mine] = await Promise.all([
+  // свежие данные: профиль, заказы, товары, переписки (параллельно)
+  const [me, orders, mine, chats] = await Promise.all([
     API.getMe().catch(() => null),
     API.getMyOrders().catch(() => []),
     isFarmer ? API.getMyProducts().then(r => r.products || []).catch(() => []) : Promise.resolve([]),
+    API.getChats().catch(() => []),
   ]);
   if (me) { user = { ...user, ...me }; Auth.setUser(user); }
 
@@ -70,112 +50,111 @@ async function renderProfile() {
   const buys = (orders || []).filter(o => o.my_role !== 'seller');
   const open = ['created', 'paid', 'ready_for_pickup', 'ready'];
   const newSales = sales.filter(o => open.includes(o.status)).length;
-  const sold = sales.filter(o => o.status === 'completed');
-  const earned = sold.reduce((s, o) => s + Number(o.total_price || 0), 0);
+  const unreadChats = (chats || []).reduce((n, c) => n + (c.unread_count || 0), 0);
+  const active = mine.filter(p => p.status === 'active' && Number(p.quantity) > 0);
   const lvl = prLevel(user.bonus_points);
   const roleLabel = (ROLE_LABELS[user.role] || ROLE_LABELS.courier)();
   const initials = (user.name || user.phone || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
   const phone = typeof fmtPhone === 'function' ? fmtPhone(user.phone) : user.phone;
 
-  const stats = isFarmer ? [
-    { n: mine.length, label: t('pr_st_products'), icon: 'fa-solid fa-store' },
-    { n: sold.length, label: t('pr_st_sold'), icon: 'fa-solid fa-handshake' },
-    { n: Math.round(earned), label: t('pr_st_earned'), icon: 'fa-solid fa-sack-dollar', sum: true },
-    { n: user.bonus_points || 0, label: t('pr_st_bonus'), icon: 'fa-solid fa-star' },
-  ] : [
-    { n: buys.length, label: t('pr_st_orders'), icon: 'fa-solid fa-box' },
-    { n: buys.filter(o => o.status === 'completed').length, label: t('pr_st_bought'), icon: 'fa-solid fa-circle-check' },
-    { n: getCartCount(), label: t('pr_st_cart'), icon: 'fa-solid fa-basket-shopping' },
-    { n: user.bonus_points || 0, label: t('pr_st_bonus'), icon: 'fa-solid fa-star' },
-  ];
+  const stat = (icon, label, n, go) => `
+    <button class="v3-card cb-stat" onclick="${go}">
+      <span class="cb-stat-ic"><i class="${icon}"></i></span>
+      <span><small>${label}</small><b>${fmtNum(n)}</b></span>
+    </button>`;
+  const stats = isFarmer
+    ? stat('fa-solid fa-store', t('cb_active'), active.length, `prTab('listings')`)
+      + stat('fa-solid fa-comment-dots', t('cb_new_msgs'), unreadChats, `router.go('/chats')`)
+      + stat('fa-solid fa-box', t('cb_new_orders'), newSales, `router.go('/orders?tab=sales')`)
+    : stat('fa-solid fa-box', t('cb_my_orders'), buys.length, `router.go('/orders')`)
+      + stat('fa-solid fa-comment-dots', t('cb_new_msgs'), unreadChats, `router.go('/chats')`)
+      + stat('fa-solid fa-basket-shopping', t('pr_st_cart'), getCartCount(), `router.go('/cart')`);
 
-  const actions = [
-    ...(isFarmer ? [{ go: '/product/new', icon: 'fa-solid fa-plus', key: 'act_sell', main: true }] : []),
-    { go: '/orders' + (isFarmer ? '?tab=sales' : ''), icon: 'fa-solid fa-box', key: 'nav_orders', badge: newSales },
-    { go: '/market', icon: 'fa-solid fa-store', key: 'nav_market' },
-    { go: '/cart', icon: 'fa-solid fa-basket-shopping', key: 'nav_cart', badge: getCartCount() },
-    { go: '/wallet', icon: 'fa-solid fa-wallet', key: 'nav_wallet' },
-    ...(isFarmer ? [{ go: '/tariffs', icon: 'fa-solid fa-medal', key: 'nav_tariffs' }] : [{ go: '/ai', icon: 'fa-solid fa-robot', key: 'nav_ai' }]),
-  ];
+  const nav = (key, icon, label, badge) => `
+    <button class="cb-nav ${tab === key ? 'active' : ''}" data-tab="${key}" onclick="prTab('${key}')">
+      <i class="${icon}"></i><span>${label}</span>${badge ? `<em>${badge}</em>` : ''}
+    </button>`;
+
+  const listingsHead = `
+    <div class="v3-head">
+      <h2 class="v3-h2">${t(isFarmer ? 'cb_active' : 'my_products')} <span class="pr2-count">${mine.length}</span></h2>
+      <button class="btn btn-primary" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('cb_new_listing')}</button>
+    </div>`;
 
   document.getElementById('pr2').innerHTML = `
-    <section class="pr2-hero">
-      <div class="pr2-cover" aria-hidden="true">${typeof fieldSceneSvg === 'function' ? fieldSceneSvg() : ''}</div>
-      <div class="pr2-id">
-        <div class="pr2-ava-wrap" title="${t(lvl.key)}">
-          ${prRing(lvl.pct)}
-          <div class="pr2-ava">${escHtml(initials)}</div>
-          <span class="pr2-lvl-ic"><i class="${lvl.icon}"></i></span>
+    <div class="cb">
+      <aside class="v3-card cb-side">
+        <div class="cb-me">
+          <span class="cb-ava">${escHtml(initials)}</span>
+          <span style="min-width:0"><b>${escHtml(user.name || '')}</b><small>${roleLabel}</small></span>
         </div>
-        <div class="pr2-who">
-          <span class="pr2-role"><i class="fa-solid ${isFarmer ? 'fa-seedling' : 'fa-basket-shopping'}"></i> ${roleLabel}</span>
-          <h1 class="pr2-name">${escHtml(user.name || '')}</h1>
-          <div class="pr2-meta">
-            ${phone ? `<span><i class="fa-solid fa-phone"></i> ${phone}</span>` : ''}
-            ${user.city ? `<span><i class="fa-solid fa-location-dot"></i> ${escHtml(user.city)}</span>` : `<button class="pr2-add-city" onclick="openProfileEdit('city')"><i class="fa-solid fa-plus"></i> ${t('pr_add_city')}</button>`}
+        ${nav('overview', 'fa-solid fa-house', t('cb_overview'))}
+        ${isFarmer ? nav('listings', 'fa-solid fa-list', t('cb_listings')) : ''}
+        <button class="cb-nav" onclick="router.go('/chats')"><i class="fa-solid fa-comment-dots"></i><span>${t('cb_inquiries')}</span>${unreadChats ? `<em>${unreadChats}</em>` : ''}</button>
+        <button class="cb-nav" onclick="router.go('/orders${isFarmer ? '?tab=sales' : ''}')"><i class="fa-solid fa-box"></i><span>${t('nav_orders')}</span>${newSales ? `<em>${newSales}</em>` : ''}</button>
+        ${nav('profile', 'fa-solid fa-user', t('cb_profile'))}
+      </aside>
+
+      <div class="cb-main">
+        <h1 class="v3-h1">${t(isFarmer ? 'cb_title_f' : 'cb_title_b')}</h1>
+
+        <section class="cb-tab" data-tab="overview" ${tab === 'overview' ? '' : 'hidden'}>
+          <div class="cb-main">
+            <div class="cb-stats">${stats}</div>
+            ${isFarmer ? `${listingsHead}<div id="pr-products-list">${prProductsHtml(mine.slice(0, 5))}</div>
+              ${mine.length > 5 ? `<a class="v3-more" onclick="prTab('listings')">${t('see_all')} <i class="fa-solid fa-arrow-right"></i></a>` : ''}` : `
+              <div class="pr2-actions">
+                ${[['/market', 'fa-solid fa-store', 'nav_market'], ['/cart', 'fa-solid fa-basket-shopping', 'nav_cart'], ['/wallet', 'fa-solid fa-wallet', 'nav_wallet'], ['/ai', 'fa-solid fa-robot', 'nav_ai']]
+                  .map(([go, ic, k]) => `<button class="pr2-act" onclick="router.go('${go}')"><span class="pr2-act-ic"><i class="${ic}"></i></span><span>${t(k)}</span></button>`).join('')}
+              </div>`}
+            <div class="v3-card cb-level">
+              <div class="cb-level-top">
+                <b><i class="${lvl.icon}"></i> ${t('cb_level')}: ${t(lvl.key)}</b>
+                <span>${lvl.next ? `${t('pr_to_next')} «${t(lvl.next.key)}»: ${lvl.toNext} ${t('pr_points')}` : t('pr_top_level')}</span>
+              </div>
+              <div class="cb-bar"><i style="width:${lvl.pct}%"></i></div>
+              <small>${isFarmer ? t('pr_level_how_f') : t('pr_level_how_b')}</small>
+            </div>
           </div>
-        </div>
-        <button class="btn btn-outline pr2-edit" onclick="openProfileEdit('name')"><i class="fa-solid fa-pen"></i> ${t('pr_edit')}</button>
+        </section>
+
+        ${isFarmer ? `
+        <section class="cb-tab" data-tab="listings" ${tab === 'listings' ? '' : 'hidden'}>
+          <div class="cb-main">
+            ${listingsHead}
+            <div id="pr-products-all">${prProductsHtml(mine)}</div>
+          </div>
+        </section>` : ''}
+
+        <section class="cb-tab" data-tab="profile" ${tab === 'profile' ? '' : 'hidden'}>
+          <div class="cb-main">
+            <div class="pr2-settings">
+              ${prRow('fa-solid fa-user', t('field_name'), escHtml(user.name || '—'), `openProfileEdit('name')`)}
+              ${prRow('fa-solid fa-location-dot', t('pr_city'), escHtml(user.city || '—'), `openProfileEdit('city')`)}
+              ${prRow('fa-solid fa-envelope', 'Email', escHtml(user.email || '—'), `openProfileEdit('email')`)}
+              ${prRow('fa-solid fa-phone', t('auth_phone'), phone || '—', null, t('phone_locked'))}
+              ${prRow('fa-solid fa-globe', t('choose_lang'), (I18nManager.langs().find(l => l.code === I18nManager.current) || {}).label || '', `openLangSheet()`)}
+              ${prRow('fa-solid fa-text-height', t('choose_size'), t({ m: 'size_m', l: 'size_l', xl: 'size_xl' }[TextSize.get()]), `openSizeSheet()`)}
+              ${prRow('fa-solid fa-circle-half-stroke', t('theme_title'), t(Theme.get() === 'dark' ? 'theme_dark' : 'theme_light'), `Theme.toggle(); renderProfile()`)}
+              ${prRow('fa-solid fa-key', t('pr_password'), '••••••', `openChangePassword()`)}
+              ${prRow('fa-brands fa-telegram', t('fb_title'), t('fb_hint'), `window.open(SOCIAL.feedback, '_blank', 'noopener')`)}
+            </div>
+            <button class="menu-logout" onclick="Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}</button>
+          </div>
+        </section>
       </div>
-      <div class="pr2-level">
-        <div class="pr2-level-top">
-          <b><i class="${lvl.icon}"></i> ${t(lvl.key)}</b>
-          <span>${lvl.next ? `${t('pr_to_next')} «${t(lvl.next.key)}»: ${lvl.toNext} ${t('pr_points')}` : t('pr_top_level')}</span>
-        </div>
-        <div class="pr2-bar"><i style="width:${lvl.pct}%"></i></div>
-        <small>${isFarmer ? t('pr_level_how_f') : t('pr_level_how_b')}</small>
-      </div>
-    </section>
-
-    <section class="pr2-stats">
-      ${stats.map(s => `
-        <div class="pr2-stat">
-          <i class="${s.icon}"></i>
-          <b><span data-count="${s.n}">0</span>${s.sum ? ` <small>${t('currency') || 'сум'}</small>` : ''}</b>
-          <span>${s.label}</span>
-        </div>`).join('')}
-    </section>
-
-    ${isFarmer && newSales ? `
-      <button class="pr2-alert" onclick="router.go('/orders?tab=sales')">
-        <span class="pr2-alert-ic"><i class="fa-solid fa-bell"></i><em>${newSales}</em></span>
-        <span><b>${t('pr_new_orders')}</b><small>${t('pr_new_orders_d')}</small></span>
-        <i class="fa-solid fa-chevron-right"></i>
-      </button>` : ''}
-
-    <section class="pr2-actions">
-      ${actions.map(a => `
-        <button class="pr2-act ${a.main ? 'main' : ''}" onclick="router.go('${a.go}')">
-          <span class="pr2-act-ic"><i class="${a.icon}"></i>${a.badge ? `<em>${a.badge}</em>` : ''}</span>
-          <span>${t(a.key)}</span>
-        </button>`).join('')}
-    </section>
-
-    ${isFarmer ? `
-    <section class="pr2-sec">
-      <div class="fh-head">
-        <h2 class="fh-h2">${t('my_products')} <span class="pr2-count">${mine.length}</span></h2>
-        <button class="btn btn-primary" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('add_btn')}</button>
-      </div>
-      <div id="pr-products-list">${prProductsHtml(mine)}</div>
-    </section>` : ''}
-
-    <section class="pr2-sec">
-      <h2 class="fh-h2">${t('settings_label')}</h2>
-      <div class="pr2-settings">
-        ${prRow('fa-solid fa-user', t('field_name'), escHtml(user.name || '—'), `openProfileEdit('name')`)}
-        ${prRow('fa-solid fa-location-dot', t('pr_city'), escHtml(user.city || '—'), `openProfileEdit('city')`)}
-        ${prRow('fa-solid fa-envelope', 'Email', escHtml(user.email || '—'), `openProfileEdit('email')`)}
-        ${prRow('fa-solid fa-phone', t('auth_phone'), phone || '—', null, t('phone_locked'))}
-        ${prRow('fa-solid fa-globe', t('choose_lang'), (I18nManager.langs().find(l => l.code === I18nManager.current) || {}).label || '', `openLangSheet()`)}
-        ${prRow('fa-solid fa-text-height', t('choose_size'), t({ m: 'size_m', l: 'size_l', xl: 'size_xl' }[TextSize.get()]), `openSizeSheet()`)}
-        ${prRow('fa-solid fa-key', t('pr_password'), '••••••', `openChangePassword()`)}
-      </div>
-      <button class="menu-logout" onclick="Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}</button>
-    </section>
+    </div>
   `;
-  prCountUp();
 }
+
+/* Переключение разделов кабинета без перезагрузки; вкладка — в адресе */
+function prTab(key) {
+  document.querySelectorAll('.cb-tab').forEach(s => { s.hidden = s.dataset.tab !== key; });
+  document.querySelectorAll('.cb-nav[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === key));
+  history.replaceState(null, '', '#/profile' + (key === 'overview' ? '' : '?tab=' + key));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.prTab = prTab;
 
 function prRow(icon, label, value, action, lockedText) {
   return `
@@ -186,41 +165,58 @@ function prRow(icon, label, value, action, lockedText) {
     </${action ? 'button' : 'div'}>`;
 }
 
+/* Мои объявления: таблица на ПК, карточки на телефоне */
+function prState(p) {
+  if (p.status === 'pending') return `<span class="pill wait">${t('cb_st_pending')}</span>`;
+  if (p.status === 'rejected') return `<span class="pill bad">${t('cb_st_rejected')}</span>`;
+  if (Number(p.quantity) <= 0) return `<span class="pill off">${t('cb_st_out')}</span>`;
+  return `<span class="pill ok">${t('cb_st_active')}</span>`;
+}
+
 function prProductsHtml(list) {
   if (!list.length) {
     return `<div class="od-empty"><i class="fa-solid fa-seedling"></i><p>${t('pr_no_products')}</p>
       <button class="btn btn-primary btn-lg" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i> ${t('act_sell')}</button></div>`;
   }
-  return `<div class="pr2-products">${list.map(p => {
-    const img = p.images?.[0];
-    const out = Number(p.quantity) <= 0;
-    return `
-      <article class="pr2-prod ${out ? 'out' : ''}">
-        <div class="pr2-prod-img" onclick="router.go('/product/${p.id}')">
-          <i class="${CAT_EMOJI_PROF[p.category] || 'fa-solid fa-leaf'}"></i>
-          ${img ? `<img src="${img}" alt="" loading="lazy" onerror="this.remove()" />` : ''}
-          <span class="pr2-prod-state">${out ? t('pr_out') : t('pr_on_sale')}</span>
-        </div>
-        <div class="pr2-prod-body">
+  const img = p => `<span class="cb-prod-img"><i class="${CAT_EMOJI_PROF[p.category] || 'fa-solid fa-leaf'}"></i>${p.images?.[0] ? `<img src="${p.images[0]}" alt="" loading="lazy" onerror="this.remove()" />` : ''}</span>`;
+  const acts = p => `
+    <div class="cb-acts">
+      <button class="btn btn-outline btn-sm" onclick="openProductEdit(${p.id})"><i class="fa-solid fa-pen"></i> ${t('cb_edit')}</button>
+      <button class="cb-del" onclick="deleteMyProduct(${p.id}, this)" data-name="${escHtml(p.name)}" aria-label="${t('pr_delete')}" title="${t('pr_delete')}"><i class="fa-solid fa-trash"></i></button>
+    </div>`;
+  const price = p => `${fmtNum(p.price)} ${t('currency')}/${unitLabel(p.unit)}`;
+  const qty = p => `${fmtNum(p.quantity)} ${unitLabel(p.unit)}`;
+  return `
+    <div class="v3-card cb-table-wrap">
+      <table class="cb-table">
+        <thead><tr><th>${t('cb_col_product')}</th><th>${t('cb_col_price')}</th><th>${t('cb_col_qty')}</th><th>${t('cb_col_state')}</th><th>${t('cb_col_actions')}</th></tr></thead>
+        <tbody>${list.map(p => `
+          <tr>
+            <td><div class="cb-prod" onclick="router.go('/product/${p.id}')">${img(p)}<b>${escHtml(p.name)}</b></div></td>
+            <td>${price(p)}</td>
+            <td>${qty(p)}</td>
+            <td>${prState(p)}</td>
+            <td>${acts(p)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="cb-cards">${list.map(p => `
+      <article class="v3-card cb-card">
+        <span onclick="router.go('/product/${p.id}')">${img(p)}</span>
+        <div>
           <b>${escHtml(p.name)}</b>
-          <div class="pr2-prod-price">${Number(p.price).toLocaleString('ru-RU')} <small>${t('currency') || 'сум'} / ${escHtml(p.unit || '')}</small></div>
-          <div class="pr2-prod-left">${t('pr_left')}: <b>${Number(p.quantity).toLocaleString('ru-RU')} ${escHtml(p.unit || '')}</b></div>
-          <div class="pr2-prod-btns">
-            <button class="btn btn-outline btn-sm" onclick="openProductEdit(${p.id})"><i class="fa-solid fa-pen"></i> ${t('field_edit')}</button>
-            <button class="btn btn-reject-o btn-sm" onclick="deleteMyProduct(${p.id}, this)" data-name="${escHtml(p.name)}" aria-label="${t('pr_delete')}"><i class="fa-solid fa-trash"></i></button>
-          </div>
+          <div class="cb-card-meta">${price(p)} · ${qty(p)}</div>
+          ${prState(p)}
         </div>
-      </article>`;
-  }).join('')}</div>`;
+        ${acts(p)}
+      </article>`).join('')}
+    </div>`;
 }
 
 async function loadFarmerProducts() {
-  const box = document.getElementById('pr-products-list');
-  if (!box) return;
-  try {
-    const r = await API.getMyProducts();
-    box.innerHTML = prProductsHtml(r.products || []);
-  } catch (e) { box.innerHTML = `<p>${e.message}</p>`; }
+  // после правки товара проще перерисовать кабинет: обновятся и таблица, и цифры
+  renderProfile();
 }
 
 /* Удаление товара — с подтверждением в шторке */

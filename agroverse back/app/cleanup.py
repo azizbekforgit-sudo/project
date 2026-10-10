@@ -61,6 +61,7 @@ async def wipe_products_once() -> None:
             await db.commit()
             return
         n = await _detach_and_delete_products(db, "TRUE")
+        await db.execute(text("DELETE FROM stored_files WHERE kind = 'product'"))
         await db.execute(text("INSERT INTO app_flags (key) VALUES ('wipe_products')"))
         await db.commit()
         shutil.rmtree(os.path.join(settings.upload_dir, "products"), ignore_errors=True)

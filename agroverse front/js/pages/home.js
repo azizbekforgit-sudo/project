@@ -1,5 +1,5 @@
-/* pages/home.js — главная «для фермера»: приветствие, крупные действия,
-   календарь поля, категории, товары дня и подсказка «как пользоваться». */
+/* pages/home.js — главная: первый экран, категории, свежие объявления,
+   календарь поля и подсказка «как пользоваться». */
 
 const HOME_CATEGORIES = [
   { value: 'Овощи',    key: 'cat_vegetables', icon: 'fa-solid fa-carrot',         img: 'assets/cat-vegetables.jpg' },
@@ -11,13 +11,6 @@ const HOME_CATEGORIES = [
   { value: 'Цветы',    key: 'cat_flowers',    icon: 'fa-solid fa-spa',            img: '' },
   { value: 'Семена',   key: 'cat_seeds',      icon: 'fa-solid fa-seedling',       img: '' },
 ];
-
-function homeGreeting() {
-  const h = new Date().getHours();
-  if (h < 11) return t('greet_morning');
-  if (h < 18) return t('greet_day');
-  return t('greet_evening');
-}
 
 /* Нарисованное поле: небо и солнце зависят от времени суток */
 function fieldSceneSvg() {
@@ -44,36 +37,6 @@ function fieldSceneSvg() {
       <path d="M470 190 l6 -26 l6 26z"/><path d="M490 192 l6 -30 l6 30z"/><path d="M510 190 l6 -24 l6 24z"/>
     </g>
   </svg>`;
-}
-
-function homeDateLine() {
-  const d = new Date();
-  const wd = tx('wd')[d.getDay()];
-  const mg = tx('mg')[d.getMonth()];
-  const line = `${wd}, ${d.getDate()} ${mg}`;
-  return line.charAt(0).toUpperCase() + line.slice(1);
-}
-
-function homeActions(isFarmer) {
-  const list = isFarmer ? [
-    { go: '/product/new', icon: 'fa-solid fa-plus',            title: 'act_sell',          desc: 'act_sell_d', main: true },
-    { go: '/orders',      icon: 'fa-solid fa-box',             title: 'act_orders',        desc: 'act_orders_farmer_d' },
-    { go: '/chats',       icon: 'fa-solid fa-comment-dots',    title: 'act_chats',         desc: 'act_chats_d' },
-    { go: '/market',      icon: 'fa-solid fa-scale-balanced',  title: 'act_market_farmer', desc: 'act_market_farmer_d' },
-  ] : [
-    { go: '/market',      icon: 'fa-solid fa-store',           title: 'act_buy',           desc: 'act_buy_d', main: true },
-    { go: '/cart',        icon: 'fa-solid fa-basket-shopping', title: 'act_cart',          desc: 'act_cart_d', badge: getCartCount() },
-    { go: '/orders',      icon: 'fa-solid fa-truck',           title: 'act_orders',        desc: 'act_orders_buyer_d' },
-    { go: '/ai',          icon: 'fa-solid fa-circle-question', title: 'act_ai',            desc: 'act_ai_d' },
-  ];
-  return list.map(a => `
-    <button class="act-tile ${a.main ? 'main' : ''}" onclick="router.go('${a.go}')">
-      <span class="act-ic"><i class="${a.icon}"></i>${a.badge !== undefined ? `<span class="act-badge" data-cart-badge ${a.badge ? '' : 'hidden'}>${a.badge}</span>` : ''}</span>
-      <span class="act-title">${t(a.title)}</span>
-      <span class="act-desc">${t(a.desc)}</span>
-      <span class="act-go">${t('open')} <i class="fa-solid fa-arrow-right"></i></span>
-      <i class="fa-solid fa-chevron-right act-chev" aria-hidden="true"></i>
-    </button>`).join('');
 }
 
 /* Календарь поля: 12 месяцев, текущий отмечен, ниже — что делать в выбранном */
@@ -126,15 +89,6 @@ function centerCurrentMonth() {
 }
 window.homeSelectMonth = homeSelectMonth;
 
-function homeCategories() {
-  return HOME_CATEGORIES.map(c => `
-    <button class="cat-photo" onclick="router.go('/market?cat=${encodeURIComponent(c.value)}')">
-      <span class="cp-media"><i class="${c.icon}"></i>${c.img
-        ? `<img src="${c.img}" alt="" loading="lazy" onerror="this.remove()" />` : ''}</span>
-      <span class="cp-name">${t(c.key)}</span>
-    </button>`).join('');
-}
-
 function homeSteps(isFarmer) {
   const keys = isFarmer ? ['f1', 'f2', 'f3'] : ['b1', 'b2', 'b3'];
   const icons = isFarmer
@@ -150,28 +104,45 @@ function homeSteps(isFarmer) {
     </li>`).join('');
 }
 
+/* Плитки категорий: как в дизайне — иконка и подпись */
+function homeCatTiles() {
+  return HOME_CATEGORIES.map(c => `
+    <button class="hm-cat" onclick="router.go('/market?cat=${encodeURIComponent(c.value)}')">
+      <i class="${c.icon}" aria-hidden="true"></i><span>${t(c.key)}</span>
+    </button>`).join('');
+}
+
 async function renderHome() {
   const app      = document.getElementById('app');
-  const user     = Auth.getUser();
   const isFarmer = Auth.isFarmer();
-  const firstName = escHtml((user?.name || '').split(' ')[0]);
 
   app.innerHTML = pageShell(`
-    <div class="fh">
-      <section class="fh-greet">
-        <div class="fh-greet-text">
-          <div class="fh-date"><i class="fa-regular fa-calendar"></i> ${homeDateLine()}</div>
-          <h1 class="fh-hello">${homeGreeting()}${firstName ? `, <span>${firstName}</span>` : ''}!</h1>
-          <p class="fh-sub">${t(isFarmer ? 'greet_sub_farmer' : 'greet_sub_buyer')}</p>
+    <div class="hm">
+      <section class="hm-hero">
+        <div class="hm-hero-text">
+          <h1 class="hm-h1"><span>${t('hm_h1a')}</span><span>${t('hm_h1b')}</span></h1>
+          <p class="hm-lead">${t('hm_lead')}</p>
+          <div class="hm-cta">
+            <button class="btn btn-primary btn-lg" onclick="router.go('/market')"><i class="fa-solid fa-magnifying-glass"></i> ${t('hm_find')}</button>
+            ${isFarmer ? `<button class="btn btn-outline btn-lg" onclick="router.go('/product/new')"><i class="fa-solid fa-seedling"></i> ${t('hm_sell')}</button>` : ''}
+          </div>
         </div>
-        <div class="fh-greet-art" aria-hidden="true">${fieldSceneSvg()}</div>
+        <div class="hm-hero-art" aria-hidden="true">
+          <div class="hm-art-light">${fieldSceneSvg()}</div>
+          <img class="hm-art-dark" src="assets/hero-field.jpg" alt="" loading="lazy" />
+        </div>
       </section>
 
-      <section class="fh-search" aria-label="${t('search_btn')}">${searchFormHtml('homeSearch', 'big')}</section>
+      <section class="hm-section" aria-label="${t('hm_cats')}">
+        <div class="hm-cats">${homeCatTiles()}</div>
+      </section>
 
-      <section class="fh-section">
-        <h2 class="fh-h2">${t('what_todo')}</h2>
-        <div class="act-grid">${homeActions(isFarmer)}</div>
+      <section class="hm-section">
+        <div class="v3-head">
+          <h2 class="v3-h2">${t('hm_fresh')}</h2>
+          <a class="v3-more" onclick="router.go('/market')">${t('see_all')} <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div id="home-products" class="agri-products-grid"><div class="spinner"></div></div>
       </section>
 
       <section class="fh-section fc-card">
@@ -182,22 +153,6 @@ async function renderHome() {
           </div>
         </div>
         <div id="fieldCalendar">${fieldCalendarHtml(new Date().getMonth())}</div>
-      </section>
-
-      <section class="fh-section">
-        <div class="fh-head">
-          <h2 class="fh-h2">${t('cats_title')}</h2>
-          <a class="fh-more" onclick="router.go('/market')">${t('see_all')} <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-        <div class="cat-photo-grid">${homeCategories()}</div>
-      </section>
-
-      <section class="fh-section">
-        <div class="fh-head">
-          <h2 class="fh-h2">${t('market_today')}</h2>
-          <a class="fh-more" onclick="router.go('/market')">${t('see_all')} <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-        <div id="home-products" class="agri-products-grid"><div class="spinner"></div></div>
       </section>
 
       <section class="fh-section fh-split">
@@ -223,7 +178,7 @@ async function renderHome() {
     if (!grid) return;
     if (!products.length) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-        <i class="fa-solid fa-leaf" style="font-size:48px;color:var(--clr-primary)"></i>
+        <i class="fa-solid fa-leaf" style="font-size:48px;color:var(--field)"></i>
         <p>${t('no_products_yet')} ${isFarmer ? t('add_first') : t('come_later')}</p>
       </div>`;
       return;
@@ -232,7 +187,7 @@ async function renderHome() {
   } catch (e) {
     if (e.message === 'BLOCKED') return;
     const grid = document.getElementById('home-products');
-    if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p><i class="fa-solid fa-triangle-exclamation"></i> ${e.message}</p></div>`;
+    if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p><i class="fa-solid fa-triangle-exclamation"></i> ${escHtml(e.message)}</p></div>`;
   }
 }
 
