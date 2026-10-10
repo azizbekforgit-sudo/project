@@ -129,7 +129,7 @@ async function renderHome() {
         </div>
         <div class="hm-hero-art" aria-hidden="true">
           <div class="hm-art-light">${fieldSceneSvg()}</div>
-          <img class="hm-art-dark" src="assets/hero-field.jpg" alt="" loading="lazy" />
+          <img class="hm-art-dark" src="assets/hero-dusk.svg" alt="" loading="lazy" />
         </div>
       </section>
 
