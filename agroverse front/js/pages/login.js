@@ -28,6 +28,7 @@ function authShell(bodyHtml) {
           <div class="seg auth2-lang" role="group" aria-label="${t('choose_lang')}">
             ${I18nManager.langs().map(l => `<button type="button" class="seg-btn ${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')">${l.label}</button>`).join('')}
           </div>
+          <button type="button" class="lp-theme" data-theme-btn onclick="Theme.toggle()" aria-label="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(Theme.get())}</button>
         </div>
         <button type="button" class="auth2-back" onclick="router.go('/welcome')"><i class="fa-solid fa-arrow-left"></i> ${t('back_home')}</button>
         <div class="auth2-box">${bodyHtml}</div>

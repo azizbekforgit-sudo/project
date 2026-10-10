@@ -228,6 +228,8 @@ const API = {
   getChats: () => request('GET', '/api/chats'),
   getChat: (chatId) => request('GET', `/api/chats/${chatId}`),
   createChat: (body) => request('POST', '/api/chats', { body }),
+  // вопрос продавцу до заказа: один чат на пару «покупатель — товар»
+  askAboutProduct: (productId) => request('POST', `/api/chats/product/${productId}`),
   getChatMessages: (chatId, params) => request('GET', `/api/chats/${chatId}/messages`, { params }),
   sendMessage: (chatId, body) => request('POST', `/api/chats/${chatId}/messages`, { body }),
   uploadChatFile: async (chatId, file) => {

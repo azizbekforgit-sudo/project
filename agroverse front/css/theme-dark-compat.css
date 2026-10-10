@@ -1,0 +1,222 @@
+/* СГЕНЕРИРОВАНО tools/gen_dark_compat.py — не править руками.
+   Тёмные версии старых стилей с зашитыми цветами. */
+
+/* --- из css/style.css --- */
+html[data-theme="dark"] body { background: var(--sprout); }
+html[data-theme="dark"] .nav-item-link.active { background: var(--card) !important; color: #86EABA !important; }
+html[data-theme="dark"] .nav-item-link.active .nav-tx, html[data-theme="dark"] .nav-item-link.active .nav-ic, html[data-theme="dark"] .nav-item-link.active i { color: #86EABA !important; }
+html[data-theme="dark"] .su-avatar { background: var(--card); color: #91DFB7; }
+html[data-theme="dark"] .top-header-bar { background: var(--card); }
+html[data-theme="dark"] .cart-header-badge { border: 2px solid var(--rule); }
+@media (max-width: 992px) { html[data-theme="dark"] .mobile-bottom-bar { background: var(--card); } }
+html[data-theme="dark"] .navbar { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .btn-danger:hover { background: #361717; }
+html[data-theme="dark"] .btn-reject:hover { background: #362F17; }
+html[data-theme="dark"] .card, html[data-theme="dark"] .form-card, html[data-theme="dark"] .edit-card, html[data-theme="dark"] .profile-card, html[data-theme="dark"] .wallet-card, html[data-theme="dark"] .stat-card, html[data-theme="dark"] .order-card, html[data-theme="dark"] .order-panel { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .cat-ic { background: var(--card); }
+html[data-theme="dark"] .form-group input, html[data-theme="dark"] .form-group select, html[data-theme="dark"] .form-group textarea { background: var(--card); }
+html[data-theme="dark"] .form-error { background: #361717; }
+html[data-theme="dark"] .auth-page { background: var(--sprout); }
+html[data-theme="dark"] .auth-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .ai-msg.bot .ai-bubble { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .ai-chip { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .stat-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .admin-row { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .admin-row.blocked { background: #361717; }
+html[data-theme="dark"] .ar-reason { background: #361717; }
+html[data-theme="dark"] .blocked-tag { background: #361717; }
+html[data-theme="dark"] .blocked-ic { background: #361717; }
+html[data-theme="dark"] .toast { background: var(--card); border: 1px solid var(--rule); }
+@media (max-width: 768px) { html[data-theme="dark"] .nav-links.open { background: var(--card); } }
+html[data-theme="dark"] .ai-modal-overlay { background: var(--card); }
+html[data-theme="dark"] .cat-tab { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .market-search { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .product-card.v2 { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .pc-badge { color: #EABB86; }
+html[data-theme="dark"] .pc-stock { color: #86EACB; }
+html[data-theme="dark"] .how-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .benefit-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .badge-paid { background: #172436; }
+html[data-theme="dark"] .badge-ready { background: #362F17; color: #EAC486; }
+html[data-theme="dark"] .badge-cancelled { background: #361717; }
+html[data-theme="dark"] .ci-del:hover { background: #361717; }
+html[data-theme="dark"] .del-map-input { background: var(--card); }
+html[data-theme="dark"] .del-radius-select { background: var(--card); }
+html[data-theme="dark"] .del-courier-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .del-profile-modal { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .onboard-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .del-sidebar { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .hs-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .pending-banner { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .profile-completion { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .notif-item { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .ot-tab { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .order-item { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .tariff-card-del { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .profile-section-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .del-input, html[data-theme="dark"] .del-select, html[data-theme="dark"] .del-textarea { background: var(--card); }
+html[data-theme="dark"] .del-map-input { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .del-radius-select { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .del-courier-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .onboard-card { background: var(--card); border: 1px solid var(--rule); }
+html[data-theme="dark"] .truck-chip { background: var(--card); }
+@media (max-width: 768px) { html[data-theme="dark"] .navbar { background: var(--card); } }
+html[data-theme="dark"] .chat-item-unread { background: var(--sprout); }
+html[data-theme="dark"] .chat-item-name { color: #96AAD9; }
+html[data-theme="dark"] .chat-item-type { color: #86EACB; }
+html[data-theme="dark"] .chat-item-order { color: #86EACB; }
+html[data-theme="dark"] .chat-item-preview { color: var(--ink-3); }
+html[data-theme="dark"] .chat-item-preview-new { color: #9CADD4; }
+html[data-theme="dark"] .chat-page-header { background: var(--card); }
+html[data-theme="dark"] .chat-header-name { color: #96AAD9; }
+html[data-theme="dark"] .chat-header-type { color: var(--ink-3); }
+html[data-theme="dark"] .chat-order-card { background: var(--sprout); }
+html[data-theme="dark"] .chat-order-label { color: #86EACB; }
+html[data-theme="dark"] .chat-order-id { color: var(--ink-3); }
+html[data-theme="dark"] .chat-messages { background: #172636; }
+html[data-theme="dark"] .chat-empty-icon { background: var(--sprout); }
+html[data-theme="dark"] .msg-other { background: var(--card); color: #9CADD4; }
+html[data-theme="dark"] .msg-blocked { background: #361717; border: 1px solid var(--rule); }
+html[data-theme="dark"] .msg-blocked-text { color: #EA8686; }
+html[data-theme="dark"] .msg-sender { color: #86EACB; }
+html[data-theme="dark"] .chat-input-bar { background: var(--card); }
+html[data-theme="dark"] .chat-action-btn { background: var(--sprout); color: #86EACB; }
+html[data-theme="dark"] .chat-action-btn:hover { background: var(--sprout); }
+html[data-theme="dark"] .chat-text-input { background: #172636; }
+html[data-theme="dark"] .chat-text-input:focus { background: var(--card); }
+html[data-theme="dark"] .pd-photo-block { background: var(--sprout); }
+html[data-theme="dark"] .pd-cat-badge { background: var(--card); color: #86EACB; }
+html[data-theme="dark"] .pd-info-block { background: var(--card); }
+html[data-theme="dark"] .pd-title { color: #96AAD9; }
+html[data-theme="dark"] .pd-price { color: #86EACB; }
+html[data-theme="dark"] .pd-price small { color: var(--ink-3); }
+html[data-theme="dark"] .pd-badge-green { color: #86EACB; }
+html[data-theme="dark"] .pd-desc-title { color: var(--ink-2); }
+html[data-theme="dark"] .pd-desc p { color: var(--ink-3); }
+html[data-theme="dark"] .pd-info-row { border-top: 1px solid var(--rule); }
+html[data-theme="dark"] .pd-info-icon { background: var(--sprout); color: #86EACB; }
+html[data-theme="dark"] .pd-info-value { color: #96AAD9; }
+html[data-theme="dark"] .pd-farmer-card { background: var(--sprout); }
+html[data-theme="dark"] .pd-farmer-name { color: #96AAD9; }
+html[data-theme="dark"] .pd-farmer-rating span { color: #EAC486; }
+html[data-theme="dark"] .pd-order-panel { background: var(--card); }
+html[data-theme="dark"] .pd-order-title { color: #96AAD9; border-bottom: 1px solid var(--rule); }
+html[data-theme="dark"] .pd-order-row label { color: var(--ink-2); }
+html[data-theme="dark"] .pd-qty-input { border: 1.5px solid var(--rule); background: var(--card); }
+html[data-theme="dark"] .pd-qty-input:focus { background: var(--card); }
+html[data-theme="dark"] .pd-order-total { border-top: 1px solid var(--rule); }
+html[data-theme="dark"] .pd-order-total span { color: var(--ink-3); }
+html[data-theme="dark"] .pd-order-total b { color: #86EACB; }
+html[data-theme="dark"] .hab-search-form { background: var(--card); }
+html[data-theme="dark"] .hab-actions .btn-outline { border-color: var(--rule); }
+html[data-theme="dark"] .pill-item { background: var(--card); }
+html[data-theme="dark"] .recent-orders-card { background: var(--card); }
+html[data-theme="dark"] .pill-in-transit { background: #362F17; color: #EABB86; }
+html[data-theme="dark"] .catalog-sidebar-filters { background: var(--card); }
+html[data-theme="dark"] .cmp-search { background: var(--card); }
+html[data-theme="dark"] .cmp-sort select { background: var(--card); }
+html[data-theme="dark"] .agri-product-card { background: var(--card); }
+html[data-theme="dark"] .apc-cat-tag { background: var(--card); }
+
+/* --- из css/farmer.css --- */
+html[data-theme="dark"] input.error, html[data-theme="dark"] textarea.error, html[data-theme="dark"] .pn-input.error { background: #361A17; }
+html[data-theme="dark"] .nav-item-link.active { background: var(--card) !important; }
+html[data-theme="dark"] .su-avatar { background: var(--card); }
+html[data-theme="dark"] .menu-logout { border: 2px solid var(--rule); background: #361A17; }
+html[data-theme="dark"] .apc-cat-tag { background: var(--card); }
+html[data-theme="dark"] .auth2-note.err { background: #361A17; color: #E98D87; border: 1px solid var(--rule); }
+html[data-theme="dark"] .auth2-note.ok { border: 1px solid var(--rule); }
+html[data-theme="dark"] .fc-col.tip .fc-label i { color: #EAC186; }
+html[data-theme="dark"] .pr-header .btn-primary { background: var(--card) !important; border-color: var(--rule) !important; }
+html[data-theme="dark"] .od-status.done { background: var(--sprout); color: #86E9AB; }
+html[data-theme="dark"] .od-status.off { background: var(--card); color: #C7ACA8; }
+html[data-theme="dark"] .btn-reject-o { border: 2px solid var(--rule) !important; }
+html[data-theme="dark"] .btn-reject-o:hover { background: #361A17 !important; }
+html[data-theme="dark"] .pr2-bar { background: var(--card); }
+html[data-theme="dark"] .pr2-prod-state { background: var(--card); }
+html[data-theme="dark"] button.pr2-row:hover { background: var(--sprout); }
+html[data-theme="dark"] .lp-top { background: var(--card); }
+html[data-theme="dark"] .lp-role { background: var(--card); }
+html[data-theme="dark"] .lp-role.farmer .lp-role-ic { background: var(--card); color: #EACB86; }
+html[data-theme="dark"] .lp-chain-tag { background: var(--card); }
+html[data-theme="dark"] .lp-node.mid { background: #30291C; }
+html[data-theme="dark"] .lp-btn-line { color: #EACE86 !important; }
+@media (max-width: 760px) { html[data-theme="dark"] .lp-sticky { background: var(--card); } }
+
+/* --- из js/pages/admin.js --- */
+html[data-theme="dark"] .ar-vehicle, html[data-theme="dark"] .ar-license, html[data-theme="dark"] .ar-docs { color: var(--ink-2); }
+html[data-theme="dark"] .ar-bio { color: var(--ink-3); }
+html[data-theme="dark"] .doc-link { color: #86EAAA; }
+html[data-theme="dark"] .status-rejected { color: #EA8686; }
+html[data-theme="dark"] .rejection-banner { background: #361717; border: 1px solid var(--rule); }
+
+/* --- из js/pages/delivery.js --- */
+html[data-theme="dark"] сум
+
+    
+    .delivery-layout { background: var(--bg, #1F262E); }
+html[data-theme="dark"] .delivery-sidebar { background: var(--bg-card, var(--card)); }
+html[data-theme="dark"] .hs-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .pending-banner { background: #362F17; }
+html[data-theme="dark"] .rejection-banner { background: #361717; }
+html[data-theme="dark"] .pb-title { color: #EAAB86; }
+html[data-theme="dark"] .rejection-banner .pb-title { color: #EA8686; }
+html[data-theme="dark"] .pb-text { color: #EAAA86; }
+html[data-theme="dark"] .rejection-banner .pb-text { color: #EA8686; }
+html[data-theme="dark"] .pb-bar-label { color: #EAAB86; }
+html[data-theme="dark"] .home-section-block { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .pc-bar { background: var(--bg-input, var(--card)); }
+html[data-theme="dark"] .ot-tab { background: var(--bg-card, var(--card)); }
+html[data-theme="dark"] .order-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .tariff-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .tariff-calc { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .ai-chat { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .ai-bot .ai-msg-bubble { background: var(--card); }
+html[data-theme="dark"] .ai-input { background: var(--bg-card, var(--card)); }
+html[data-theme="dark"] .tx-item { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .market-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .profile-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .profile-details { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .onboard-card { background: var(--bg-card, #1F262E); }
+html[data-theme="dark"] .ob-input { background: var(--card); }
+html[data-theme="dark"] .ob-select { background: var(--card); }
+html[data-theme="dark"] .truck-chip { background: var(--card); }
+
+/* --- inline style="..." в js/pages --- */
+html[data-theme="dark"] [style*="background:#EBF5EF"] { background: var(--sprout) !important; }
+html[data-theme="dark"] [style*="background:#d1d5db"] { background: var(--card) !important; }
+html[data-theme="dark"] [style*="background:#d1fae5"] { background: var(--sprout) !important; }
+html[data-theme="dark"] [style*="background:#f0fdf4"] { background: var(--sprout) !important; }
+html[data-theme="dark"] [style*="background:#f3f4f6"] { background: var(--card) !important; }
+html[data-theme="dark"] [style*="background:#f8fafc"] { background: #172636 !important; }
+html[data-theme="dark"] [style*="background:#f9fafb"] { background: #1F262E !important; }
+html[data-theme="dark"] [style*="background:#fee2e2"] { background: #361717 !important; }
+html[data-theme="dark"] [style*="background:#fef2f2"] { background: #361717 !important; }
+html[data-theme="dark"] [style*="background:#fef3c7"] { background: #362F17 !important; }
+html[data-theme="dark"] [style*="background:#fff"] { background: var(--card) !important; }
+html[data-theme="dark"] [style*="background:#fffbeb"] { background: #362F17 !important; }
+html[data-theme="dark"] [style*="background:linear-gradient(135deg,#f0fdf4,#ecfdf5)"] { background: var(--sprout) !important; }
+html[data-theme="dark"] [style*="background:rgba(255,255,255,0.92)"] { background: var(--card) !important; }
+html[data-theme="dark"] [style*="border-top:1px solid #E5E7EB"] { border-top: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border-top:1px solid #e5e7eb"] { border-top: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border-top:1px solid #f1f5f9"] { border-top: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:1.5px solid #e5e7eb"] { border: 1.5px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:1px solid #bbf7d0"] { border: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:1px solid #e5e7eb"] { border: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:1px solid #f1f5f9"] { border: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:1px solid #fecaca"] { border: 1px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:2px dashed #d1d5db"] { border: 2px dashed var(--rule) !important; }
+html[data-theme="dark"] [style*="border:2px solid #e5e7eb"] { border: 2px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="border:2px solid #fff"] { border: 2px solid var(--rule) !important; }
+html[data-theme="dark"] [style*="color:#059669"] { color: #86EACB !important; }
+html[data-theme="dark"] [style*="color:#0f172a"] { color: #96AAD9 !important; }
+html[data-theme="dark"] [style*="color:#105C38"] { color: #86EABA !important; }
+html[data-theme="dark"] [style*="color:#10b981"] { color: #86EAC8 !important; }
+html[data-theme="dark"] [style*="color:#374151"] { color: var(--ink-2) !important; }
+html[data-theme="dark"] [style*="color:#6B7280"] { color: var(--ink-3) !important; }
+html[data-theme="dark"] [style*="color:#6b7280"] { color: var(--ink-3) !important; }
+html[data-theme="dark"] [style*="color:#92400e"] { color: #EAAB86 !important; }
+html[data-theme="dark"] [style*="color:#991b1b"] { color: #EA8686 !important; }
+html[data-theme="dark"] [style*="color:#b91c1c"] { color: #EA8686 !important; }
+html[data-theme="dark"] [style*="color:#dc2626"] { color: #EA8686 !important; }
+html[data-theme="dark"] [style*="color:#f59e0b"] { color: #EAC486 !important; }

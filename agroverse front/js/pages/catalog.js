@@ -49,40 +49,47 @@ function starsHtml(rating) {
   return s;
 }
 
+/* Подписи: категория и единица хранятся по-русски, показываем на языке человека */
+const UNIT_KEYS = { 'кг': 'unit_kg', 'kg': 'unit_kg', 'шт': 'unit_pcs', 'литр': 'unit_litre', 'ящик': 'unit_box',
+  'мешок': 'unit_sack', 'пучок': 'unit_bunch', 'тонна': 'unit_ton', 'г': 'unit_gram' };
+function unitLabel(u) {
+  const k = UNIT_KEYS[String(u || 'кг').toLowerCase()];
+  return k ? t(k).replace(/\s*\(.*\)$/, '') : escHtml(u || '');
+}
+function catLabel(v) {
+  const o = CATEGORY_OPTIONS.find(c => c.value && c.value === v);
+  return o ? t(o.key) : escHtml(v || '');
+}
+function fmtNum(n) { return Number(n || 0).toLocaleString('ru-RU'); }
+function priceHtml(p) {
+  return `${fmtNum(p.price)} <small>${t('currency')}/${unitLabel(p.unit)}</small>`;
+}
+
 function productCardHtml(p) {
   const me = Auth.getUser();
   const own = me && p.fermer_id === me.id;
-  const isBuyer = Auth.canBuy() && !own;
+  const canBuy = Auth.canBuy() && !own;
   const pending = p.status === 'pending';
-  const bg = CAT_GRADIENT[p.category] || 'linear-gradient(135deg, #105C38, #187548)';
-  const img = p.images?.length
-    ? `<img class="pc-img-el" src="${p.images[0]}" alt="${p.name}" onerror="this.parentElement.style.background='${bg}';this.remove()" />`
-    : `<div class="pc-img-ph" style="background:${bg}"><i class="${CAT_EMOJI[p.category] || 'fa-solid fa-leaf'}" style="font-size:44px;color:rgba(255,255,255,0.85)"></i></div>`;
-  const action = isBuyer
-    ? `<button class="btn btn-primary btn-sm pc-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fa-solid fa-cart-shopping"></i> ${t('add_to_cart')}</button>`
-    : `<button class="btn btn-outline btn-sm pc-btn" onclick="event.stopPropagation(); router.go('/product/${p.id}')"><i class="fa-solid ${own ? 'fa-pen' : 'fa-eye'}"></i> ${own ? t('your_product') : t('details_btn')}</button>`;
-  const discountBadge = p.discount ? `<span class="pc-discount">-${p.discount}%</span>` : '';
+  const icon = CAT_EMOJI[p.category] || 'fa-solid fa-leaf';
+  const name = escHtml(p.name);
+  const farmer = escHtml(p.fermer_name || t('pc_farmer'));
   return `
-    <div class="agri-product-card" onclick="router.go('/product/${p.id}')">
-      <div class="apc-media">
-        ${img}
-        ${pending ? `<span class="apc-badge">${t('on_moderation')}</span>` : ''}
-        ${discountBadge}
-        <span class="apc-cat-tag">${p.category || 'Продукция'}</span>
+    <article class="pc2" tabindex="0" onclick="router.go('/product/${p.id}')" onkeydown="if(event.key==='Enter')router.go('/product/${p.id}')">
+      <div class="pc2-media">
+        <i class="${icon}" aria-hidden="true"></i>
+        ${p.images?.length ? `<img src="${p.images[0]}" alt="${name}" loading="lazy" onerror="this.remove()" />` : ''}
+        ${pending ? `<span class="pill wait pc2-flag">${t('on_moderation')}</span>` : ''}
       </div>
-      <div class="apc-body">
-        <div class="apc-farmer"><i class="fa-solid fa-circle-check" style="color:#105C38"></i> ${p.fermer_name || 'Свежий урожай'}</div>
-        <h3 class="apc-name">${p.name}</h3>
-        <div class="apc-rating">${starsHtml(p.rating || 5.0)} <span class="apc-rating-val">${p.rating || '5.0'}</span></div>
-        <div class="apc-price-box">
-          <div class="apc-price">${Number(p.price).toLocaleString('ru')} <small>сум / ${p.unit || 'кг'}</small></div>
-        </div>
-        <div class="apc-footer">
-          ${action}
-        </div>
+      <div class="pc2-body">
+        <h3 class="pc2-name">${name}</h3>
+        <div class="pc2-price">${priceHtml(p)}</div>
+        <div class="pc2-meta"><i class="fa-solid fa-box-open"></i><span>${fmtNum(p.quantity)} ${unitLabel(p.unit)} ${t('pc_available')}</span></div>
+        ${p.pickup_location ? `<div class="pc2-meta"><i class="fa-solid fa-location-dot"></i><span>${escHtml(p.pickup_location)}</span></div>` : ''}
+        <div class="pc2-farmer"><span class="pc2-fava">${farmer[0] || 'F'}</span><span>${farmer}</span></div>
+        ${canBuy ? `<button class="btn btn-outline btn-sm pc2-btn" onclick="event.stopPropagation(); quickAddToCart(${p.id})"><i class="fa-solid fa-basket-shopping"></i> ${t('add_to_cart')}</button>` : ''}
+        ${own ? `<div class="pc2-own"><i class="fa-solid fa-seedling"></i> ${t('pc_your')}</div>` : ''}
       </div>
-    </div>
-  `;
+    </article>`;
 }
 
 async function quickAddToCart(id) {
@@ -103,65 +110,84 @@ async function renderCatalog() {
   const presetQ = qs.get('q') || '';
 
   app.innerHTML = pageShell(`
-    <div class="mk">
-      <div class="mk-head">
-        <h1 class="page-title">${t('nav_market')}</h1>
-        <form class="search-form big" role="search" onsubmit="event.preventDefault(); document.getElementById('search-input').blur()">
+    <div class="mk2">
+      <h1 class="v3-h1" style="margin-bottom:16px">${t('mk_title')}</h1>
+      <form class="mk2-search" role="search" onsubmit="event.preventDefault(); document.getElementById('search-input').blur(); mkReload()">
+        <div class="search-form">
           <i class="fa-solid fa-magnifying-glass sf-ic"></i>
-          <input type="search" id="search-input" placeholder="${t('search_ph')}" enterkeyhint="search" autocomplete="off" />
+          <input type="search" id="search-input" placeholder="${t('mk_search_ph')}" enterkeyhint="search" autocomplete="off" />
           ${voiceButtonHtml('search-input')}
-        </form>
-      </div>
+        </div>
+        <button type="submit" class="btn btn-primary mk2-go" aria-label="${t('search_btn')}"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <button type="button" class="btn btn-outline mk2-filter-btn" onclick="document.getElementById('mk2-filters').classList.toggle('open')"><i class="fa-solid fa-sliders"></i> ${t('mk_show_filters')}</button>
+      </form>
+      <div class="mk2-active" id="mk2-active" aria-live="polite"></div>
 
-      <div class="mk-chips" id="cat-tabs" role="group" aria-label="${t('cats_title')}">
-        ${CATEGORY_OPTIONS.map(o => `
-          <button class="mk-chip ${o.value === presetCat ? 'active' : ''}" data-val="${o.value}" onclick="setCatTab(this)" aria-pressed="${o.value === presetCat}">
-            <i class="${o.icon}"></i><span>${o.value ? t(o.key) : t('cat_all')}</span>
-          </button>
-        `).join('')}
-      </div>
-
-      <div class="mk-tools">
-        <details class="mk-price" id="mk-price">
-          <summary><i class="fa-solid fa-sliders"></i> ${t('filters')}</summary>
-          <div class="mk-price-body">
-            <label class="mk-field"><span>${t('price_from')}</span><input type="number" inputmode="numeric" id="min-price" placeholder="0" /></label>
-            <label class="mk-field"><span>${t('price_to')}</span><input type="number" inputmode="numeric" id="max-price" placeholder="∞" /></label>
-            <button type="button" class="btn btn-outline btn-sm" onclick="resetCatalogFilters()">${t('reset')}</button>
+      <div class="mk2-layout">
+        <aside class="v3-card mk2-filters" id="mk2-filters" aria-label="${t('mk_filters')}">
+          <h2>${t('mk_filters')}</h2>
+          <label class="mk2-field"><span>${t('mk_category')}</span>
+            <select id="cat-select">
+              ${CATEGORY_OPTIONS.map(o => `<option value="${o.value}" ${o.value === presetCat ? 'selected' : ''}>${t(o.key)}</option>`).join('')}
+            </select>
+          </label>
+          <div class="mk2-field"><span>${t('mk_price')} <small style="font-weight:500;color:var(--ink-3)">(${t('currency')})</small></span>
+            <div class="mk2-range">
+              <input type="number" inputmode="numeric" id="min-price" placeholder="${t('price_from')}" aria-label="${t('price_from')}" />
+              <span>—</span>
+              <input type="number" inputmode="numeric" id="max-price" placeholder="${t('price_to')}" aria-label="${t('price_to')}" />
+            </div>
           </div>
-        </details>
-        <label class="mk-sort">
-          <i class="fa-solid fa-arrow-down-wide-short"></i>
-          <select id="sort-select" aria-label="${t('sort_newest')}">
-            ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
-          </select>
-        </label>
-      </div>
+          <button type="button" class="btn btn-primary btn-full" onclick="mkReload(); document.getElementById('mk2-filters').classList.remove('open')">${t('mk_apply')}</button>
+        </aside>
 
-      <div class="mk-count" id="mk-count" aria-live="polite"></div>
-      <div id="products-grid" class="agri-products-grid"><div class="spinner"></div></div>
+        <section class="mk2-results">
+          <div class="mk2-results-head">
+            <h2 id="mk-count">${t('mk_results')}</h2>
+            <select id="sort-select" aria-label="${t('mk_sort')}">
+              ${SORT_OPTIONS.map(s => `<option value="${s.value}">${t(s.key)}</option>`).join('')}
+            </select>
+          </div>
+          <div id="products-grid" class="agri-products-grid"><div class="spinner"></div></div>
+        </section>
+      </div>
     </div>
   `);
 
   const searchEl = document.getElementById('search-input');
+  const catEl = document.getElementById('cat-select');
+  const minEl = document.getElementById('min-price');
+  const maxEl = document.getElementById('max-price');
   if (searchEl && presetQ) searchEl.value = presetQ;
+
+  function renderActive() {
+    const box = document.getElementById('mk2-active');
+    if (!box) return;
+    const tags = [];
+    if (searchEl.value.trim()) tags.push(['q', `«${escHtml(searchEl.value.trim())}»`]);
+    if (catEl.value) tags.push(['cat', catLabel(catEl.value)]);
+    if (minEl.value || maxEl.value) tags.push(['price', `${minEl.value ? fmtNum(minEl.value) : '0'} – ${maxEl.value ? fmtNum(maxEl.value) : '∞'} ${t('currency')}`]);
+    box.innerHTML = tags.map(([k, label]) => `<span class="mk2-tag">${label}<button type="button" onclick="mkDropFilter('${k}')" aria-label="${t('reset')}"><i class="fa-solid fa-xmark"></i></button></span>`).join('')
+      + (tags.length ? `<button type="button" class="mk2-clear" onclick="resetCatalogFilters()">${t('mk_clear')}</button>` : '');
+  }
 
   async function loadProducts() {
     const search    = searchEl?.value.trim() || '';
-    const category  = document.querySelector('#cat-tabs .mk-chip.active')?.dataset.val || '';
-    const min_price = document.getElementById('min-price')?.value || '';
-    const max_price = document.getElementById('max-price')?.value || '';
+    const category  = catEl?.value || '';
+    const min_price = minEl?.value || '';
+    const max_price = maxEl?.value || '';
     const sort      = document.getElementById('sort-select')?.value || 'newest';
     const grid  = document.getElementById('products-grid');
     const count = document.getElementById('mk-count');
     if (!grid) return;
+    renderActive();
 
     grid.innerHTML = '<div class="spinner"></div>';
     try {
       let products = await API.getProducts({ search, category, min_price, max_price });
-      if (count) count.textContent = `${t('found_n')}: ${products?.length || 0}`;
+      if (count) count.innerHTML = `${t('mk_results')} <small>(${products?.length || 0}${t('mk_pcs') ? ' ' + t('mk_pcs') : ''})</small>`;
       if (!products?.length) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-leaf" style="font-size:48px;color:var(--clr-primary)"></i><p>${t('no_products_found')}</p></div>`;
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-leaf" style="font-size:48px;color:var(--field)"></i><p>${t('no_products_found')}</p></div>`;
         return;
       }
       if (sort === 'price_asc') products.sort((a,b) => a.price - b.price);
@@ -169,45 +195,34 @@ async function renderCatalog() {
       else if (sort === 'rating') products.sort((a,b) => (b.rating||0) - (a.rating||0));
       grid.innerHTML = products.map(productCardHtml).join('');
     } catch (e) {
-      if (count) count.textContent = '';
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation" style="font-size:48px;color:var(--clr-error)"></i><p>${e.message}</p></div>`;
+      if (count) count.textContent = t('mk_results');
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation" style="font-size:48px;color:var(--danger)"></i><p>${escHtml(e.message)}</p></div>`;
     }
   }
 
-  window.setCatTab = function(el) {
-    document.querySelectorAll('#cat-tabs .mk-chip').forEach(c => { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
-    el.classList.add('active');
-    el.setAttribute('aria-pressed', 'true');
+  window.mkReload = loadProducts;
+  window.mkDropFilter = function(k) {
+    if (k === 'q') searchEl.value = '';
+    if (k === 'cat') catEl.value = '';
+    if (k === 'price') { minEl.value = ''; maxEl.value = ''; }
     loadProducts();
   };
-
   window.resetCatalogFilters = function() {
-    const all = document.querySelector('#cat-tabs .mk-chip[data-val=""]');
-    if (all) window.setCatTab(all);
-    if (searchEl) searchEl.value = '';
-    document.getElementById('min-price').value = '';
-    document.getElementById('max-price').value = '';
+    searchEl.value = ''; catEl.value = ''; minEl.value = ''; maxEl.value = '';
     loadProducts();
   };
-
-  // если категория не задана — активна «Все»
-  if (!document.querySelector('#cat-tabs .mk-chip.active')) {
-    document.querySelector('#cat-tabs .mk-chip[data-val=""]')?.classList.add('active');
-  }
-  // выбранную категорию показываем на экране (лента листается вбок)
-  const activeChip = document.querySelector('#cat-tabs .mk-chip.active');
-  const chips = document.getElementById('cat-tabs');
-  if (activeChip && chips && chips.scrollWidth > chips.clientWidth) {
-    chips.scrollLeft = activeChip.offsetLeft - 16;
-  }
 
   loadProducts();
 
-  const onChange = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 350); };
+  const onChange = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadProducts, 400); };
   searchEl?.addEventListener('input', onChange);
-  document.getElementById('min-price')?.addEventListener('input', onChange);
-  document.getElementById('max-price')?.addEventListener('input', onChange);
+  catEl?.addEventListener('change', loadProducts);
   document.getElementById('sort-select')?.addEventListener('change', loadProducts);
+  // на ПК цена применяется сама; на телефоне — кнопкой «Показать» (панель закрывается)
+  if (matchMedia('(min-width: 993px)').matches) {
+    minEl?.addEventListener('input', onChange);
+    maxEl?.addEventListener('input', onChange);
+  }
 }
 
 window.renderCatalog = renderCatalog;
@@ -215,3 +230,7 @@ window.productCardHtml = productCardHtml;
 window.quickAddToCart = quickAddToCart;
 window.starsHtml = starsHtml;
 window.CAT_EMOJI = CAT_EMOJI;
+window.unitLabel = unitLabel;
+window.catLabel = catLabel;
+window.fmtNum = fmtNum;
+window.priceHtml = priceHtml;

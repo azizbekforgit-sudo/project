@@ -8,36 +8,28 @@ let _chatPollTimer = null;
 let _chatIsRefreshing = false;
 
 async function renderChatDetail(chatId) {
+  if (typeof stopChatsPolling === 'function') stopChatsPolling();
   _chatCurrentId = chatId;
+  window._chatCurrentIdPublic = chatId;
   _chatLastMessageId = 0;
   const app = document.getElementById('app');
-  app.innerHTML = pageShell(`
-    <div class="chat-page">
-      <div class="chat-page-header" id="chat-header">
-        <button class="btn btn-ghost btn-sm" onclick="stopChatPolling();router.go('/chats')">
-          <i class="fa-solid fa-arrow-left"></i> Назад
-        </button>
-        <div id="chat-header-info"><div class="spinner" style="width:20px;height:20px"></div></div>
-      </div>
-      <div class="chat-messages" id="chat-messages">
-        <div class="spinner" style="margin:40px auto"></div>
-      </div>
-      <div class="chat-input-bar" id="chat-input-bar" style="display:none">
-        <div class="chat-actions-left">
-          <button class="chat-action-btn" id="chat-attach-btn" title="Прикрепить файл">
-            <i class="fa-solid fa-paperclip"></i>
-          </button>
-          <input type="file" id="chat-file-input" accept="image/*,audio/*" style="display:none" />
-        </div>
-        <input type="text" id="chat-input" class="chat-text-input" placeholder="Введите сообщение..." maxlength="5000" />
-        <button class="chat-send-btn" id="chat-send-btn" title="Отправить">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-      </div>
+  app.innerHTML = pageShell(chatsLayoutHtml(`
+    <div class="ch-conv-head" id="chat-header">
+      <button class="ch-back" onclick="stopChatPolling(); router.go('/chats')" aria-label="${t('ch_back')}"><i class="fa-solid fa-arrow-left"></i></button>
+      <div id="chat-header-info" class="ch-who"><div class="spinner" style="width:20px;height:20px;margin:0"></div></div>
     </div>
-  `);
+    <div id="chat-product"></div>
+    <div class="ch-msgs" id="chat-messages"><div class="spinner" style="margin:40px auto"></div></div>
+    <div class="ch-input" id="chat-input-bar" style="display:none">
+      <button class="ch-icon-btn" id="chat-attach-btn" title="${t('ch_attach')}" aria-label="${t('ch_attach')}"><i class="fa-solid fa-paperclip"></i></button>
+      <input type="file" id="chat-file-input" accept="image/*" hidden />
+      <input type="text" id="chat-input" placeholder="${t('ch_ph')}" maxlength="5000" aria-label="${t('ch_ph')}" />
+      <button class="ch-send" id="chat-send-btn" title="${t('ch_send')}" aria-label="${t('ch_send')}"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>`, true));
 
-  // Show moderation warning on first open (per session)
+  loadChatsList(chatId);
+
+  // Правила чата — один раз за сеанс на каждую переписку
   const warningKey = `chat_warning_shown_${chatId}`;
   if (!sessionStorage.getItem(warningKey)) {
     showChatWarningModal();
@@ -47,75 +39,58 @@ async function renderChatDetail(chatId) {
   try {
     const chat = await API.getChat(chatId);
     renderChatHeader(chat);
-    // Small delay to ensure DOM is ready
-    await new Promise(r => setTimeout(r, 50));
     await loadMessages(chatId);
     setupChatInput(chatId, chat);
     startChatPolling(chatId);
   } catch (e) {
     const container = document.getElementById('chat-messages');
-    if (container) {
-      container.innerHTML = `
-        <div class="empty-state"><p>${fe('⚠️',16)} ${e.message}</p></div>
-      `;
-    }
+    if (container) container.innerHTML = `<div class="ch-empty"><p><i class="fa-solid fa-triangle-exclamation"></i> ${escHtml(e.message)}</p></div>`;
   }
 }
 
 function renderChatHeader(chat) {
   const user = Auth.getUser();
-  const other = chat.participant_a.id === user.id ? chat.participant_b : chat.participant_a;
-
-  const typeLabels = {
-    buyer_farmer: 'Чат с фермером',
-    buyer_driver: 'Чат с драйвером',
-    driver_farmer: 'Чат с фермером'
-  };
+  const other = chatOther(chat);
+  const name = escHtml(other.name || '—');
+  const about = chat.order_id ? `${t('ch_order')} #${chat.order_id}` : t('ch_inquiry');
 
   let actionsHtml = '';
-
-  // Buyer in buyer_driver chat → "Заказать этого драйвера"
+  if (other.phone) {
+    actionsHtml += `<a class="ch-icon-btn" href="tel:${escHtml(other.phone)}" title="${t('ch_call')}" aria-label="${t('ch_call')}"><i class="fa-solid fa-phone"></i></a>`;
+  }
+  // Покупатель в чате с водителем → «Выбрать этого водителя»
   if (chat.type === 'buyer_driver' && user.role === 'xaridor' && !chat.delivery_request_id) {
-    actionsHtml += `
-      <button class="btn btn-primary btn-sm" id="btn-assign-driver" onclick="assignDriverFromChat(${chat.order_id}, ${chat.id})">
-        <i class="fa-solid fa-check" style="font-size:14px"></i> Заказать этого драйвера
-      </button>
-    `;
+    actionsHtml += `<button class="btn btn-primary btn-sm" id="btn-assign-driver" onclick="assignDriverFromChat(${chat.order_id}, ${chat.id})"><i class="fa-solid fa-check"></i> ${t('ch_assign_driver')}</button>`;
   }
-
-  // Driver in buyer_driver chat → "Начать чат с фермером"
+  // Водитель в чате с покупателем → «Написать фермеру»
   if (chat.type === 'buyer_driver' && user.role === 'courier') {
-    actionsHtml += `
-      <button class="btn btn-ghost btn-sm" id="btn-chat-farmer" onclick="startDriverFarmerChat(${chat.order_id})">
-        <i class="fa-regular fa-comment" style="font-size:14px"></i> Чат с фермером
-      </button>
-    `;
+    actionsHtml += `<button class="btn btn-outline btn-sm" id="btn-chat-farmer" onclick="startDriverFarmerChat(${chat.order_id})"><i class="fa-regular fa-comment"></i> ${t('ch_chat_farmer')}</button>`;
   }
 
-  document.getElementById('chat-header-info').innerHTML = `
-    <div class="chat-header-info-content">
-      <div>
-        <div class="chat-header-name">${other.name}</div>
-        <div class="chat-header-type">${typeLabels[chat.type] || chat.type} · Заказ #${chat.order_id}</div>
-      </div>
-      <div class="chat-header-actions">${actionsHtml}</div>
+  document.getElementById('chat-header-info').outerHTML = `
+    <span class="ch-ava">${name[0] || '?'}</span>
+    <div class="ch-who">
+      <div class="ch-name">${name}</div>
+      <div class="ch-sub">${chatRoleLabel(other.role)} · ${about}</div>
     </div>
-  `;
+    <div class="ch-conv-actions">${actionsHtml}</div>`;
 
-  // Add order info card for buyer_driver and driver_farmer chats
-  if ((chat.type === 'buyer_driver' || chat.type === 'driver_farmer') && chat.order_product_title) {
-    const headerEl = document.querySelector('.chat-page-header');
-    if (headerEl) {
-      const infoCard = document.createElement('div');
-      infoCard.className = 'chat-order-card';
-      infoCard.innerHTML = `
-        <div class="chat-order-card-inner">
-          <span class="chat-order-label">📦 ${chat.order_product_title}</span>
-          <span class="chat-order-id">#${chat.order_id}</span>
+  // Карточка товара, о котором переписка
+  const box = document.getElementById('chat-product');
+  if (box && chat.order_product_title) {
+    const photo = chat.order_product_photo
+      ? (chat.order_product_photo.startsWith('http') ? chat.order_product_photo : BASE_URL + chat.order_product_photo) : '';
+    const price = chat.product_price != null
+      ? `${fmtNum(chat.product_price)} ${t('currency')}/${unitLabel(chat.product_unit)}` : '';
+    box.innerHTML = `
+      <div class="ch-product" ${chat.product_id ? `onclick="router.go('/product/${chat.product_id}')" title="${t('ch_open_product')}"` : ''}>
+        ${photo ? `<img src="${photo}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ch-pimg',innerHTML:'<i class=&quot;fa-solid fa-leaf&quot;></i>'}))" />` : `<span class="ch-pimg"><i class="fa-solid fa-leaf"></i></span>`}
+        <div>
+          <b>${escHtml(chat.order_product_title)}</b>
+          ${price ? `<div class="ch-pprice">${price}</div>` : ''}
+          ${chat.product_location ? `<div><i class="fa-solid fa-location-dot"></i> ${escHtml(chat.product_location)}</div>` : ''}
         </div>
-      `;
-      headerEl.parentNode.insertBefore(infoCard, headerEl.nextSibling);
-    }
+      </div>`;
   }
 }
 
@@ -130,12 +105,7 @@ async function loadMessages(chatId, before = null) {
     const messages = await API.getChatMessages(chatId, params);
 
     if (!messages?.length && !before) {
-      container.innerHTML = `
-        <div class="chat-empty">
-          <div class="chat-empty-icon">💬</div>
-          <p>Начните общение</p>
-        </div>
-      `;
+      container.innerHTML = `<div class="ch-empty"><i class="fa-regular fa-comment-dots"></i><p>${t('ch_start')}</p></div>`;
       _chatLastMessageId = 0;
       return;
     }
@@ -218,7 +188,7 @@ function messageHtml(msg, isOwn) {
   if (msg.is_blocked) {
     return `
       <div class="msg-bubble msg-blocked">
-        <div class="msg-blocked-text">⚠️ Сообщение заблокировано (обмен номерами запрещён)</div>
+        <div class="msg-blocked-text"><i class="fa-solid fa-triangle-exclamation"></i> ${t('ch_blocked')}</div>
       </div>
     `;
   }
@@ -230,13 +200,13 @@ function messageHtml(msg, isOwn) {
     const src = msg.content.startsWith('http') ? msg.content : (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + msg.content;
     contentHtml = `<img src="${src}" class="msg-photo" onclick="window.open('${src}','_blank')" />`;
   } else if (msg.type === 'voice') {
-    contentHtml = `<div class="msg-voice"><i class="fa-solid fa-play"></i> Голосовое сообщение</div>`;
+    contentHtml = `<div class="msg-voice"><i class="fa-solid fa-play"></i> ${t('ch_voice')}</div>`;
   } else if (msg.type === 'location') {
     try {
       const loc = JSON.parse(msg.content);
-      contentHtml = `<div class="msg-location">📍 ${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}</div>`;
+      contentHtml = `<div class="msg-location"><i class="fa-solid fa-location-dot"></i> ${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}</div>`;
     } catch {
-      contentHtml = `<div class="msg-text">${msg.content}</div>`;
+      contentHtml = `<div class="msg-text">${escapeHtml(msg.content)}</div>`;
     }
   }
 
@@ -244,7 +214,7 @@ function messageHtml(msg, isOwn) {
 
   return `
     <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}">
-      ${!isOwn ? `<div class="msg-sender">${msg.sender_name}</div>` : ''}
+      ${!isOwn ? `<div class="msg-sender">${escHtml(msg.sender_name)}</div>` : ''}
       ${contentHtml}
       <div class="msg-time">${time}</div>
     </div>
@@ -267,7 +237,7 @@ function setupChatInput(chatId, chat) {
 
     // Client-side phone check
     if (containsPhoneClient(text)) {
-      showToast('Обмен номерами телефона запрещён правилами чата', 'warn');
+      showToast(t('ch_no_phones'), 'warn');
       return;
     }
 
@@ -275,6 +245,7 @@ function setupChatInput(chatId, chat) {
     try {
       await API.sendMessage(chatId, { type: 'text', content: text });
       await loadMessages(chatId);
+      loadChatsList(chatId);
     } catch (e) {
       showToast(e.message, 'error');
     }
@@ -312,11 +283,14 @@ function startChatPolling(chatId) {
 
   // Soft-refresh: подтягиваем новые сообщения каждые 2 сек
   _chatPollTimer = setInterval(() => {
+    // ушли со страницы переписки — перестаём опрашивать сервер
+    if (!location.hash.startsWith('#/chats/')) { stopChatPolling(); return; }
     if (_chatCurrentId) softRefreshChat(_chatCurrentId);
   }, 2000);
 
   // WebSocket — при получении сообщения тоже обновляем
   function onNewMessage(data) {
+    loadChatsList(_chatCurrentId);
     if (data.chat_id != _chatCurrentId) return;
     const user = Auth.getUser();
     const msg = data.message;
@@ -342,6 +316,7 @@ function stopChatPolling() {
   }
   _chatWsHandler = null;
   _chatCurrentId = null;
+  window._chatCurrentIdPublic = null;
 }
 
 // ─── Action handlers ───────────────────────────────────────────────────────
@@ -373,27 +348,10 @@ async function startDriverFarmerChat(orderId) {
 // ─── Moderation warning modal ──────────────────────────────────────────────
 
 function showChatWarningModal() {
-  const overlay = document.createElement('div');
-  overlay.id = 'chat-warning-modal';
-  overlay.className = 'modal-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);animation:fadeIn .2s';
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:16px;max-width:440px;width:95%;padding:24px;text-align:center">
-      <div style="font-size:48px;margin-bottom:12px">⚠️</div>
-      <h2 style="margin:0 0 12px;font-size:18px">Правила чата</h2>
-      <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:20px">
-        Этот чат сохраняется и доступен администраторам платформы для просмотра диалога.
-        <br><br>
-        <b>Запрещён обмен номерами телефона.</b>
-      </p>
-      <button class="btn btn-primary btn-full" onclick="document.getElementById('chat-warning-modal').remove()">
-        Понятно, продолжить
-      </button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
+  openSheet('chat-rules', t('ch_rules_title'), `
+    <p style="font-size:17px;color:var(--ink-2)">${t('ch_rules_text')}</p>
+    <p style="font-size:17px;color:var(--ink);font-weight:700"><i class="fa-solid fa-triangle-exclamation" style="color:var(--sun)"></i> ${t('ch_no_phones')}</p>
+    <button class="btn btn-primary btn-lg btn-full" onclick="closeSheet()">${t('ch_rules_ok')}</button>`);
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
