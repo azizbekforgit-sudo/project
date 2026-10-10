@@ -1118,8 +1118,8 @@ button.pr2-row:hover { background: #FAFCFA; }
 .lp-hero-bg {
   position: absolute; inset: 0; z-index: -1;
   background:
-    linear-gradient(90deg, rgba(5,20,11,.92) 0%, rgba(5,20,11,.7) 45%, rgba(5,20,11,.15) 100%),
-    url('../assets/hero-field.jpg') center 60% / cover no-repeat;
+    linear-gradient(90deg, rgba(12,18,34,.82) 0%, rgba(12,18,34,.5) 45%, rgba(12,18,34,0) 100%),
+    url('../assets/hero-dusk.svg') center 60% / cover no-repeat;
 }
 .lp-hero-bg::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
@@ -1325,8 +1325,8 @@ button.pr2-row:hover { background: #FAFCFA; }
   .lp-hero-phone { flex-wrap: wrap; }
 
   .lp-hero-bg { background:
-    linear-gradient(180deg, rgba(5,20,11,.55) 0%, rgba(5,20,11,.82) 55%, rgba(5,20,11,.96) 100%),
-    url('../assets/hero-field.jpg') 30% center / cover no-repeat; }
+    linear-gradient(180deg, rgba(12,18,34,.45) 0%, rgba(12,18,34,.7) 55%, rgba(7,23,14,.92) 100%),
+    url('../assets/hero-dusk.svg') 60% center / cover no-repeat; }
   .lp-hero-in { padding-top: 36px; padding-bottom: 40px; }
   .lp-eyebrow { font-size: 15px; padding: 6px 12px; }
   .lp-h1 { margin: 18px 0 14px; }

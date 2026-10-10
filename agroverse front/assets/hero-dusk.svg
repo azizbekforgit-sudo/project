@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <!-- AgroVerse: поле на закате. Первый экран в тёмной теме и на рекламной странице. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14203A"/>
+      <stop offset=".35" stop-color="#2E3A63"/>
+      <stop offset=".58" stop-color="#8A5A6E"/>
+      <stop offset=".72" stop-color="#D98B5A"/>
+      <stop offset=".8" stop-color="#F4B860"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="1000" cy="520" r="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE3A3" stop-opacity=".95"/>
+      <stop offset=".18" stop-color="#FFC56E" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#F08F55" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#F08F55" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#FFF6D8"/>
+      <stop offset=".7" stop-color="#FFE09A"/>
+      <stop offset="1" stop-color="#FFC963"/>
+    </radialGradient>
+    <linearGradient id="field" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4E6B33"/>
+      <stop offset=".35" stop-color="#355A2C"/>
+      <stop offset="1" stop-color="#18311B"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F6C46A" stop-opacity="0"/>
+      <stop offset=".62" stop-color="#F6C46A" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#F6C46A" stop-opacity=".1"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7C47A" stop-opacity="0"/>
+      <stop offset=".35" stop-color="#F7C47A" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#F7C47A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- небо, звёзды, солнце -->
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <g fill="#FFFFFF">
+    <circle cx="140" cy="70" r="1.6" opacity=".7"/><circle cx="310" cy="130" r="1.2" opacity=".5"/>
+    <circle cx="470" cy="55" r="1.8" opacity=".6"/><circle cx="640" cy="110" r="1.1" opacity=".45"/>
+    <circle cx="820" cy="40" r="1.5" opacity=".6"/><circle cx="980" cy="95" r="1.2" opacity=".4"/>
+    <circle cx="1180" cy="60" r="1.7" opacity=".55"/><circle cx="1350" cy="120" r="1.2" opacity=".45"/>
+    <circle cx="1500" cy="45" r="1.5" opacity=".6"/><circle cx="230" cy="210" r="1" opacity=".35"/>
+    <circle cx="1450" cy="230" r="1" opacity=".3"/><circle cx="560" cy="230" r="1" opacity=".3"/>
+  </g>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <!-- облака в лучах заката -->
+  <g fill="#F7B37A" opacity=".55">
+    <path d="M600 330 q60 -26 130 -6 q50 -24 110 2 q40 2 60 16 H560 q10 -10 40 -12z"/>
+    <path d="M1180 270 q70 -30 150 -8 q46 -18 100 4 q30 4 46 14 H1150 q8 -8 30 -10z" opacity=".8"/>
+  </g>
+  <g fill="#C97A6A" opacity=".35">
+    <path d="M220 400 q80 -24 170 -4 q60 -16 120 6 H200z"/>
+  </g>
+
+  <!-- дальние горы и холмы -->
+  <path d="M0 520 L120 470 L230 500 L360 440 L470 488 L590 452 L700 498 L820 470 L930 505 L1080 462 L1200 500 L1330 455 L1460 492 L1600 470 V600 H0Z" fill="#6E5A78" opacity=".55"/>
+  <circle cx="1000" cy="512" r="62" fill="url(#sun)"/>
+  <path d="M0 560 Q240 505 470 540 T930 530 T1380 528 T1600 520 V620 H0Z" fill="#3F4F55"/>
+  <!-- линия деревьев -->
+  <g fill="#253A30">
+    <path d="M0 566 Q200 548 420 560 T860 556 T1300 552 T1600 548 V600 H0Z"/>
+    <circle cx="180" cy="552" r="16"/><circle cx="204" cy="547" r="20"/><circle cx="228" cy="555" r="14"/>
+    <circle cx="520" cy="550" r="13"/><circle cx="540" cy="544" r="18"/>
+    <circle cx="760" cy="551" r="15"/><circle cx="1280" cy="545" r="17"/><circle cx="1302" cy="550" r="13"/>
+    <circle cx="1480" cy="541" r="19"/><circle cx="1505" cy="548" r="14"/>
+    <rect x="1490" y="540" width="3" height="24"/><rect x="200" y="545" width="3" height="20"/>
+  </g>
+  <!-- домик фермера -->
+  <g fill="#1E2E26">
+    <path d="M610 548 L640 526 L670 548 V566 H610Z"/>
+    <rect x="674" y="540" width="26" height="26"/>
+  </g>
+  <rect x="633" y="548" width="7" height="7" fill="#FFD27A" opacity=".9"/>
+
+  <!-- поле -->
+  <path d="M0 572 Q800 556 1600 568 V900 H0Z" fill="url(#field)"/>
+  <path d="M0 572 Q800 556 1600 568 V900 H0Z" fill="url(#sheen)"/>
+  <g stroke="#1A3A1E" stroke-width="5" opacity=".55" fill="none">
+    <path d="M760 566 L-900 900"/><path d="M770 566 L-560 900"/><path d="M780 566 L-240 900"/>
+    <path d="M790 566 L80 900"/><path d="M800 566 L400 900"/><path d="M810 566 L720 900"/>
+    <path d="M820 566 L1040 900"/><path d="M830 566 L1360 900"/><path d="M840 566 L1680 900"/>
+    <path d="M850 566 L2000 900"/><path d="M860 566 L2320 900"/><path d="M870 566 L2640 900"/>
+  </g>
+  <g stroke="#F3C36B" stroke-width="2" opacity=".35" fill="none">
+    <path d="M806 566 L630 900"/><path d="M816 566 L950 900"/><path d="M826 566 L1270 900"/>
+    <path d="M836 566 L1590 900"/><path d="M846 566 L1910 900"/>
+  </g>
+  <rect x="0" y="540" width="1600" height="110" fill="url(#haze)"/>
+
+  <!-- колосья на переднем плане -->
+  <g fill="none" stroke="#C99A45" stroke-linecap="round" opacity=".9">
+    <path d="M1380 900 Q1372 820 1390 760" stroke-width="4"/>
+    <path d="M1420 900 Q1428 830 1412 770" stroke-width="4"/>
+    <path d="M1460 900 Q1450 840 1470 790" stroke-width="3.5"/>
+    <path d="M1520 900 Q1530 845 1515 800" stroke-width="3.5"/>
+  </g>
+  <g fill="#E2B457">
+    <ellipse cx="1390" cy="752" rx="7" ry="20" transform="rotate(12 1390 752)"/>
+    <ellipse cx="1411" cy="762" rx="7" ry="19" transform="rotate(-10 1411 762)"/>
+    <ellipse cx="1470" cy="783" rx="6" ry="17" transform="rotate(14 1470 783)"/>
+    <ellipse cx="1514" cy="793" rx="6" ry="16" transform="rotate(-8 1514 793)"/>
+  </g>
+</svg>
