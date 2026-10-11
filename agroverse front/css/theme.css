@@ -110,7 +110,7 @@ input:focus, select:focus, textarea:focus, .pn-input:focus { box-shadow: 0 0 0 4
   border-bottom: 1px solid var(--rule);
 }
 .tn-inner {
-  height: var(--top-h); max-width: var(--page-w); margin: 0 auto;
+  height: var(--top-h); max-width: 1440px; margin: 0 auto;
   padding: 0 28px; display: flex; align-items: center; gap: 22px;
 }
 .tn-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 0 0 auto; text-decoration: none; }
@@ -137,11 +137,6 @@ input:focus, select:focus, textarea:focus, .pn-input:focus { box-shadow: 0 0 0 4
 }
 html[data-theme="dark"] .tn-link .nav-badge { color: #1A0B09; }
 .tn-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.tn-lang { display: flex; align-items: center; gap: 2px; font-size: 15px; color: var(--ink-3); margin-right: 4px; }
-.tn-lang button { padding: 8px 6px; border-radius: 8px; font-size: 15px; font-weight: 600; color: var(--ink-3); background: none; }
-.tn-lang button:hover { color: var(--ink); }
-.tn-lang button.active { color: var(--field); }
-.tn-lang span { color: var(--rule-2); }
 .tn-btn {
   position: relative; height: 44px; min-width: 44px; padding: 0 10px;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -151,7 +146,6 @@ html[data-theme="dark"] .tn-link .nav-badge { color: #1A0B09; }
 .tn-btn i { font-size: 18px; color: var(--field); }
 .tn-btn:hover { border-color: var(--field); }
 .tn-btn .tb-aa { font-size: 19px; }
-.tn-lang-btn { display: none; }
 .tn-sell {
   height: 44px; padding: 0 16px; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;
   background: var(--fill); color: #fff; font-size: 16px; font-weight: 700; border: none;
@@ -177,18 +171,25 @@ html[data-theme="dark"] .tn-link .nav-badge { color: #1A0B09; }
 }
 .app-main-content.wide { max-width: none !important; }
 
-@media (max-width: 1560px) {
-  .tn-lang { display: none; }
-  .tn-lang-btn { display: inline-flex; }
+/* язык в шапке — та же кнопка со списком, что в «Меню» */
+.topnav .ldd-pop .ldd-btn { min-height: 44px; height: 44px; border-color: var(--rule); }
+.topnav .ldd-pop .ldd-cur .lg-short { display: none; }
+@media (max-width: 1360px) {
+  .topnav .ldd-pop .ldd-cur .lg-full { display: none; }
+  .topnav .ldd-pop .ldd-cur .lg-short { display: inline; }
 }
 @media (max-width: 1240px) {
-  .tn-lang { display: none; }
-  .tn-lang-btn { display: inline-flex; }
   .tn-inner { gap: 14px; padding: 0 20px; }
   .tn-link { padding: 0 9px; font-size: 15px; }
 }
-@media (max-width: 1080px) {
-  .tn-sell span { display: none; }
+/* «Добавить продукт»: полностью — на широком экране, «Добавить» — на среднем, только «+» — на узком */
+.tn-sell-short { display: none; }
+@media (max-width: 1500px) {
+  .tn-sell-full { display: none; }
+  .tn-sell-short { display: inline; }
+}
+@media (max-width: 1180px) {
+  .tn-sell span { display: none !important; }
   .tn-sell { width: 44px; padding: 0; justify-content: center; }
 }
 @media (max-width: 992px) {
@@ -736,4 +737,9 @@ html[data-theme="dark"] .lp-role.farmer .lp-role-ic { background: rgba(255,255,2
   .wz-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .wz-cat { min-height: 92px; font-size: 13px; padding: 10px 4px; }
   .wz-cat .cat-emoji { width: 38px; height: 38px; }
+}
+
+/* узкий ноутбук: в шапке только значок, без слова AgroVerse — иначе пункты меню наезжают на кнопки */
+@media (min-width: 993px) and (max-width: 1100px) {
+  .tn-brand-tx { display: none; }
 }
