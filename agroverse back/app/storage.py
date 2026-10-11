@@ -4,8 +4,9 @@
 временный: после каждого деплоя (git push) он очищается, и все фото товаров
 пропадали. База данных при деплое не сбрасывается, поэтому храним файлы в ней.
 
-Фото уменьшаем до 1600 px по длинной стороне и пережимаем в JPEG — снимок
-с телефона в 4–8 МБ превращается примерно в 200–400 КБ.
+Фото уменьшаем до 1280 px по длинной стороне и пережимаем в JPEG — снимок
+с телефона в 4–8 МБ превращается примерно в 100–250 КБ. На бесплатной базе
+(около 0,5 ГБ) это несколько тысяч фото.
 """
 import io
 import re
@@ -18,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import StoredFile
 
 MAX_UPLOAD = 15 * 1024 * 1024   # больше с телефона не принимаем
-IMAGE_MAX_SIDE = 1600
+IMAGE_MAX_SIDE = 1280
 URL_PREFIX = "/api/files/"
 _ID_RE = re.compile(r"^[0-9a-f]{32}$")
 
@@ -37,9 +38,9 @@ def _shrink_image(data: bytes):
         out = io.BytesIO()
         has_alpha = im.mode in ("RGBA", "LA") or (im.mode == "P" and "transparency" in im.info)
         if has_alpha:
-            im.convert("RGBA").save(out, "WEBP", quality=85)
+            im.convert("RGBA").save(out, "WEBP", quality=80)
             return out.getvalue(), "image/webp"
-        im.convert("RGB").save(out, "JPEG", quality=82, optimize=True, progressive=True)
+        im.convert("RGB").save(out, "JPEG", quality=78, optimize=True, progressive=True)
         return out.getvalue(), "image/jpeg"
     except Exception:
         return None
