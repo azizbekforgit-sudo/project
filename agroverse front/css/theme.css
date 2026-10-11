@@ -743,3 +743,15 @@ html[data-theme="dark"] .lp-role.farmer .lp-role-ic { background: rgba(255,255,2
 @media (min-width: 993px) and (max-width: 1100px) {
   .tn-brand-tx { display: none; }
 }
+
+/* Баннер «Включить уведомления» */
+.pn-banner {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px 16px; margin-bottom: 22px; border-radius: var(--r-lg);
+  background: var(--sprout); border: 1px solid color-mix(in srgb, var(--field) 25%, transparent);
+}
+.pn-banner-ic { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; display: grid; place-items: center; background: var(--fill); color: #fff; font-size: 20px; }
+.pn-banner-tx { flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px; color: var(--ink-2); font-size: 15px; }
+.pn-banner-tx b { color: var(--ink); font-size: 17px; }
+.pn-banner-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 560px) { .pn-banner-btns { width: 100%; } .pn-banner-btns .btn { flex: 1; } }

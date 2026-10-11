@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User, Product, Order, BonusTransaction, UserRole, OrderStatus, PickupMethod, DeliveryRequest, CourierProfile, CourierTransaction
 from app.schemas import OrderCreate, OrderResponse, DriverCandidateRequest
 from app.dependencies import get_current_user
+from app.push import notify_new_order, notify_order_status
 from datetime import datetime
 from decimal import Decimal
 
@@ -51,6 +52,8 @@ async def create_order(
     db.add(new_order)
     await db.commit()
     await db.refresh(new_order)
+    qty = f"{float(order_data.quantity):g} {product.unit}"
+    notify_new_order(product.fermer_id, current_user.name, product.title, qty)
 
     fermer_result = await db.execute(select(User).where(User.id == product.fermer_id))
     fermer = fermer_result.scalar_one()
@@ -353,10 +356,23 @@ async def cancel_order(
         order.cancelled_by = "admin"
     await db.commit()
 
+    title = await _product_title(db, order.product_id)
+    if order.cancelled_by == "buyer":
+        notify_order_status(order.fermer_id, "cancelled", title)
+    elif order.cancelled_by == "seller":
+        notify_order_status(order.xaridor_id, "rejected", title)
     return {"message": "Заказ отменен", "status": "cancelled", "cancelled_by": order.cancelled_by}
 
 
 OPEN_STATUSES = (OrderStatus.CREATED, OrderStatus.PAID, OrderStatus.READY_FOR_PICKUP)
+
+
+async def _product_title(db: AsyncSession, product_id) -> str:
+    """Название товара для уведомления (товар могли удалить)."""
+    if not product_id:
+        return "—"
+    p = (await db.execute(select(Product.title).where(Product.id == product_id))).scalar_one_or_none()
+    return p or "—"
 
 
 async def _seller_order(order_id: int, current_user: User, db: AsyncSession) -> Order:
@@ -389,6 +405,7 @@ async def mark_sold(
     db.add(BonusTransaction(user_id=current_user.id, points=5, reason=f"Продажа по заказу #{order.id}"))
     current_user.bonus_points = (current_user.bonus_points or 0) + 5
     await db.commit()
+    notify_order_status(order.xaridor_id, "sold", await _product_title(db, order.product_id))
     return {"message": "Отмечено как продано", "status": "completed"}
 
 
@@ -408,6 +425,7 @@ async def reject_order(
     order.status = OrderStatus.CANCELLED
     order.cancelled_by = "seller"
     await db.commit()
+    notify_order_status(order.xaridor_id, "rejected", await _product_title(db, order.product_id))
     return {"message": "Заказ отклонён", "status": "cancelled", "cancelled_by": "seller"}
 
 

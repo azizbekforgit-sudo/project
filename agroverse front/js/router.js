@@ -134,6 +134,8 @@ function afterRender() {
     ChatWS.connect();
     if (typeof initChatBadgeWS === 'function') initChatBadgeWS();
   }
+  // push-уведомления: один раз за сеанс напомнить серверу об этом устройстве
+  if (Auth.isLoggedIn() && window.Push && !window.__pushSynced) { window.__pushSynced = true; Push.sync(); }
   // floating AI bubble (init on every page for non-admin users)
   setTimeout(() => { if (typeof initAIBubble === 'function') initAIBubble(); }, 300);
 }

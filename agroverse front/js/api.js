@@ -228,6 +228,10 @@ const API = {
   getChats: () => request('GET', '/api/chats'),
   getChat: (chatId) => request('GET', `/api/chats/${chatId}`),
   createChat: (body) => request('POST', '/api/chats', { body }),
+  // push-уведомления
+  pushKey:         ()     => request('GET', '/api/push/key'),
+  pushSubscribe:   (body) => request('POST', '/api/push/subscribe', { body }),
+  pushUnsubscribe: (body) => request('POST', '/api/push/unsubscribe', { body }),
   // вопрос продавцу до заказа: один чат на пару «покупатель — товар»
   askAboutProduct: (productId) => request('POST', `/api/chats/product/${productId}`),
   getChatMessages: (chatId, params) => request('GET', `/api/chats/${chatId}/messages`, { params }),

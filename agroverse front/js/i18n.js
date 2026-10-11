@@ -1110,6 +1110,7 @@ const I18nManager = {
     if (!I18N[lang]) return;
     this.current = lang;
     localStorage.setItem('av_lang', lang);
+    if (window.Push) Push.sync();   // тексты уведомлений — на новом языке
     // перерисовать текущую страницу
     if (window.router && typeof window.router.reload === 'function') {
       window.router.reload();

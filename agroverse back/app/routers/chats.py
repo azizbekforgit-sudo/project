@@ -13,6 +13,7 @@ from app.schemas import (
 from app.dependencies import get_current_user, get_current_admin
 from app.ws_manager import manager
 from app.storage import save_upload
+from app.push import notify_message
 import re
 import os
 import uuid
@@ -279,6 +280,9 @@ async def send_message(
         }
     }
     await manager.send_to_user(recipient_id, msg_data)
+    # push-уведомление на телефон: кто написал и что (сообщения с номером телефона не пересылаем)
+    if not is_blocked:
+        notify_message(recipient_id, current_user.name, new_msg.type, new_msg.content, chat_id)
 
     if is_blocked:
         return ChatMessageResponse(

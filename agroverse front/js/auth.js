@@ -21,6 +21,7 @@ const Auth = {
   canBuy()        { return this.isLoggedIn() && ['xaridor', 'fermer'].includes(this.getRole()); },
 
   logout() {
+    if (window.Push) Push.forget(this.getToken());   // уведомления этого аккаунта больше не нужны на устройстве
     this.removeToken();
     this.removeUser();
     window.router.go('/welcome');
@@ -304,6 +305,11 @@ function openMenuSheet() {
     </div>
     <h3 class="sheet-sub"><i class="fa-solid fa-circle-half-stroke"></i> ${t('theme_title')}</h3>
     ${themeSegHtml()}
+    <button class="menu-row menu-help" onclick="pushToggle(() => openMenuSheet())">
+      <span class="menu-ic"><i class="fa-solid fa-bell"></i></span>
+      <span class="menu-tx"><b>${t('pn_title')}</b><small>${pushStateLabel()}</small></span>
+      <i class="fa-solid fa-chevron-right menu-go"></i>
+    </button>
     <a class="menu-row menu-help" href="${SOCIAL.feedback}" target="_blank" rel="noopener">
       <span class="menu-ic"><i class="fa-brands fa-telegram"></i></span>
       <span class="menu-tx"><b>${t('fb_title')}</b><small>${t('fb_hint')}</small></span>
@@ -555,7 +561,7 @@ function pageShell(contentHtml, opts = {}) {
     <div class="app-layout">
       ${buildHeader()}
       <main class="app-main-content ${opts.wide ? 'wide' : ''}">
-        <div class="main-zoom">${contentHtml}${noFooter ? '' : footerHtml()}</div>
+        <div class="main-zoom">${(path === '/home' || path === '/chats') && window.pushBannerHtml ? pushBannerHtml() : ''}${contentHtml}${noFooter ? '' : footerHtml()}</div>
       </main>
     </div>
   `;

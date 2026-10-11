@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Значок AgroVerse: росток на зелёном фоне (приложение на телефоне, уведомления) -->
+  <rect width="512" height="512" rx="112" fill="#1F5C35"/>
+  <circle cx="256" cy="256" r="196" fill="#2A7346" opacity=".55"/>
+  <path d="M256 404 V262" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" fill="none"/>
+  <path d="M256 270 C 252 196 200 150 120 146 C 118 222 166 270 256 270 Z" fill="#FFFFFF"/>
+  <path d="M256 236 C 262 160 316 112 398 110 C 400 190 350 236 256 236 Z" fill="#F0B429"/>
+  <path d="M176 404 H336" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" opacity=".9"/>
+</svg>

@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     # Groq (ключ вида gsk_...): только переменной окружения GROQ_API_KEY на сервере
     groq_api_key: str = ""
+    # Push-уведомления (Web Push). Если ключи не заданы — сервер создаёт их сам и хранит в базе
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_subject: str = "https://agroverse-back.onrender.com"
     groq_models: str = "llama-3.3-70b-versatile,openai/gpt-oss-120b,llama-3.1-8b-instant"
     gemini_models: str = "gemini-flash-latest,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-2.5-flash"
     # Вход через Google: OAuth Client ID (Web) из Google Cloud Console
