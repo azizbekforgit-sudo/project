@@ -21,6 +21,18 @@ const CAT_EMOJI = {
   'Цветы': 'fa-solid fa-seedling', 'Саженцы': 'fa-solid fa-tree', 'Бахчевые': 'fa-solid fa-lemon',
   'Семена': 'fa-solid fa-seedling', 'Земля': 'fa-solid fa-mound',
 };
+/* Картинки категорий — Fluent Emoji (Microsoft, MIT), лежат в assets/emoji,
+   чтобы не зависеть от CDN и не показывать системные эмодзи телефона */
+const CAT_EMOJI_IMG = {
+  'Овощи': 'carrot', 'Фрукты': 'red-apple', 'Зелень': 'leafy-green', 'Зерновые': 'sheaf-of-rice',
+  'Молочные': 'glass-of-milk', 'Мёд': 'honey-pot', 'Цветы': 'tulip', 'Саженцы': 'potted-plant',
+  'Бахчевые': 'watermelon', 'Семена': 'seedling', 'Земля': 'national-park',
+};
+function catEmojiImg(value, size = 40) {
+  const f = CAT_EMOJI_IMG[value];
+  return f ? `<img class="cat-emoji" src="assets/emoji/${f}.svg" alt="" width="${size}" height="${size}" loading="lazy" />` : '';
+}
+
 const CAT_GRADIENT = {
   'Овощи': 'linear-gradient(135deg,#105C38,#167D4D)',
   'Фрукты': 'linear-gradient(135deg,#D97706,#B45309)',
@@ -230,6 +242,7 @@ window.productCardHtml = productCardHtml;
 window.quickAddToCart = quickAddToCart;
 window.starsHtml = starsHtml;
 window.CAT_EMOJI = CAT_EMOJI;
+window.catEmojiImg = catEmojiImg;
 window.unitLabel = unitLabel;
 window.catLabel = catLabel;
 window.fmtNum = fmtNum;

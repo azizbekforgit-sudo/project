@@ -88,6 +88,7 @@ async function renderProfile() {
           <span class="cb-ava">${escHtml(initials)}</span>
           <span style="min-width:0"><b>${escHtml(user.name || '')}</b><small>${roleLabel}</small></span>
         </div>
+        ${isFarmer ? `<button class="cb-nav cb-nav-add" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i><span>${t('nav_add_product')}</span></button>` : ''}
         ${nav('overview', 'fa-solid fa-house', t('cb_overview'))}
         ${isFarmer ? nav('listings', 'fa-solid fa-list', t('cb_listings')) : ''}
         <button class="cb-nav" onclick="router.go('/chats')"><i class="fa-solid fa-comment-dots"></i><span>${t('cb_inquiries')}</span>${unreadChats ? `<em>${unreadChats}</em>` : ''}</button>

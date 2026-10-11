@@ -49,7 +49,6 @@ function renderLanding() {
   const app = document.getElementById('app');
   const path = currentPath();
   const logged = Auth.isLoggedIn();
-  const cur = (window.I18nManager && I18nManager.current) || 'uz';
   const phoneLink = `tel:${SUPPORT_PHONE}`;
 
   const nav = [
@@ -58,9 +57,6 @@ function renderLanding() {
     ['lp-about', 'lp_nav_about', '/about'],
     ['lp-contacts', 'lp_nav_contacts', '/contacts'],
   ].map(([id, key, p]) => `<button type="button" onclick="lpScrollTo('${id}', '${p}')">${t(key)}</button>`).join('');
-
-  const langs = I18nManager.langs().map(l =>
-    `<button type="button" class="seg-btn ${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')" aria-label="${l.label}"><span class="lg-full">${l.label}</span><span class="lg-short">${l.code.toUpperCase()}</span></button>`).join('');
 
   const authBtns = logged
     ? `<button class="btn btn-primary lp-top-cta" onclick="router.go('/home')"><i class="fa-solid fa-store"></i> <span>${t('lp_open_app')}</span></button>`
@@ -88,7 +84,7 @@ function renderLanding() {
         <a class="lp-brand" onclick="lpScrollTo('lp-hero', '/welcome')"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span><span class="lp-brand-tx">AgroVerse</span></a>
         <nav class="lp-nav" aria-label="${t('menu')}">${nav}</nav>
         <div class="lp-top-right">
-          <div class="seg lp-lang" role="group" aria-label="${t('choose_lang')}">${langs}</div>
+          ${langDropdownHtml('pop')}
           <button type="button" class="lp-theme" data-theme-btn onclick="Theme.toggle()" aria-label="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(Theme.get())}</button>
           ${authBtns}
         </div>

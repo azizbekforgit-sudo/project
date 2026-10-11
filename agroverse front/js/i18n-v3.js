@@ -9,7 +9,7 @@
       theme_title: 'Тема', theme_light: 'Светлая', theme_dark: 'Тёмная',
       theme_to_dark: 'Включить тёмную тему', theme_to_light: 'Включить светлую тему',
       fb_title: 'Отзывы и идеи', fb_hint: 'Напишите нам в Telegram — читаем всё',
-      nav_cabinet: 'Кабинет', nav_account: 'Мой аккаунт',
+      nav_cabinet: 'Кабинет', nav_account: 'Мой аккаунт', nav_add_short: 'Добавить',
 
       hm_h1a: 'Продайте урожай.', hm_h1b: 'Найдите нужный продукт.',
       hm_lead: 'AgroVerse — площадка, где фермер и покупатель договариваются напрямую, без перекупщиков.',
@@ -73,7 +73,7 @@
       theme_title: 'Mavzu', theme_light: 'Yorug‘', theme_dark: 'Qorong‘i',
       theme_to_dark: 'Qorong‘i mavzuni yoqish', theme_to_light: 'Yorug‘ mavzuni yoqish',
       fb_title: 'Fikr va takliflar', fb_hint: 'Telegramda yozing — hammasini o‘qiymiz',
-      nav_cabinet: 'Kabinet', nav_account: 'Mening akkauntim',
+      nav_cabinet: 'Kabinet', nav_account: 'Mening akkauntim', nav_add_short: 'Qo‘shish',
 
       hm_h1a: 'Hosilingizni soting.', hm_h1b: 'Kerakli mahsulotni toping.',
       hm_lead: 'AgroVerse — fermer va xaridor vositachisiz, to‘g‘ridan-to‘g‘ri kelishadigan platforma.',
@@ -137,7 +137,7 @@
       theme_title: 'Theme', theme_light: 'Light', theme_dark: 'Dark',
       theme_to_dark: 'Switch to dark theme', theme_to_light: 'Switch to light theme',
       fb_title: 'Feedback & ideas', fb_hint: 'Message us on Telegram — we read everything',
-      nav_cabinet: 'My account', nav_account: 'My account',
+      nav_cabinet: 'My account', nav_account: 'My account', nav_add_short: 'Add',
 
       hm_h1a: 'Sell your harvest.', hm_h1b: 'Find what you need.',
       hm_lead: 'AgroVerse is where farmers and buyers deal directly, with no middlemen.',
