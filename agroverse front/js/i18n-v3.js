@@ -6,6 +6,13 @@
 (function () {
   const V3 = {
     ru: {
+      pn_title: 'Уведомления', pn_on: 'Включены', pn_off: 'Выключены', pn_denied: 'Запрещены в браузере',
+      pn_unsupported: 'Этот браузер не поддерживает', pn_ios_short: 'Сначала добавьте на экран «Домой»',
+      pn_banner_t: 'Не пропускайте сообщения и заказы', pn_banner_d: 'Сразу покажем на телефоне, кто написал и что.',
+      pn_enable: 'Включить', pn_later: 'Позже', pn_on_toast: 'Уведомления включены', pn_off_toast: 'Уведомления выключены',
+      pn_denied_help: 'Уведомления запрещены в настройках браузера. Нажмите на значок замка рядом с адресом сайта и разрешите уведомления.',
+      pn_ios: 'На iPhone: нажмите «Поделиться» → «На экран „Домой“», откройте AgroVerse с экрана и включите уведомления.',
+      pn_error: 'Не получилось включить уведомления. Попробуйте ещё раз.',
       theme_title: 'Тема', theme_light: 'Светлая', theme_dark: 'Тёмная',
       theme_to_dark: 'Включить тёмную тему', theme_to_light: 'Включить светлую тему',
       fb_title: 'Отзывы и идеи', fb_hint: 'Напишите нам в Telegram — читаем всё',
@@ -70,6 +77,13 @@
     },
 
     uz: {
+      pn_title: 'Bildirishnomalar', pn_on: 'Yoqilgan', pn_off: 'O‘chirilgan', pn_denied: 'Brauzerda taqiqlangan',
+      pn_unsupported: 'Bu brauzer qo‘llamaydi', pn_ios_short: 'Avval bosh ekranga qo‘shing',
+      pn_banner_t: 'Xabar va buyurtmalarni o‘tkazib yubormang', pn_banner_d: 'Kim yozgani va nima yozganini telefoningizda darhol ko‘rsatamiz.',
+      pn_enable: 'Yoqish', pn_later: 'Keyinroq', pn_on_toast: 'Bildirishnomalar yoqildi', pn_off_toast: 'Bildirishnomalar o‘chirildi',
+      pn_denied_help: 'Bildirishnomalar brauzer sozlamalarida taqiqlangan. Sayt manzili yonidagi qulf belgisini bosing va ruxsat bering.',
+      pn_ios: 'iPhone’da: «Ulashish» → «Bosh ekranga qo‘shish» ni bosing, AgroVerse’ni o‘sha yerdan oching va bildirishnomani yoqing.',
+      pn_error: 'Bildirishnomani yoqib bo‘lmadi. Yana urinib ko‘ring.',
       theme_title: 'Mavzu', theme_light: 'Yorug‘', theme_dark: 'Qorong‘i',
       theme_to_dark: 'Qorong‘i mavzuni yoqish', theme_to_light: 'Yorug‘ mavzuni yoqish',
       fb_title: 'Fikr va takliflar', fb_hint: 'Telegramda yozing — hammasini o‘qiymiz',
@@ -134,6 +148,13 @@
     },
 
     en: {
+      pn_title: 'Notifications', pn_on: 'On', pn_off: 'Off', pn_denied: 'Blocked in browser',
+      pn_unsupported: 'Not supported in this browser', pn_ios_short: 'Add to Home Screen first',
+      pn_banner_t: 'Don’t miss messages and orders', pn_banner_d: 'We’ll show who wrote and what, right on your phone.',
+      pn_enable: 'Turn on', pn_later: 'Later', pn_on_toast: 'Notifications are on', pn_off_toast: 'Notifications are off',
+      pn_denied_help: 'Notifications are blocked in your browser settings. Tap the lock icon next to the site address and allow them.',
+      pn_ios: 'On iPhone: tap Share → Add to Home Screen, open AgroVerse from there and turn notifications on.',
+      pn_error: 'Could not turn notifications on. Please try again.',
       theme_title: 'Theme', theme_light: 'Light', theme_dark: 'Dark',
       theme_to_dark: 'Switch to dark theme', theme_to_light: 'Switch to light theme',
       fb_title: 'Feedback & ideas', fb_hint: 'Message us on Telegram — we read everything',

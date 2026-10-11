@@ -345,3 +345,25 @@ class StoredFile(Base):
     size         = Column(Integer, nullable=False)
     data         = Column(LargeBinary, nullable=False)
     created_at   = Column(DateTime, server_default=func.now())
+
+
+class PushSubscription(Base):
+    """Подписка браузера/телефона на push-уведомления (Web Push).
+    У одного человека может быть несколько: телефон, компьютер."""
+    __tablename__ = "push_subscriptions"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    endpoint   = Column(Text, nullable=False, unique=True)   # адрес у Google/Apple/Mozilla, куда слать
+    p256dh     = Column(String(200), nullable=False)        # ключи шифрования браузера
+    auth       = Column(String(100), nullable=False)
+    lang       = Column(String(5), default="uz")             # язык текста уведомлений
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class AppSetting(Base):
+    """Небольшие настройки сайта, которые должны пережить деплой (например, ключи VAPID)."""
+    __tablename__ = "app_settings"
+
+    key   = Column(String(100), primary_key=True)
+    value = Column(Text, nullable=False)

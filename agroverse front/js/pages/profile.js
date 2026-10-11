@@ -138,6 +138,7 @@ async function renderProfile() {
               ${prRow('fa-solid fa-text-height', t('choose_size'), t({ m: 'size_m', l: 'size_l', xl: 'size_xl' }[TextSize.get()]), `openSizeSheet()`)}
               ${prRow('fa-solid fa-circle-half-stroke', t('theme_title'), t(Theme.get() === 'dark' ? 'theme_dark' : 'theme_light'), `Theme.toggle(); renderProfile()`)}
               ${prRow('fa-solid fa-key', t('pr_password'), '••••••', `openChangePassword()`)}
+              ${prRow('fa-solid fa-bell', t('pn_title'), pushStateLabel(), `pushToggle(() => renderProfile())`)}
               ${prRow('fa-brands fa-telegram', t('fb_title'), t('fb_hint'), `window.open(SOCIAL.feedback, '_blank', 'noopener')`)}
             </div>
             <button class="menu-logout" onclick="Auth.logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}</button>

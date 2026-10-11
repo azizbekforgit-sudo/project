@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- Маленький одноцветный значок для строки состояния Android (используется только прозрачность) -->
+  <path d="M48 80 V50" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M48 52 C 47 37 37 28 20 27 C 20 42 30 52 48 52 Z" fill="#FFFFFF"/>
+  <path d="M48 45 C 49 30 60 20 77 20 C 77 36 67 45 48 45 Z" fill="#FFFFFF"/>
+</svg>
