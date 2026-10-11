@@ -421,7 +421,6 @@ function buildHeader() {
   const ordersNew = window._ordersNew || 0;
   const isFarmer = Auth.isFarmer();
   const showCart = Auth.canBuy();
-  const cur = (window.I18nManager && I18nManager.current) || 'uz';
   const theme = Theme.get();
 
   // в верхнем меню — главные разделы; «Продать» и корзина — отдельными кнопками справа
@@ -457,17 +456,12 @@ function buildHeader() {
         </a>
         <nav class="tn-links" aria-label="${t('menu')}">${links}</nav>
         <div class="tn-tools">
-          <div class="tn-lang" role="group" aria-label="${t('choose_lang')}">
-            ${I18nManager.langs().map(l => `<button class="${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')" ${l.code === cur ? 'aria-current="true"' : ''}>${l.code === 'uz' ? 'O‘zbek' : l.code === 'ru' ? 'Русский' : 'English'}</button>`).join('<span aria-hidden="true">|</span>')}
-          </div>
-          <button class="tn-btn tn-lang-btn" onclick="openLangSheet()" aria-label="${t('choose_lang')}">
-            <i class="fa-solid fa-globe"></i><span>${cur.toUpperCase()}</span>
-          </button>
+          ${langDropdownHtml('pop')}
           <button class="tn-btn" onclick="openSizeSheet()" aria-label="${t('choose_size')}" title="${t('choose_size')}">
             <span class="tb-aa">A<small>A</small></span>
           </button>
           <button class="tn-btn" data-theme-btn onclick="Theme.toggle()" aria-label="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(theme)}</button>
-          ${isFarmer ? `<button class="tn-sell ${path === '/product/new' ? 'active' : ''}" onclick="router.go('/product/new')" title="${t('nav_add_product')}"><i class="fa-solid fa-plus"></i><span>${t('nav_add_product')}</span></button>` : ''}
+          ${isFarmer ? `<button class="tn-sell ${path === '/product/new' ? 'active' : ''}" onclick="router.go('/product/new')" title="${t('nav_add_product')}"><i class="fa-solid fa-plus"></i><span class="tn-sell-full">${t('nav_add_product')}</span><span class="tn-sell-short">${t('nav_add_short')}</span></button>` : ''}
           ${showCart ? `<button class="tn-btn tn-cart" onclick="router.go('/cart')" aria-label="${t('nav_cart')}" title="${t('nav_cart')}">
             <i class="fa-solid fa-basket-shopping"></i>
             <span class="tn-cart-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>
