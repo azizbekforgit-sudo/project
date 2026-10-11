@@ -645,3 +645,95 @@ html[data-theme="dark"] .lp-role.farmer .lp-role-ic { background: rgba(255,255,2
   .lp-lang .lg-full { display: none; }
   .lp-lang .lg-short { display: inline; }
 }
+
+/* ============================================================
+   «Меню»-шторка: листается пальцем, блоки не сжимаются
+   ============================================================ */
+.sheet { min-height: 0; }
+.sheet-body {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+/* раньше список разделов сжимался до нуля, чтобы влезли язык/размер/тема — и листать было нечего */
+.sheet-body > * { flex-shrink: 0; }
+.seg { min-width: 0; }
+.seg-btn { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 380px) {
+  .seg-btn { font-size: 14px !important; padding: 6px 4px; }
+}
+
+/* ============================================================
+   Выбор языка: кнопка + раскрывающийся список
+   ============================================================ */
+.ldd { position: relative; }
+.ldd-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 56px; padding: 0 16px; border-radius: var(--r-md);
+  border: 1px solid var(--rule-2); background: var(--card); color: var(--ink);
+  font-size: 17px; font-weight: 600; text-align: left;
+}
+.ldd-btn:hover, .ldd.open .ldd-btn { border-color: var(--field); }
+.ldd-globe { color: var(--field); font-size: 19px; }
+.ldd-cur { flex: 1; min-width: 0; }
+.ldd-inline .ldd-cur .lg-full { display: inline !important; }
+.ldd-inline .ldd-cur .lg-short { display: none !important; }
+.ldd-chev { color: var(--ink-3); transition: transform .15s; }
+.ldd.open .ldd-chev { transform: rotate(180deg); }
+.ldd-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.ldd-list[hidden] { display: none; }
+.ldd-opt {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 56px; padding: 6px 14px; border-radius: var(--r-md);
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+  font-size: 17px; font-weight: 600; text-align: left;
+}
+.ldd-opt .opt-badge { width: 40px; height: 40px; flex: 0 0 40px; font-size: 14px; }
+.ldd-opt-tx { flex: 1; }
+.ldd-opt .opt-check { font-size: 20px; color: var(--field); visibility: hidden; }
+.ldd-opt.active { border-color: var(--field); background: var(--sprout); }
+.ldd-opt.active .opt-badge { background: var(--fill); color: #fff; }
+.ldd-opt.active .opt-check { visibility: visible; }
+
+/* в шапке (рекламная страница, вход) — компактная кнопка и всплывающий список */
+.ldd-pop { flex: 0 0 auto; }
+.ldd-pop .ldd-btn { min-height: 46px; width: auto; padding: 0 12px; font-size: 16px; gap: 8px; }
+.ldd-pop .ldd-list {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 1500; margin: 0;
+  width: 220px; padding: 8px; border-radius: var(--r-lg);
+  background: var(--card); border: 1px solid var(--rule); box-shadow: var(--shadow-lg);
+}
+.ldd-pop .ldd-opt { min-height: 50px; border-color: transparent; }
+@media (max-width: 1500px) {
+  .lp-top .ldd-pop .lg-full { display: none; }
+  .lp-top .ldd-pop .lg-short { display: inline; }
+}
+
+/* «Добавить продукт» у фермера: заметная кнопка в кабинете */
+.cb-nav-add { background: var(--fill); color: #fff; margin-bottom: 6px; }
+.cb-nav-add i { color: #fff; }
+.cb-nav-add:hover { background: var(--fill-hover); color: #fff; }
+.tn-sell.active { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fill) 30%, transparent); }
+@media (max-width: 992px) {
+  .cb-nav-add { order: -1; margin-bottom: 0; }
+}
+
+/* «Новое объявление»: вид товара — кнопки с картинками */
+.wz-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.wz-cat {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  min-height: 104px; padding: 12px 6px; border-radius: var(--r-md);
+  border: 2px solid var(--rule); background: var(--card); color: var(--ink);
+  font-size: 15px; font-weight: 700; line-height: 1.2; text-align: center;
+  transition: border-color .12s, background .12s, transform .12s;
+}
+.wz-cat:hover { border-color: var(--field); }
+.wz-cat:active { transform: scale(.97); }
+.wz-cat .cat-emoji { width: 44px; height: 44px; }
+.wz-cat.active { border-color: var(--field); background: var(--sprout); box-shadow: inset 0 0 0 1px var(--field); }
+.wz-cats.error .wz-cat { border-color: color-mix(in srgb, var(--danger) 55%, var(--rule)); }
+@media (max-width: 480px) {
+  .wz-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .wz-cat { min-height: 92px; font-size: 13px; padding: 10px 4px; }
+  .wz-cat .cat-emoji { width: 38px; height: 38px; }
+}

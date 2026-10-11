@@ -223,6 +223,45 @@ function themeSegHtml() {
 }
 window.themeSegHtml = themeSegHtml;
 
+/* Выбор языка: одна кнопка с текущим языком, по нажатию раскрывается список.
+   inline — список раскрывается под кнопкой (в «Меню»), pop — всплывает поверх (в шапке). */
+function langDropdownHtml(variant = 'inline') {
+  const cur = (window.I18nManager && I18nManager.current) || 'uz';
+  const langs = I18nManager.langs();
+  const curLang = langs.find(l => l.code === cur) || langs[0];
+  return `<div class="ldd ldd-${variant}">
+    <button type="button" class="ldd-btn" aria-haspopup="listbox" aria-expanded="false" onclick="toggleLangDd(this)">
+      <i class="fa-solid fa-globe ldd-globe" aria-hidden="true"></i>
+      <span class="ldd-cur"><span class="lg-full">${curLang.label}</span><span class="lg-short">${curLang.code.toUpperCase()}</span></span>
+      <i class="fa-solid fa-chevron-down ldd-chev" aria-hidden="true"></i>
+    </button>
+    <div class="ldd-list" role="listbox" aria-label="${t('choose_lang')}" hidden>
+      ${langs.map(l => `<button type="button" role="option" aria-selected="${l.code === cur}" class="ldd-opt ${l.code === cur ? 'active' : ''}" onclick="closeSheet(); I18nManager.set('${l.code}')">
+        <span class="opt-badge">${l.code.toUpperCase()}</span><span class="ldd-opt-tx">${l.label}</span><i class="fa-solid fa-circle-check opt-check"></i>
+      </button>`).join('')}
+    </div>
+  </div>`;
+}
+function toggleLangDd(btn, force) {
+  const box = btn.closest('.ldd');
+  const list = box.querySelector('.ldd-list');
+  const open = force !== undefined ? force : list.hidden;
+  document.querySelectorAll('.ldd-pop .ldd-list').forEach(l => { if (l !== list) { l.hidden = true; l.previousElementSibling.setAttribute('aria-expanded', 'false'); } });
+  list.hidden = !open;
+  btn.setAttribute('aria-expanded', String(open));
+  box.classList.toggle('open', open);
+  if (open && box.classList.contains('ldd-inline')) list.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+// всплывающий список закрывается по нажатию мимо и по Esc
+document.addEventListener('click', e => {
+  document.querySelectorAll('.ldd-pop.open').forEach(box => { if (!box.contains(e.target)) toggleLangDd(box.querySelector('.ldd-btn'), false); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.ldd.open').forEach(box => toggleLangDd(box.querySelector('.ldd-btn'), false));
+});
+window.langDropdownHtml = langDropdownHtml;
+window.toggleLangDd = toggleLangDd;
+
 function openLangSheet() { openSheet('lang', t('choose_lang'), langOptionsHtml()); }
 function openSizeSheet() { openSheet('size', t('choose_size'), sizeOptionsHtml()); }
 window.openLangSheet = openLangSheet;
@@ -256,7 +295,7 @@ function openMenuSheet() {
     </button>
     <div class="menu-list">${rows}</div>
     <h3 class="sheet-sub"><i class="fa-solid fa-globe"></i> ${t('choose_lang')}</h3>
-    <div class="seg">${I18nManager.langs().map(l => `<button class="seg-btn ${l.code === I18nManager.current ? 'active' : ''}" onclick="closeSheet(); I18nManager.set('${l.code}')">${l.label}</button>`).join('')}</div>
+    ${langDropdownHtml('inline')}
     <h3 class="sheet-sub"><i class="fa-solid fa-text-height"></i> ${t('choose_size')}</h3>
     <div class="seg">
       <button class="seg-btn ${TextSize.get() === 'm' ? 'active' : ''}" data-size="m" onclick="TextSize.set('m')" style="font-size:15px">${t('size_m')}</button>
@@ -367,7 +406,7 @@ function bottomTabs() {
   return [
     { path: '/home', icon: 'fa-solid fa-house', key: 'tab_home' },
     { path: '/market', icon: 'fa-solid fa-store', key: 'nav_market' },
-    ...(Auth.isFarmer() ? [{ path: '/product/new', icon: 'fa-solid fa-plus', key: 'nav_sell', main: true }] : []),
+    ...(Auth.isFarmer() ? [{ path: '/product/new', icon: 'fa-solid fa-plus', key: 'nav_add_short', main: true }] : []),
     { path: '/cart', icon: 'fa-solid fa-basket-shopping', key: 'nav_cart', cart: true },
     { path: '/orders', icon: 'fa-solid fa-box', key: 'tab_orders', orders: true },
   ];
@@ -428,7 +467,7 @@ function buildHeader() {
             <span class="tb-aa">A<small>A</small></span>
           </button>
           <button class="tn-btn" data-theme-btn onclick="Theme.toggle()" aria-label="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(theme)}</button>
-          ${isFarmer ? `<button class="tn-sell" onclick="router.go('/product/new')"><i class="fa-solid fa-plus"></i><span>${t('nav_sell')}</span></button>` : ''}
+          ${isFarmer ? `<button class="tn-sell ${path === '/product/new' ? 'active' : ''}" onclick="router.go('/product/new')" title="${t('nav_add_product')}"><i class="fa-solid fa-plus"></i><span>${t('nav_add_product')}</span></button>` : ''}
           ${showCart ? `<button class="tn-btn tn-cart" onclick="router.go('/cart')" aria-label="${t('nav_cart')}" title="${t('nav_cart')}">
             <i class="fa-solid fa-basket-shopping"></i>
             <span class="tn-cart-badge" data-cart-badge ${cartCount ? '' : 'hidden'}>${cartCount}</span>

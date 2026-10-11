@@ -36,11 +36,14 @@ function renderProductNew() {
               <input type="text" id="pn-name" placeholder="${t('pn_name_ph')}" class="pn-input" maxlength="120" />
             </div>
             <div class="wz-field">
-              <label for="pn-category">${t('pn_category')} <span class="req">*</span></label>
-              <select id="pn-category" class="pn-input">
-                <option value="">—</option>
-                ${categories.map(c => `<option value="${c.value}">${t(c.key)}</option>`).join('')}
-              </select>
+              <span id="pn-cat-label">${t('pn_category')} <span class="req">*</span></span>
+              <input type="hidden" id="pn-category" />
+              <div class="wz-cats" id="pn-cat-grid" role="radiogroup" aria-labelledby="pn-cat-label">
+                ${categories.map(c => `
+                  <button type="button" class="wz-cat" role="radio" aria-checked="false" data-value="${c.value}" onclick="wzPickCat(this)">
+                    ${catEmojiImg(c.value, 44)}<span>${t(c.key)}</span>
+                  </button>`).join('')}
+              </div>
             </div>
             <div class="wz-field">
               <label for="pn-description">${t('pn_desc')} <span class="req">*</span></label>
@@ -125,6 +128,17 @@ function renderProductNew() {
   document.getElementById('wz-next').onclick = () => { if (validateStep(cur)) goStep(cur + 1); };
   window.wzGo = goStep;
 
+  // Вид товара — крупные кнопки с картинками; выбранная подсвечивается
+  window.wzPickCat = function (btn) {
+    document.querySelectorAll('.wz-cat').forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', String(on));
+    });
+    document.getElementById('pn-category').value = btn.dataset.value;
+    document.getElementById('pn-cat-grid').classList.remove('error');
+  };
+
   function syncQtyUnit() {
     const sel = document.getElementById('pn-unit');
     document.getElementById('pn-qty-unit').value = sel.options[sel.selectedIndex]?.text || '';
@@ -142,6 +156,7 @@ function renderProductNew() {
       el.classList.toggle('error', bad);
       if (bad) ok = false;
     });
+    if (n === 1) document.getElementById('pn-cat-grid').classList.toggle('error', !document.getElementById('pn-category').value);
     if (!ok) { showError(t('pn_fill_required')); return false; }
     if (n === 1 && document.getElementById('pn-description').value.trim().length < 10) {
       document.getElementById('pn-description').classList.add('error');

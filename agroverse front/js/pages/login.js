@@ -11,7 +11,6 @@ function authErrorText(msg) {
 }
 
 function authShell(bodyHtml) {
-  const cur = (window.I18nManager && I18nManager.current) || 'uz';
   const art = typeof fieldSceneSvg === 'function' ? fieldSceneSvg() : '';
   return `
     <div class="auth2">
@@ -25,9 +24,7 @@ function authShell(bodyHtml) {
       <main class="auth2-main">
         <div class="auth2-top">
           <a class="auth2-brand small" onclick="router.go('/welcome')" title="${t('back_home')}"><span class="sb-logo-icon"><i class="fa-solid fa-seedling"></i></span> AgroVerse</a>
-          <div class="seg auth2-lang" role="group" aria-label="${t('choose_lang')}">
-            ${I18nManager.langs().map(l => `<button type="button" class="seg-btn ${l.code === cur ? 'active' : ''}" onclick="I18nManager.set('${l.code}')">${l.label}</button>`).join('')}
-          </div>
+          ${langDropdownHtml('pop')}
           <button type="button" class="lp-theme" data-theme-btn onclick="Theme.toggle()" aria-label="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}" title="${t(Theme.get() === 'dark' ? 'theme_to_light' : 'theme_to_dark')}">${themeIconHtml(Theme.get())}</button>
         </div>
         <button type="button" class="auth2-back" onclick="router.go('/welcome')"><i class="fa-solid fa-arrow-left"></i> ${t('back_home')}</button>
