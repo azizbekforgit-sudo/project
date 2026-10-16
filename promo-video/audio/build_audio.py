@@ -230,7 +230,7 @@ def compose(accents):
         for ly in ('drums', 'bass', 'pluck', 'lead'):
             M.mute[ly].append((tf(A) - pre_hole, tf(A)))
     # stop-time zone: groove silent between the three hits and before the finale (hits live on 'stab'/'fx')
-    for ly in ('drums', 'bass', 'pluck', 'lead', 'pad'):
+    for ly in ('drums', 'bass', 'pluck', 'lead'):
         M.mute[ly].append((tf(1560) - pre_hole, tf(1620) + 0.0))
     # collapse -> drop gap
     for ly in ('drums', 'bass', 'pluck', 'lead', 'col'):
@@ -264,7 +264,7 @@ def compose(accents):
             wide = 1.35
             cut = 2400 if I < 0.6 else 3200
             lvl = -10.5 if I < 0.6 else -12.5
-            snd = S.width(pad_chord(name, dur + 0.5, cut, 0.12, 0.7, 1), wide)
+            snd = S.width(pad_chord(name, dur + (0.1 if f1 == 1560 else 0.5), cut, 0.12, 0.7, 1), wide)
             M.add('pad', snd, tf(f0), lvl)
         elif f0 >= 1605 and f0 < 1620:
             M.add('pad', S.width(pad_chord('G', 0.9, 2800, 0.4, 0.2), 1.4), tf(f0), -10)
@@ -523,9 +523,11 @@ def compose(accents):
     M.b['stab'].add(stab_chord('A', 3.2, 0), t, -7.0)
     M.b['bass'].add(bass_note(45, 2.2), t, -5.0)
     M.b['drums'].add(P.doira['D'][2], t, -5)
-    for k, s in enumerate((0, 7, 12, 16)):
-        M.b['lead'].add(S.st(S.bell(S.mtof(57 + 24 + s), 2.2, 3.5, 1.3)) * 0.4 + 0.25 * pluck_note(57 + 12 + s, 1.8, 0.7, 0.996, 0, 'rubab'),
-                        t + 0.05 + k * 0.11, -9 - 1.0 * k, -0.25 + 0.17 * k)
+    for k, s_ in enumerate((0, 7, 12, 16)):
+        tb = S.Bus(2.4)
+        tb.add(S.bell(S.mtof(57 + 24 + s_), 2.2, 3.5, 1.3), 0, -8)
+        tb.add(pluck_note(57 + 12 + s_, 1.8, 0.7, 0.996, 0, 'rubab'), 0, -2)
+        M.b['lead'].add(tb.buf, t + 0.05 + k * 0.11, -6 - 1.0 * k, -0.25 + 0.17 * k)
     return M
 
 
