@@ -416,11 +416,12 @@ def width(x, w=1.3):
 
 
 def mono_low(x, fc=150):
-    """keep everything below fc mono (sub/kick/impact safety)"""
+    """keep everything below fc mono (sub/kick/impact safety). Linkwitz-Riley 4th-order crossover:
+    out = HP4(x) + LP4(mid). LP4 + HP4 is an all-pass, so the sum is flat; side content below fc falls 24 dB/oct."""
     x = st(x)
-    low = lp(x.mean(1), fc)
-    high = hp(x, fc)
-    return high + low[:, None]
+    lo = (rbj('lp', fc, 0.7071), rbj('lp', fc, 0.7071))
+    hi = (rbj('hp', fc, 0.7071), rbj('hp', fc, 0.7071))
+    return filt(x, *hi) + filt(x.mean(1), *lo)[:, None]
 
 
 def conv(x, ir):
@@ -542,12 +543,42 @@ def lufs(x):
 
 
 def true_peak_db(x, os=4):
+    """reference: 4x oversampling by FFT zero-padding (slow on long files)"""
     x = st(x)
     n = len(x)
     X = np.fft.rfft(x, axis=0)
     Y = np.zeros((n * os // 2 + 1, 2), complex)
     Y[:len(X)] = X
     return a2db(np.max(np.abs(np.fft.irfft(Y, n * os, axis=0) * os)))
+
+
+_TP_K = None
+
+
+def true_peak_fast(x, os=4, taps=32):
+    """Approximate (within ~0.3 dB, tends to read low) 4x true peak, evaluated only around the loudest samples.
+    Use true_peak_db() (exact, FFT) for the final verdict."""
+    global _TP_K
+    x = st(x)
+    if _TP_K is None:
+        k = np.arange(-taps + 1, taps + 1)
+        ks = []
+        for ph in (0.25, 0.5, 0.75):
+            h = np.sinc(k - ph) * np.hanning(2 * taps + 2)[1:-1] if False else np.sinc(k - ph) * (0.5 + 0.5 * np.cos(np.pi * (k - ph) / (taps + 0.5)))
+            ks.append(h)
+        _TP_K = (k, np.array(ks))
+    k, ks = _TP_K
+    a = np.max(np.abs(x), 1)
+    pk = a.max()
+    idx = np.nonzero(a > pk * 0.4)[0]
+    idx = idx[(idx > taps) & (idx < len(x) - taps - 1)]
+    best = pk
+    if len(idx):
+        for c in range(2):
+            win = x[idx[:, None] + k[None, :], c]          # (m, 2*taps)
+            for h in ks:
+                best = max(best, np.max(np.abs(win @ h)))
+    return a2db(best)
 
 
 def soft_limit(x, ceiling_db=-1.5, knee_db=4.0):

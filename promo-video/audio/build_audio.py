@@ -271,7 +271,7 @@ def compose(accents):
         elif f0 >= 1620 and f0 < 1740:
             M.add('pad', S.width(pad_chord(name, dur + 0.5, 3600, 0.1, 0.8, 1), 1.55), tf(f0), -11.0)
         elif f0 == 1740:
-            M.add('pad', S.width(pad_chord('A', 3.4, 3200, 0.05, 1.8, 1), 1.6), tf(f0), -9.5)
+            M.add('pad', S.width(pad_chord('A', 2.4, 3200, 0.05, 1.2, 1), 1.6), tf(f0), -12.5)
 
     # ------------------------------------------------------------------ INTRO dutar drone + Hijaz motif
     for bar in range(3):
@@ -365,7 +365,7 @@ def compose(accents):
             if hi and bar % 4 == 3:
                 kpos = kpos | {14}
             if pos in kpos and abs(f - 480) > 1e-6:                      # 480 handled as accent hit
-                M.add('drums', P.pick(P.kick, kick_i), t, -3.0 + (0 if pos == 0 else -1.5)); M.kicks.append((t, 1.0)); kick_i += 1
+                M.add('drums', P.pick(P.kick, kick_i), t, -4.5 + (0 if pos == 0 else -1.5)); M.kicks.append((t, 1.0)); kick_i += 1
             # clap
             if hi and pos in (4, 12):
                 M.add('drums', P.pick(P.clap, i), t, -9.5, 0.0)
@@ -498,9 +498,9 @@ def compose(accents):
         elif A == 600:
             accent_hit(600, nm, -1.5, -12.0, -9.5, -5.5, 1)
         elif A in (810, 990, 1380):
-            accent_hit(A, nm, -1.5, -11.5, -9.0, -5.5, A % 2)
+            accent_hit(A, nm, -2.5, -8.5 if A == 810 else -10.5, -9.0, -5.5, A % 2)
         elif A == 1230:
-            accent_hit(1230, nm, -2.0, -13.0, -8.5, -8.0, 0, 2.2, -8)       # drop into the breakdown: warm, not big
+            accent_hit(1230, nm, -3.0, -10.5, -8.5, -8.0, 0, 2.2, -8)       # drop into the breakdown: warm, not big
         elif A == 1560:
             accent_hit(1560, 'Am', -0.5, -9.5, -6.0, -4.0, 0, 1.0, -3.0)
         elif A == 1575:
@@ -520,7 +520,7 @@ def compose(accents):
     t = tf(1740)
     M.b['drums'].add(P.kick[0], t, -1.5); M.kicks.append((t, 1.0)); M.hit_times.append(t)
     M.b['fx'].add(P.crash[0], t, -9.5)
-    M.b['stab'].add(stab_chord('A', 3.2, 0), t, -7.0)
+    M.b['stab'].add(stab_chord('A', 2.0, 0), t, -7.5)
     M.b['bass'].add(bass_note(45, 2.2), t, -5.0)
     M.b['drums'].add(P.doira['D'][2], t, -5)
     for k, s_ in enumerate((0, 7, 12, 16)):
@@ -571,7 +571,7 @@ def render_music(M, secs):
     B['bass'] = B['bass'] * (0.75 + 0.25 * sc)[:, None]
     # layer trims + bus processing
     B['drums'] = S.filt(B['drums'], S.rbj('lp', 13000, 0.7), S.rbj('hs', 7500, 0.7, -2.0))
-    B['bass'] = S.filt(B['bass'], S.rbj('hp', 32, 0.7), S.rbj('lp', 3200, 0.7))
+    B['bass'] = S.filt(B['bass'], S.rbj('hp', 32, 0.7), S.rbj('lp', 3200, 0.7)) * db2a(-5.0)
     B['lead'] = S.filt(B['lead'], S.rbj('hp', 200, 0.7))
     B['pluck'] = S.filt(B['pluck'], S.rbj('hp', 140, 0.7))
     # --- reverb sends
@@ -610,8 +610,8 @@ def render_music(M, secs):
     gdb = np.interp(fr, [p[0] for p in pts], [p[1] for p in pts])
     mus = mus * db2a(gdb)[:, None]
     # --- ending: clean exponential-ish fade to digital silence by 59.6 s
-    e0, e1 = tf(1740) + 0.9, tf(1799) + 0.0
-    fe = np.where(n_ < e0, 0.0, -70 * np.clip((n_ - e0) / (e1 - e0), 0, 1) ** 1.25)
+    e0, e1 = tf(1740) + 0.3, tf(1799) + 0.0
+    fe = np.where(n_ < e0, 0.0, -75 * np.clip((n_ - e0) / (e1 - e0), 0, 1) ** 0.9)
     mus = mus * db2a(fe)[:, None]
     mus[S.ns(TOTAL_S - 0.15):] = 0
     log(f'  music rendered ({time.time()-t0:.1f}s)')
@@ -620,13 +620,13 @@ def render_music(M, secs):
 
 def secs_gain_points(secs):
     """music gain automation in dB vs frame (piecewise linear). Tuned against the measured energy table."""
-    return [(0, -2.0), (170, -1.0), (180, 0.0), (400, 2.5), (405, 2.5), (420, -3.0), (479, 1.0), (480, 3.0), (1229, 3.0),
-            (1230, 3.0), (1380, 3.0), (1559, 3.0), (1560, 3.5), (1700, 3.5), (1800, 3.5)]
+    return [(0, -6.5), (170, -5.5), (180, -6.0), (400, -3.0), (405, -3.0), (420, -11.0), (440, -8.0), (479, -2.0), (480, 3.0), (1229, 3.0),
+            (1230, 3.0), (1380, 3.0), (1559, 3.0), (1560, 0.0), (1619, 0.0), (1620, 2.5), (1740, 2.5), (1800, 2.5)]
 
 
 # ============================================================================= SFX
 SFX_TRIM = {   # dB, so that scene gains around the values in the scene files give a balanced mix
-    'whoosh': -3, 'swish': -2, 'riser': -2, 'reverse_cymbal': -2, 'boom': -1, 'impact': -1, 'hit_soft': -1, 'tick': -3,
+    'whoosh': -3, 'swish': -2, 'riser': -2, 'reverse_cymbal': -2, 'boom': -1, 'impact': -4, 'hit_soft': -1, 'tick': -3,
     'scramble': -2, 'lock': -2, 'pop': -4, 'ui_tap': -8, 'notification': -3, 'vibrate': -4, 'success': -3,
     'card_shuffle': -2, 'card_place': -3, 'stamp': -1, 'bubble': -4, 'typing': -2, 'switch': -3, 'shimmer': -2,
     'logo_sting': -2, 'glitch': -3,
@@ -799,18 +799,26 @@ def duck_env(n, duck):
 
 # ============================================================================= master
 def master_chain(x, target=-14.0, tp=-1.0):
+    """HP 28 Hz + LR4 mono-below-120 + look-ahead limiter; gain iterated to -14 LUFS with true peak <= tp.
+    Loop uses the fast true-peak estimate with 0.3 dB margin; the exact FFT measure is the final gate."""
     x = S.mono_low(S.filt(S.st(x), S.rbj('hp', 28, 0.7)), 120)
     drive = target - S.lufs(x)
     ceil = tp - 0.45
     z = x
-    for _ in range(8):
+    for _ in range(6):
         z = S.limiter(x * db2a(drive), ceil)
-        L, tpk = S.lufs(z), S.true_peak_db(z)
-        if abs(L - target) < 0.05 and tpk <= tp - 0.05:
+        L = S.lufs(z)
+        if abs(L - target) < 0.04:
             break
         drive += target - L
-        if tpk > tp - 0.05:
-            ceil -= tpk - (tp - 0.15)
+    for _ in range(4):
+        tpk = S.true_peak_db(z)
+        if tpk <= tp - 0.08:
+            break
+        ceil -= tpk - (tp - 0.2)
+        z = S.limiter(x * db2a(drive), ceil)
+        drive += target - S.lufs(z)
+        z = S.limiter(x * db2a(drive), ceil)
     return z, drive
 
 
@@ -859,7 +867,9 @@ def main():
     POOLS = Pools()
     log('composing music ...')
     M = compose(accents)
+    log(f'  composed ({time.time()-T0:.1f}s)')
     music = render_music(M, secs)
+    log(f'  music done ({time.time()-T0:.1f}s)')
     log('rendering SFX ...')
     sfx, duck = render_sfx(cues, accents)
     log(f'  {len(cues)} cues, {len(duck)} ducking events ({time.time()-T0:.1f}s)')

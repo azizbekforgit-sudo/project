@@ -97,7 +97,7 @@ c(1605, 'shimmer', -14)
 # ---- S10 end card (1620-1800)
 c(1625, 'pop', -10); c(1638, 'swish', -16); c(1655, 'swish', -18)
 for f in [1695, 1705, 1715]: c(f, 'pop', -14, [-0.4, 0, 0.4][[1695, 1705, 1715].index(f)])
-c(1740, 'shimmer', -6); c(1740, 'boom', -9)
+c(1740, 'shimmer', -6); c(1740, 'boom', -15)
 
 C.sort(key=lambda d: d['f'])
 for d in C:
