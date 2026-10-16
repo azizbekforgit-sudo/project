@@ -140,5 +140,1349 @@
       1740
     ]
   },
-  "cues": []
+  "cues": [
+    {
+      "f": 14,
+      "sfx": "swish",
+      "gain": -17,
+      "params": {
+        "dur": 0.3
+      },
+      "t": 0.4667,
+      "scene": "s01"
+    },
+    {
+      "f": 16,
+      "sfx": "hit_soft",
+      "gain": -2,
+      "t": 0.5333,
+      "scene": "s01"
+    },
+    {
+      "f": 18,
+      "sfx": "scramble",
+      "gain": -16,
+      "params": {
+        "frames": 30
+      },
+      "t": 0.6,
+      "scene": "s01"
+    },
+    {
+      "f": 28,
+      "sfx": "card_shuffle",
+      "gain": -13,
+      "pan": 0.3,
+      "params": {
+        "dur": 0.45
+      },
+      "t": 0.9333,
+      "scene": "s01"
+    },
+    {
+      "f": 45,
+      "sfx": "card_place",
+      "gain": -7,
+      "pan": 0.3,
+      "t": 1.5,
+      "scene": "s01"
+    },
+    {
+      "f": 45,
+      "sfx": "tick",
+      "gain": -13,
+      "t": 1.5,
+      "scene": "s01"
+    },
+    {
+      "f": 48,
+      "sfx": "lock",
+      "gain": -7,
+      "t": 1.6,
+      "scene": "s01"
+    },
+    {
+      "f": 60,
+      "sfx": "card_place",
+      "gain": -7,
+      "pan": 0.3,
+      "t": 2,
+      "scene": "s01"
+    },
+    {
+      "f": 60,
+      "sfx": "tick",
+      "gain": -13,
+      "t": 2,
+      "scene": "s01"
+    },
+    {
+      "f": 75,
+      "sfx": "card_place",
+      "gain": -7,
+      "pan": 0.3,
+      "t": 2.5,
+      "scene": "s01"
+    },
+    {
+      "f": 75,
+      "sfx": "tick",
+      "gain": -13,
+      "t": 2.5,
+      "scene": "s01"
+    },
+    {
+      "f": 90,
+      "sfx": "card_place",
+      "gain": -7,
+      "pan": 0.3,
+      "t": 3,
+      "scene": "s01"
+    },
+    {
+      "f": 90,
+      "sfx": "tick",
+      "gain": -13,
+      "t": 3,
+      "scene": "s01"
+    },
+    {
+      "f": 105,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": 0.3,
+      "t": 3.5,
+      "scene": "s01"
+    },
+    {
+      "f": 105,
+      "sfx": "lock",
+      "gain": -4,
+      "t": 3.5,
+      "scene": "s01"
+    },
+    {
+      "f": 121,
+      "sfx": "swish",
+      "gain": -14,
+      "params": {
+        "dur": 0.35
+      },
+      "t": 4.0333,
+      "scene": "s01"
+    },
+    {
+      "f": 123,
+      "sfx": "scramble",
+      "gain": -16,
+      "params": {
+        "frames": 24
+      },
+      "t": 4.1,
+      "scene": "s01"
+    },
+    {
+      "f": 147,
+      "sfx": "lock",
+      "gain": -7,
+      "t": 4.9,
+      "scene": "s01"
+    },
+    {
+      "f": 150,
+      "sfx": "stamp",
+      "gain": -9,
+      "t": 5,
+      "scene": "s01"
+    },
+    {
+      "f": 180,
+      "sfx": "whoosh",
+      "gain": -7,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 6,
+      "scene": "s01"
+    },
+    {
+      "f": 181,
+      "sfx": "card_shuffle",
+      "gain": -9,
+      "pan": 0.5,
+      "params": {
+        "dur": 0.45
+      },
+      "t": 6.0333,
+      "scene": "s02"
+    },
+    {
+      "f": 202,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.15,
+      "t": 6.7333,
+      "scene": "s02"
+    },
+    {
+      "f": 210,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": -0.36,
+      "t": 7,
+      "scene": "s02"
+    },
+    {
+      "f": 216,
+      "sfx": "hit_soft",
+      "gain": -7,
+      "pan": -0.36,
+      "t": 7.2,
+      "scene": "s02"
+    },
+    {
+      "f": 219,
+      "sfx": "pop",
+      "gain": -10,
+      "pan": -0.36,
+      "t": 7.3,
+      "scene": "s02"
+    },
+    {
+      "f": 232,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.25,
+      "t": 7.7333,
+      "scene": "s02"
+    },
+    {
+      "f": 240,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": -0.18,
+      "t": 8,
+      "scene": "s02"
+    },
+    {
+      "f": 253,
+      "sfx": "tick",
+      "gain": -13,
+      "pan": -0.18,
+      "t": 8.4333,
+      "scene": "s02"
+    },
+    {
+      "f": 255,
+      "sfx": "stamp",
+      "gain": -1,
+      "pan": -0.18,
+      "t": 8.5,
+      "scene": "s02"
+    },
+    {
+      "f": 263,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.32,
+      "t": 8.7667,
+      "scene": "s02"
+    },
+    {
+      "f": 270,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": 0,
+      "t": 9,
+      "scene": "s02"
+    },
+    {
+      "f": 283,
+      "sfx": "tick",
+      "gain": -13,
+      "pan": 0,
+      "t": 9.4333,
+      "scene": "s02"
+    },
+    {
+      "f": 285,
+      "sfx": "stamp",
+      "gain": -1,
+      "pan": 0,
+      "t": 9.5,
+      "scene": "s02"
+    },
+    {
+      "f": 293,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.38,
+      "t": 9.7667,
+      "scene": "s02"
+    },
+    {
+      "f": 300,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": 0.18,
+      "t": 10,
+      "scene": "s02"
+    },
+    {
+      "f": 313,
+      "sfx": "tick",
+      "gain": -13,
+      "pan": 0.18,
+      "t": 10.4333,
+      "scene": "s02"
+    },
+    {
+      "f": 315,
+      "sfx": "stamp",
+      "gain": -1,
+      "pan": 0.18,
+      "t": 10.5,
+      "scene": "s02"
+    },
+    {
+      "f": 324,
+      "sfx": "swish",
+      "gain": -16,
+      "pan": 0.42,
+      "t": 10.8,
+      "scene": "s02"
+    },
+    {
+      "f": 330,
+      "sfx": "card_place",
+      "gain": -5,
+      "pan": 0.36,
+      "t": 11,
+      "scene": "s02"
+    },
+    {
+      "f": 343,
+      "sfx": "tick",
+      "gain": -13,
+      "pan": 0.36,
+      "t": 11.4333,
+      "scene": "s02"
+    },
+    {
+      "f": 345,
+      "sfx": "pop",
+      "gain": -5,
+      "pan": 0.36,
+      "t": 11.5,
+      "scene": "s02"
+    },
+    {
+      "f": 351,
+      "sfx": "hit_soft",
+      "gain": -8,
+      "pan": -0.2,
+      "t": 11.7,
+      "scene": "s02"
+    },
+    {
+      "f": 366,
+      "sfx": "impact",
+      "gain": -4,
+      "pan": 0.1,
+      "t": 12.2,
+      "scene": "s02"
+    },
+    {
+      "f": 422,
+      "sfx": "card_shuffle",
+      "gain": -6,
+      "pan": 0,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 14.0667,
+      "scene": "s03"
+    },
+    {
+      "f": 426,
+      "sfx": "swish",
+      "gain": -12,
+      "pan": 0.2,
+      "t": 14.2,
+      "scene": "s03"
+    },
+    {
+      "f": 435,
+      "sfx": "switch",
+      "gain": -8,
+      "pan": -0.6,
+      "t": 14.5,
+      "scene": "s03"
+    },
+    {
+      "f": 437,
+      "sfx": "whoosh",
+      "gain": -8,
+      "pan": 0.1,
+      "params": {
+        "dur": 0.6
+      },
+      "t": 14.5667,
+      "scene": "s03"
+    },
+    {
+      "f": 440,
+      "sfx": "shimmer",
+      "gain": -13,
+      "pan": -0.4,
+      "t": 14.6667,
+      "scene": "s03"
+    },
+    {
+      "f": 443,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": -0.1,
+      "t": 14.7667,
+      "scene": "s03"
+    },
+    {
+      "f": 450,
+      "sfx": "impact",
+      "gain": -5,
+      "pan": -0.3,
+      "t": 15,
+      "scene": "s03"
+    },
+    {
+      "f": 465,
+      "sfx": "hit_soft",
+      "gain": -7,
+      "pan": 0.4,
+      "t": 15.5,
+      "scene": "s03"
+    },
+    {
+      "f": 480,
+      "sfx": "reverse_cymbal",
+      "gain": -6,
+      "params": {
+        "dur": 1
+      },
+      "t": 16,
+      "scene": "s03"
+    },
+    {
+      "f": 480,
+      "sfx": "boom",
+      "gain": 0,
+      "t": 16,
+      "scene": "s03"
+    },
+    {
+      "f": 480,
+      "sfx": "logo_sting",
+      "gain": -3,
+      "t": 16,
+      "scene": "s03"
+    },
+    {
+      "f": 486,
+      "sfx": "whoosh",
+      "gain": -12,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 16.2,
+      "scene": "s03"
+    },
+    {
+      "f": 488,
+      "sfx": "pop",
+      "gain": -6,
+      "t": 16.2667,
+      "scene": "s03"
+    },
+    {
+      "f": 500,
+      "sfx": "scramble",
+      "gain": -11,
+      "params": {
+        "frames": 26
+      },
+      "t": 16.6667,
+      "scene": "s03"
+    },
+    {
+      "f": 503,
+      "sfx": "shimmer",
+      "gain": -8,
+      "t": 16.7667,
+      "scene": "s03"
+    },
+    {
+      "f": 519,
+      "sfx": "hit_soft",
+      "gain": -10,
+      "t": 17.3,
+      "scene": "s03"
+    },
+    {
+      "f": 526,
+      "sfx": "lock",
+      "gain": -5,
+      "t": 17.5333,
+      "scene": "s03"
+    },
+    {
+      "f": 577,
+      "sfx": "swish",
+      "gain": -8,
+      "pan": -0.5,
+      "t": 19.2333,
+      "scene": "s03"
+    },
+    {
+      "f": 600,
+      "sfx": "whoosh",
+      "gain": -12,
+      "pan": 0.5,
+      "params": {
+        "dur": 0.45
+      },
+      "t": 20,
+      "scene": "s04"
+    },
+    {
+      "f": 604,
+      "sfx": "scramble",
+      "gain": -17,
+      "pan": -0.6,
+      "params": {
+        "frames": 11
+      },
+      "t": 20.1333,
+      "scene": "s04"
+    },
+    {
+      "f": 615,
+      "sfx": "lock",
+      "gain": -12,
+      "pan": -0.6,
+      "t": 20.5,
+      "scene": "s04"
+    },
+    {
+      "f": 615,
+      "sfx": "pop",
+      "gain": -16,
+      "pan": 0.2,
+      "t": 20.5,
+      "scene": "s04"
+    },
+    {
+      "f": 621,
+      "sfx": "pop",
+      "gain": -17,
+      "pan": 0.85,
+      "t": 20.7,
+      "scene": "s04"
+    },
+    {
+      "f": 627,
+      "sfx": "pop",
+      "gain": -18,
+      "pan": 0.8,
+      "t": 20.9,
+      "scene": "s04"
+    },
+    {
+      "f": 672,
+      "sfx": "ui_tap",
+      "gain": -5,
+      "pan": 0.45,
+      "t": 22.4,
+      "scene": "s04"
+    },
+    {
+      "f": 677,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.4,
+      "t": 22.5667,
+      "scene": "s04"
+    },
+    {
+      "f": 727,
+      "sfx": "ui_tap",
+      "gain": -5,
+      "pan": 0.45,
+      "t": 24.2333,
+      "scene": "s04"
+    },
+    {
+      "f": 732,
+      "sfx": "swish",
+      "gain": -15,
+      "pan": 0.4,
+      "t": 24.4,
+      "scene": "s04"
+    },
+    {
+      "f": 775,
+      "sfx": "ui_tap",
+      "gain": -4,
+      "pan": 0.5,
+      "t": 25.8333,
+      "scene": "s04"
+    },
+    {
+      "f": 780,
+      "sfx": "success",
+      "gain": -3,
+      "pan": 0.35,
+      "t": 26,
+      "scene": "s04"
+    },
+    {
+      "f": 808,
+      "sfx": "swish",
+      "gain": -7,
+      "pan": -0.3,
+      "t": 26.9333,
+      "scene": "s04"
+    },
+    {
+      "f": 810,
+      "sfx": "whoosh",
+      "gain": -13,
+      "pan": 0.4,
+      "params": {
+        "dur": 0.45
+      },
+      "t": 27,
+      "scene": "s05"
+    },
+    {
+      "f": 813,
+      "sfx": "scramble",
+      "gain": -17,
+      "pan": -0.6,
+      "params": {
+        "frames": 11
+      },
+      "t": 27.1,
+      "scene": "s05"
+    },
+    {
+      "f": 824,
+      "sfx": "lock",
+      "gain": -12,
+      "pan": -0.6,
+      "t": 27.4667,
+      "scene": "s05"
+    },
+    {
+      "f": 830,
+      "sfx": "tick",
+      "gain": -14,
+      "pan": 0.3,
+      "t": 27.6667,
+      "scene": "s05"
+    },
+    {
+      "f": 834,
+      "sfx": "card_place",
+      "gain": -19,
+      "pan": 0.2,
+      "t": 27.8,
+      "scene": "s05"
+    },
+    {
+      "f": 838,
+      "sfx": "card_place",
+      "gain": -19,
+      "pan": 0.2,
+      "t": 27.9333,
+      "scene": "s05"
+    },
+    {
+      "f": 842,
+      "sfx": "card_place",
+      "gain": -19,
+      "pan": 0.2,
+      "t": 28.0667,
+      "scene": "s05"
+    },
+    {
+      "f": 844,
+      "sfx": "card_shuffle",
+      "gain": -7,
+      "pan": 0.25,
+      "params": {
+        "dur": 1.3
+      },
+      "t": 28.1333,
+      "scene": "s05"
+    },
+    {
+      "f": 845,
+      "sfx": "tick",
+      "gain": -14,
+      "pan": 0.3,
+      "t": 28.1667,
+      "scene": "s05"
+    },
+    {
+      "f": 860,
+      "sfx": "tick",
+      "gain": -14,
+      "pan": 0.3,
+      "t": 28.6667,
+      "scene": "s05"
+    },
+    {
+      "f": 875,
+      "sfx": "tick",
+      "gain": -14,
+      "pan": 0.3,
+      "t": 29.1667,
+      "scene": "s05"
+    },
+    {
+      "f": 887,
+      "sfx": "hit_soft",
+      "gain": -9,
+      "pan": 0.25,
+      "t": 29.5667,
+      "scene": "s05"
+    },
+    {
+      "f": 905,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": -0.1,
+      "t": 30.1667,
+      "scene": "s05"
+    },
+    {
+      "f": 909,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": 0.2,
+      "t": 30.3,
+      "scene": "s05"
+    },
+    {
+      "f": 913,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": 0.5,
+      "t": 30.4333,
+      "scene": "s05"
+    },
+    {
+      "f": 917,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": -0.1,
+      "t": 30.5667,
+      "scene": "s05"
+    },
+    {
+      "f": 921,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": 0.2,
+      "t": 30.7,
+      "scene": "s05"
+    },
+    {
+      "f": 925,
+      "sfx": "card_place",
+      "gain": -14,
+      "pan": 0.5,
+      "t": 30.8333,
+      "scene": "s05"
+    },
+    {
+      "f": 948,
+      "sfx": "swish",
+      "gain": -22,
+      "pan": 0,
+      "t": 31.6,
+      "scene": "s05"
+    },
+    {
+      "f": 960,
+      "sfx": "ui_tap",
+      "gain": -5,
+      "pan": -0.1,
+      "t": 32,
+      "scene": "s05"
+    },
+    {
+      "f": 965,
+      "sfx": "swish",
+      "gain": -20,
+      "pan": 0.5,
+      "t": 32.1667,
+      "scene": "s05"
+    },
+    {
+      "f": 970,
+      "sfx": "pop",
+      "gain": -9,
+      "pan": 0.6,
+      "t": 32.3333,
+      "scene": "s05"
+    },
+    {
+      "f": 988,
+      "sfx": "swish",
+      "gain": -8,
+      "pan": -0.3,
+      "t": 32.9333,
+      "scene": "s05"
+    },
+    {
+      "f": 991,
+      "sfx": "scramble",
+      "gain": -14,
+      "params": {
+        "frames": 8
+      },
+      "t": 33.0333,
+      "scene": "s06"
+    },
+    {
+      "f": 994,
+      "sfx": "swish",
+      "gain": -12,
+      "t": 33.1333,
+      "scene": "s06"
+    },
+    {
+      "f": 999,
+      "sfx": "lock",
+      "gain": -12,
+      "t": 33.3,
+      "scene": "s06"
+    },
+    {
+      "f": 1005,
+      "sfx": "notification",
+      "gain": -6,
+      "t": 33.5,
+      "scene": "s06"
+    },
+    {
+      "f": 1005,
+      "sfx": "vibrate",
+      "gain": -6,
+      "t": 33.5,
+      "scene": "s06"
+    },
+    {
+      "f": 1050,
+      "sfx": "ui_tap",
+      "gain": -6,
+      "t": 35,
+      "scene": "s06"
+    },
+    {
+      "f": 1056,
+      "sfx": "swish",
+      "gain": -12,
+      "t": 35.2,
+      "scene": "s06"
+    },
+    {
+      "f": 1078,
+      "sfx": "pop",
+      "gain": -10,
+      "t": 35.9333,
+      "scene": "s06"
+    },
+    {
+      "f": 1094,
+      "sfx": "swish",
+      "gain": -9,
+      "t": 36.4667,
+      "scene": "s06"
+    },
+    {
+      "f": 1110,
+      "sfx": "hit_soft",
+      "gain": -8,
+      "t": 37,
+      "scene": "s06"
+    },
+    {
+      "f": 1140,
+      "sfx": "hit_soft",
+      "gain": -8,
+      "t": 38,
+      "scene": "s06"
+    },
+    {
+      "f": 1170,
+      "sfx": "ui_tap",
+      "gain": -4,
+      "t": 39,
+      "scene": "s06"
+    },
+    {
+      "f": 1172,
+      "sfx": "success",
+      "gain": -4,
+      "t": 39.0667,
+      "scene": "s06"
+    },
+    {
+      "f": 1174,
+      "sfx": "shimmer",
+      "gain": -16,
+      "t": 39.1333,
+      "scene": "s06"
+    },
+    {
+      "f": 1227,
+      "sfx": "whoosh",
+      "gain": -8,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 40.9,
+      "scene": "s06"
+    },
+    {
+      "f": 1242,
+      "sfx": "bubble",
+      "gain": -8,
+      "pan": 0.25,
+      "t": 41.4,
+      "scene": "s07"
+    },
+    {
+      "f": 1250,
+      "sfx": "typing",
+      "gain": -16,
+      "pan": -0.2,
+      "params": {
+        "frames": 12
+      },
+      "t": 41.6667,
+      "scene": "s07"
+    },
+    {
+      "f": 1262,
+      "sfx": "bubble",
+      "gain": -8,
+      "pan": -0.25,
+      "t": 42.0667,
+      "scene": "s07"
+    },
+    {
+      "f": 1282,
+      "sfx": "bubble",
+      "gain": -8,
+      "pan": 0.25,
+      "t": 42.7333,
+      "scene": "s07"
+    },
+    {
+      "f": 1287,
+      "sfx": "pop",
+      "gain": -10,
+      "pan": 0.3,
+      "t": 42.9,
+      "scene": "s07"
+    },
+    {
+      "f": 1299,
+      "sfx": "swish",
+      "gain": -9,
+      "t": 43.3,
+      "scene": "s07"
+    },
+    {
+      "f": 1304,
+      "sfx": "shimmer",
+      "gain": -12,
+      "t": 43.4667,
+      "scene": "s07"
+    },
+    {
+      "f": 1312,
+      "sfx": "typing",
+      "gain": -12,
+      "params": {
+        "frames": 19
+      },
+      "t": 43.7333,
+      "scene": "s07"
+    },
+    {
+      "f": 1334,
+      "sfx": "ui_tap",
+      "gain": -6,
+      "pan": 0.2,
+      "t": 44.4667,
+      "scene": "s07"
+    },
+    {
+      "f": 1336,
+      "sfx": "bubble",
+      "gain": -8,
+      "pan": 0.25,
+      "t": 44.5333,
+      "scene": "s07"
+    },
+    {
+      "f": 1342,
+      "sfx": "typing",
+      "gain": -16,
+      "pan": -0.2,
+      "params": {
+        "frames": 10
+      },
+      "t": 44.7333,
+      "scene": "s07"
+    },
+    {
+      "f": 1352,
+      "sfx": "tick",
+      "gain": -14,
+      "t": 45.0667,
+      "scene": "s07"
+    },
+    {
+      "f": 1357,
+      "sfx": "tick",
+      "gain": -14,
+      "t": 45.2333,
+      "scene": "s07"
+    },
+    {
+      "f": 1362,
+      "sfx": "tick",
+      "gain": -14,
+      "t": 45.4,
+      "scene": "s07"
+    },
+    {
+      "f": 1367,
+      "sfx": "tick",
+      "gain": -14,
+      "t": 45.5667,
+      "scene": "s07"
+    },
+    {
+      "f": 1376,
+      "sfx": "lock",
+      "gain": -12,
+      "t": 45.8667,
+      "scene": "s07"
+    },
+    {
+      "f": 1386,
+      "sfx": "swish",
+      "gain": -12,
+      "t": 46.2,
+      "scene": "s08"
+    },
+    {
+      "f": 1391,
+      "sfx": "ui_tap",
+      "gain": -8,
+      "t": 46.3667,
+      "scene": "s08"
+    },
+    {
+      "f": 1395,
+      "sfx": "switch",
+      "gain": -6,
+      "t": 46.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1395,
+      "sfx": "card_shuffle",
+      "gain": -10,
+      "params": {
+        "dur": 0.25
+      },
+      "t": 46.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1395,
+      "sfx": "scramble",
+      "gain": -12,
+      "params": {
+        "frames": 13
+      },
+      "t": 46.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1408,
+      "sfx": "lock",
+      "gain": -8,
+      "t": 46.9333,
+      "scene": "s08"
+    },
+    {
+      "f": 1410,
+      "sfx": "switch",
+      "gain": -6,
+      "t": 47,
+      "scene": "s08"
+    },
+    {
+      "f": 1410,
+      "sfx": "card_shuffle",
+      "gain": -10,
+      "params": {
+        "dur": 0.25
+      },
+      "t": 47,
+      "scene": "s08"
+    },
+    {
+      "f": 1410,
+      "sfx": "scramble",
+      "gain": -12,
+      "params": {
+        "frames": 12
+      },
+      "t": 47,
+      "scene": "s08"
+    },
+    {
+      "f": 1422,
+      "sfx": "lock",
+      "gain": -8,
+      "t": 47.4,
+      "scene": "s08"
+    },
+    {
+      "f": 1425,
+      "sfx": "switch",
+      "gain": -6,
+      "t": 47.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1425,
+      "sfx": "card_shuffle",
+      "gain": -10,
+      "params": {
+        "dur": 0.25
+      },
+      "t": 47.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1425,
+      "sfx": "scramble",
+      "gain": -12,
+      "params": {
+        "frames": 13
+      },
+      "t": 47.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1438,
+      "sfx": "lock",
+      "gain": -6,
+      "t": 47.9333,
+      "scene": "s08"
+    },
+    {
+      "f": 1440,
+      "sfx": "card_shuffle",
+      "gain": -9,
+      "params": {
+        "dur": 0.3
+      },
+      "t": 48,
+      "scene": "s08"
+    },
+    {
+      "f": 1450,
+      "sfx": "ui_tap",
+      "gain": -8,
+      "t": 48.3333,
+      "scene": "s08"
+    },
+    {
+      "f": 1455,
+      "sfx": "switch",
+      "gain": -4,
+      "t": 48.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1465,
+      "sfx": "whoosh",
+      "gain": -10,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 48.8333,
+      "scene": "s08"
+    },
+    {
+      "f": 1509,
+      "sfx": "ui_tap",
+      "gain": -8,
+      "t": 50.3,
+      "scene": "s08"
+    },
+    {
+      "f": 1515,
+      "sfx": "switch",
+      "gain": -6,
+      "t": 50.5,
+      "scene": "s08"
+    },
+    {
+      "f": 1517,
+      "sfx": "swish",
+      "gain": -10,
+      "t": 50.5667,
+      "scene": "s08"
+    },
+    {
+      "f": 1558,
+      "sfx": "whoosh",
+      "gain": -8,
+      "params": {
+        "dur": 0.4
+      },
+      "t": 51.9333,
+      "scene": "s08"
+    },
+    {
+      "f": 1560,
+      "sfx": "impact",
+      "gain": -1,
+      "t": 52,
+      "scene": "s09"
+    },
+    {
+      "f": 1575,
+      "sfx": "impact",
+      "gain": -1,
+      "t": 52.5,
+      "scene": "s09"
+    },
+    {
+      "f": 1590,
+      "sfx": "impact",
+      "gain": 0,
+      "t": 53,
+      "scene": "s09"
+    },
+    {
+      "f": 1591,
+      "sfx": "hit_soft",
+      "gain": -8,
+      "t": 53.0333,
+      "scene": "s09"
+    },
+    {
+      "f": 1613,
+      "sfx": "whoosh",
+      "gain": -9,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 53.7667,
+      "scene": "s09"
+    },
+    {
+      "f": 1620,
+      "sfx": "reverse_cymbal",
+      "gain": -8,
+      "params": {
+        "dur": 0.5
+      },
+      "t": 54,
+      "scene": "s09"
+    },
+    {
+      "f": 1622,
+      "sfx": "boom",
+      "gain": -4,
+      "t": 54.0667,
+      "scene": "s10"
+    },
+    {
+      "f": 1632,
+      "sfx": "logo_sting",
+      "gain": -7,
+      "t": 54.4,
+      "scene": "s10"
+    },
+    {
+      "f": 1642,
+      "sfx": "swish",
+      "gain": -12,
+      "t": 54.7333,
+      "scene": "s10"
+    },
+    {
+      "f": 1652,
+      "sfx": "swish",
+      "gain": -13,
+      "t": 55.0667,
+      "scene": "s10"
+    },
+    {
+      "f": 1672,
+      "sfx": "swish",
+      "gain": -13,
+      "t": 55.7333,
+      "scene": "s10"
+    },
+    {
+      "f": 1698,
+      "sfx": "pop",
+      "gain": -9,
+      "t": 56.6,
+      "scene": "s10"
+    },
+    {
+      "f": 1706,
+      "sfx": "pop",
+      "gain": -10,
+      "t": 56.8667,
+      "scene": "s10"
+    },
+    {
+      "f": 1714,
+      "sfx": "pop",
+      "gain": -10,
+      "t": 57.1333,
+      "scene": "s10"
+    },
+    {
+      "f": 1740,
+      "sfx": "shimmer",
+      "gain": -3,
+      "t": 58,
+      "scene": "s10"
+    },
+    {
+      "f": 1740,
+      "sfx": "hit_soft",
+      "gain": -6,
+      "t": 58,
+      "scene": "s10"
+    }
+  ]
 }

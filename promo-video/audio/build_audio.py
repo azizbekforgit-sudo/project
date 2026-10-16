@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """AgroVerse 60 s ad - procedural soundtrack builder (numpy only, deterministic, ~1 min).
 
-    python3 audio/build_audio.py [--provisional] [--no-verify] [--cues path.json]
+    python3 audio/build_audio.py [--verify] [--provisional] [--cues path.json]   (~65 s; --verify adds ~20 s)
 
 Reads audio/cues.json (npx tsx tools/export-cues.ts); if it has no cues (or --provisional) falls back to
 audio/provisional_cues.json.  Writes
@@ -144,6 +144,24 @@ class Pools:
     def pick(self, lst, i):
         return lst[i % len(lst)]
 
+    def kick_for(self, chord, i):
+        """kick body tuned to the chord root (sub never beats against the bass)"""
+        m = CH[chord]['bass'] - 12
+        while S.mtof(m) < 41:
+            m += 12
+        def mk():
+            S.seed(7000 + m)
+            return [S.kick(f_lo=float(S.mtof(m))) for _ in range(2)]
+        return memo(('kick', m), mk)[i % 2]
+
+    def dum_for(self, chord, i):
+        """doira dum tuned to the chord root"""
+        m = CH[chord]['bass']
+        def mk():
+            S.seed(8000 + m)
+            return [S.doira('D', float(S.mtof(m))) for _ in range(3)]
+        return memo(('dum', m), mk)[i % 3]
+
 
 POOLS = None
 
@@ -213,6 +231,16 @@ class Mix:
             return
         self.b[layer].add(snd, t, db, pan)
 
+    def add_until(self, layer, snd, t, db, pan, t_end, fade=0.008):
+        """add, but truncate the sound at t_end with a short fade (keeps a clean air gap before an accent)"""
+        n = S.ns(t_end - t)
+        if n <= 8:
+            return
+        snd = np.array(S.st(snd)[:n])
+        k = min(S.ns(fade), n)
+        snd[-k:] *= np.linspace(1, 0, k)[:, None]
+        self.b[layer].add(snd, t, db, pan)
+
 
 def compose(accents):
     P = POOLS
@@ -261,7 +289,7 @@ def compose(accents):
             M.add('col', pad_chord('E', 2.6, 2600, 0.15, 0.6, 1), tf(f0), -10)
         elif f0 < 1560:
             I = I_at(f0)
-            wide = 1.35
+            wide = 1.8
             cut = 2400 if I < 0.6 else 3200
             lvl = -10.5 if I < 0.6 else -12.5
             snd = S.width(pad_chord(name, dur + (0.1 if f1 == 1560 else 0.5), cut, 0.12, 0.7, 1), wide)
@@ -269,7 +297,7 @@ def compose(accents):
         elif f0 >= 1605 and f0 < 1620:
             M.add('pad', S.width(pad_chord('G', 0.9, 2800, 0.4, 0.2), 1.4), tf(f0), -10)
         elif f0 >= 1620 and f0 < 1740:
-            M.add('pad', S.width(pad_chord(name, dur + 0.5, 3600, 0.1, 0.8, 1), 1.55), tf(f0), -11.0)
+            M.add('pad', S.width(pad_chord(name, dur + 0.5, 3600, 0.1, 0.8, 1), 1.9), tf(f0), -11.0)
         elif f0 == 1740:
             M.add('pad', S.width(pad_chord('A', 2.4, 3200, 0.05, 1.2, 1), 1.6), tf(f0), -12.5)
 
@@ -305,7 +333,7 @@ def compose(accents):
         if f < 180:
             if bar >= 1 and DOIRA_INTRO[pos] != '.':
                 c = DOIRA_INTRO[pos]
-                M.add('drums', P.pick(P.doira[c], i), t, -9 if c != 'S' else -17, 0.1 if c == 'T' else -0.05)
+                M.add('drums', P.dum_for(chord_at(f), i) if c == 'D' else P.pick(P.doira[c], i), t, -9 if c != 'S' else -17, 0.1 if c == 'T' else -0.05)
             if bar == 0 and pos == 14:
                 M.add('drums', P.doira['S'][0], t, -22)
             if bar == 2 and pos in (10, 14):
@@ -316,7 +344,7 @@ def compose(accents):
         if f < 405:
             u = (f - 180) / 225
             if pos in (0, 8):
-                M.add('drums', P.pick(P.kick, kick_i), t, -9 + 6.5 * u + (1.5 if pos == 0 else 0)); M.kicks.append((t, 0.5 + 0.5 * u)); kick_i += 1
+                M.add('drums', P.kick_for(chord_at(f), kick_i), t, -9 + 6.5 * u + (1.5 if pos == 0 else 0)); M.kicks.append((t, 0.5 + 0.5 * u)); kick_i += 1
             if pos % 2 == 0:
                 ch = chord_at(f)
                 M.add('bass', bass_note(CH[ch]['bass'] + (12 if pos in (6, 14) and u > 0.3 else 0), 0.42), t, -16 + 6 * u + (1.5 if pos in (0, 8) else 0))
@@ -328,7 +356,7 @@ def compose(accents):
             if f >= 300 and pos % 2 == 1:
                 M.add('drums', P.pick(P.doira['K'], i), t + sw, -25 + 7 * u, 0.3)
             if f >= 345 and pos in (4, 12):                          # four-on-floor kick through the riser
-                M.add('drums', P.pick(P.kick, kick_i), t, -6 + 2 * u); M.kicks.append((t, 0.8)); kick_i += 1
+                M.add('drums', P.kick_for(chord_at(f), kick_i), t, -6 + 2 * u); M.kicks.append((t, 0.8)); kick_i += 1
             if pos % 2 == 0 and f >= 195:                            # dutar tension arps (Hijaz on E)
                 ch = chord_at(f)
                 idx = ARP_PAT[pos]
@@ -344,7 +372,7 @@ def compose(accents):
         if f < 480:
             u = (f - 420) / 60
             if pos % 4 == 0:
-                M.add('col', P.pick(P.kick, kick_i), t, -3 + 1.5 * u); M.kicks.append((t, 0.0)); kick_i += 1
+                M.add('col', P.kick_for('E', kick_i), t, -3 + 1.5 * u); M.kicks.append((t, 0.0)); kick_i += 1
             if pos % 2 == 0:
                 M.add('col', bass_note(CH['E']['bass'] + (12 if pos in (6, 14) else 0), 0.4), t, -11 + 2 * u)
             if pos % 2 == 1 or f >= 450:
@@ -365,7 +393,7 @@ def compose(accents):
             if hi and bar % 4 == 3:
                 kpos = kpos | {14}
             if pos in kpos and abs(f - 480) > 1e-6:                      # 480 handled as accent hit
-                M.add('drums', P.pick(P.kick, kick_i), t, -4.5 + (0 if pos == 0 else -1.5)); M.kicks.append((t, 1.0)); kick_i += 1
+                M.add('drums', P.kick_for(ch, kick_i), t, -4.5 + (0 if pos == 0 else -1.5)); M.kicks.append((t, 1.0)); kick_i += 1
             # clap
             if hi and pos in (4, 12):
                 M.add('drums', P.pick(P.clap, i), t, -9.5, 0.0)
@@ -383,7 +411,7 @@ def compose(accents):
             if c != '.':
                 base = -6.0 if I >= 0.6 else -8.5
                 lvl = {'D': base, 'T': base - 1.5, 'K': base - 3, 'S': base - 8, 'P': base}[c]
-                M.add('drums', P.pick(P.doira[c], i), t + (sw if c in 'KS' else 0) + (jit(2) if pos else 0), lvl, {'T': 0.18, 'K': -0.18}.get(c, 0.0))
+                M.add('drums', P.dum_for(ch, i) if c == 'D' else P.pick(P.doira[c], i), t + (sw if c in 'KS' else 0) + (jit(2) if pos else 0), lvl, {'T': 0.18, 'K': -0.18}.get(c, 0.0))
             # bass
             if hi:
                 for st_, iv in BASS_PAT:
@@ -396,7 +424,7 @@ def compose(accents):
             if ai is not None and I >= 0.5:
                 tones = CH[ch]['arp']
                 M.add('pluck', pluck_note(tones[ai % len(tones)] + (0 if I < 0.6 else 12 if ai == 3 else 0), 0.55, 0.55, 0.996, i % 2, 'arp'), t,
-                      (-16.5 if pos % 4 == 0 else -19.5) + (2.5 if I < 0.6 else 0), (-0.35 if ai % 2 else 0.35))
+                      (-16.5 if pos % 4 == 0 else -19.5) + (2.5 if I < 0.6 else 0), (-0.55 if ai % 2 else 0.55))
             # lead
             for (a, b, db, octv) in LEAD_WINDOWS:
                 if a <= f < b and pos % 2 == 0:
@@ -425,7 +453,7 @@ def compose(accents):
             R = CH[ch]['bass']
             if pos % 4 == 0 and f >= 1620:                              # four on the floor, warm
                 if abs(f - 1620) > 1e-6:
-                    M.add('drums', P.pick(P.kick, kick_i), t, -3.5); M.kicks.append((t, 1.0)); kick_i += 1
+                    M.add('drums', P.kick_for(ch, kick_i), t, -3.5); M.kicks.append((t, 1.0)); kick_i += 1
             if pos in (4, 12):
                 M.add('drums', P.pick(P.clap, i), t, -9.5)
             if pos % 2 == 0 and pos % 4 != 0:
@@ -435,7 +463,7 @@ def compose(accents):
             c = DOIRA_B[pos]
             if c != '.':
                 lvl = {'D': -6.0, 'T': -7.5, 'K': -9, 'S': -14, 'P': -6}[c]
-                M.add('drums', P.pick(P.doira[c], i), t + (sw if c in 'KS' else 0), lvl, {'T': 0.18, 'K': -0.18}.get(c, 0.0))
+                M.add('drums', P.dum_for(ch, i) if c == 'D' else P.pick(P.doira[c], i), t + (sw if c in 'KS' else 0), lvl, {'T': 0.18, 'K': -0.18}.get(c, 0.0))
             for st_, iv in BASS_PAT:
                 if st_ == pos and abs(f - 1620) > 1e-6:
                     M.add('bass', bass_note(R + iv, STEP * 1.9), t, -5.5 if pos in (0, 8) else -9.0)
@@ -443,7 +471,7 @@ def compose(accents):
             if ai is not None:
                 tones = CH[ch]['arp']
                 M.add('pluck', pluck_note(tones[ai % len(tones)] + (12 if ai == 3 else 0), 0.55, 0.55, 0.996, i % 2, 'arp'), t,
-                      -16.5 if pos % 4 == 0 else -19.5, (-0.35 if ai % 2 else 0.35))
+                      -16.5 if pos % 4 == 0 else -19.5, (-0.55 if ai % 2 else 0.55))
             # lead: resolved Hijaz motif E-F#-G#-A and a rising phrase in A major
             LEAD_FIN = {
                 0: [(0, 76), (2, 78), (3, 80), (5, 81), (7, 80), (8, 76), (10, 78), (12, 81), (14, 83)],
@@ -458,27 +486,31 @@ def compose(accents):
             continue
 
     # ------------------------------------------------------------------ pre-accent snare/tak fills
+    GAP = 0.04
+
     def fill(A, nsteps_, last=False):
         for k in range(nsteps_):
             tt = tf(A) - (nsteps_ - k) * STEP
             db = -17 + 12 * (k + 1) / nsteps_
-            M.b['drums'].add(P.pick(P.snare, k), tt, db, 0.0)
-            M.b['drums'].add(P.pick(P.doira['T'], k + 1), tt + 0.002, db - 3, -0.2 + 0.4 * k / max(nsteps_, 1))
+            M.add_until('drums', P.pick(P.snare, k), tt, db, 0.0, tf(A) - GAP)
+            M.add_until('drums', P.pick(P.doira['T'], k + 1), tt + 0.002, db - 3, -0.2 + 0.4 * k / max(nsteps_, 1), tf(A) - GAP)
     for A, n_ in [(600, 4), (810, 2), (990, 4), (1230, 2), (1380, 4)]:
         fill(A, n_)
     # long snare build into the stop-time (1530..1560)
     for k in range(20):
         u = k / 19
         tt = tf(1530) + (k ** 1.15) / (19 ** 1.15) * 1.0 * 0.96
-        M.b['drums'].add(P.pick(P.snare, k), tt, -20 + 12 * u, 0.0)
+        M.add_until('drums', P.pick(P.snare, k), tt, -20 + 12 * u, 0.0, tf(1560) - GAP)
     fill(1740, 4)
+    # collapse riser: peaks exactly at the drop (ends 25 ms before 480 so the hit lands in a clean gap)
+    M.b['fx'].add(S.filt(S.riser(2.0 - 0.025, 160, 8000), S.rbj('lp', 9500)), tf(420), -9)
     # build bar before the finale
-    M.b['fx'].add(reverse_cymbal_music(1.3), tf(1560) - 1.3, -9)
+    M.add_until('fx', reverse_cymbal_music(1.3), tf(1560) - 1.3, -9, None, tf(1560) - GAP)
 
     # ------------------------------------------------------------------ ACCENT HITS
     def accent_hit(f, name, kick_db=-1.0, crash_db=-11.0, stab_db=-9.0, bass_db=-5.0, crash_i=0, stab_len=1.6, doira_db=-4.0, stab_up=0):
         t = tf(f)
-        M.b['drums'].add(P.pick(P.kick, 1), t, kick_db)
+        M.b['drums'].add(P.kick_for(name, 1), t, kick_db)
         M.kicks.append((t, 1.0))
         if crash_db is not None:
             M.b['fx'].add(P.crash[crash_i % 2], t, crash_db)
@@ -487,7 +519,7 @@ def compose(accents):
         if bass_db is not None:
             M.b['bass'].add(bass_note(CH[name]['bass'], 1.3), t, bass_db)
         if doira_db is not None:
-            M.b['drums'].add(P.doira['D'][1], t, doira_db)
+            M.b['drums'].add(P.dum_for(name, 1), t, doira_db)
             M.b['drums'].add(P.doira['P'][0], t, doira_db - 4)
         M.hit_times.append(t)
 
@@ -515,14 +547,14 @@ def compose(accents):
             accent_hit(A, nm)
 
     # ---- stop-time: pad swell + reverse cymbal into 1620 (the seed starts to rise at 1605)
-    M.b['fx'].add(reverse_cymbal_music(0.5), tf(1620) - 0.5, -7)
+    M.add_until('fx', reverse_cymbal_music(0.5), tf(1620) - 0.5, -7, None, tf(1620) - GAP)
     # ---- 1740 final hit: kick, crash, A-major stab + bell motif (A-E-A-C#), ring-out
     t = tf(1740)
-    M.b['drums'].add(P.kick[0], t, -1.5); M.kicks.append((t, 1.0)); M.hit_times.append(t)
+    M.b['drums'].add(P.kick_for('A', 0), t, -1.5); M.kicks.append((t, 1.0)); M.hit_times.append(t)
     M.b['fx'].add(P.crash[0], t, -9.5)
     M.b['stab'].add(stab_chord('A', 2.0, 0), t, -7.5)
     M.b['bass'].add(bass_note(45, 2.2), t, -5.0)
-    M.b['drums'].add(P.doira['D'][2], t, -5)
+    M.b['drums'].add(P.dum_for('A', 2), t, -5)
     for k, s_ in enumerate((0, 7, 12, 16)):
         tb = S.Bus(2.4)
         tb.add(S.bell(S.mtof(57 + 24 + s_), 2.2, 3.5, 1.3), 0, -8)
@@ -547,7 +579,6 @@ def sidechain_env(n, kicks, depth_db=-6.5, tau=0.11):
         if i >= n:
             continue
         dip = 1 - (1 - db2a(depth_db * strength)) * np.exp(-k / tau)
-        dip *= np.minimum(1, k / 0.002 + 0.0) * 0 + 1
         j = min(n, i + L)
         g[i:j] = np.minimum(g[i:j], dip[:j - i])
     return g
@@ -596,11 +627,11 @@ def render_music(M, secs):
     gd[fin] = np.linspace(1, 0, fin.sum())
     gw = np.ones(N)
     m = (n_ >= h0) & (n_ < h1)
-    gw[m] = db2a(-14 - 28 * ((n_[m] - h0) / (h1 - h0)))
+    gw[m] = db2a(-8 - 16 * ((n_[m] - h0) / (h1 - h0)))
     pre = (n_ >= h0 - 0.05) & (n_ < h0)
-    gw[pre] = np.linspace(1, db2a(-14), pre.sum())
+    gw[pre] = np.linspace(1, db2a(-8), pre.sum())
     rise = (n_ >= h1) & (n_ < h1 + 0.2)
-    gw[rise] = np.linspace(db2a(-42), 1, rise.sum())
+    gw[rise] = np.linspace(db2a(-24), 1, rise.sum())
     mus = dry * gd[:, None] + wet * gw[:, None]
     # --- music-wide colour: tame highs, mono-safe low end
     mus = S.filt(mus, S.rbj('hs', 8000, 0.7, -2.5), S.rbj('lp', 15000, 0.7))
@@ -610,8 +641,8 @@ def render_music(M, secs):
     gdb = np.interp(fr, [p[0] for p in pts], [p[1] for p in pts])
     mus = mus * db2a(gdb)[:, None]
     # --- ending: clean exponential-ish fade to digital silence by 59.6 s
-    e0, e1 = tf(1740) + 0.3, tf(1799) + 0.0
-    fe = np.where(n_ < e0, 0.0, -75 * np.clip((n_ - e0) / (e1 - e0), 0, 1) ** 0.9)
+    e0, e1 = tf(1740) + 0.45, tf(1799) + 0.0
+    fe = np.where(n_ < e0, 0.0, -75 * np.clip((n_ - e0) / (e1 - e0), 0, 1) ** 1.0)
     mus = mus * db2a(fe)[:, None]
     mus[S.ns(TOTAL_S - 0.15):] = 0
     log(f'  music rendered ({time.time()-t0:.1f}s)')
@@ -620,8 +651,9 @@ def render_music(M, secs):
 
 def secs_gain_points(secs):
     """music gain automation in dB vs frame (piecewise linear). Tuned against the measured energy table."""
-    return [(0, -6.5), (170, -5.5), (180, -6.0), (400, -3.0), (405, -3.0), (420, -11.0), (440, -8.0), (479, -2.0), (480, 3.0), (1229, 3.0),
-            (1230, 3.0), (1380, 3.0), (1559, 3.0), (1560, 0.0), (1619, 0.0), (1620, 2.5), (1740, 2.5), (1800, 2.5)]
+    return [(0, -6.5), (170, -5.5), (180, -6.0), (400, -3.0), (405, -3.0), (420, -11.0), (440, -8.0), (479, -2.0),
+            (480, 4.0), (540, 3.5), (599, 2.5), (600, 1.5), (809, 1.5), (810, 2.5), (989, 2.5), (990, 3.0), (1229, 3.0),
+            (1230, 0.0), (1379, 0.0), (1380, 3.0), (1559, 3.0), (1560, 0.0), (1619, 0.0), (1620, 2.5), (1740, 2.5), (1800, 2.5)]
 
 
 # ============================================================================= SFX
@@ -822,26 +854,42 @@ def master_chain(x, target=-14.0, tp=-1.0):
     return z, drive
 
 
-def load_cues(path, force_prov):
+def load_cues(path, force_prov, scene_fallback=True):
+    """-> (doc, description).  Priority: cues.json; provisional_cues.json when cues.json is missing/empty or
+    --provisional.  Scenes that have NO cues in cues.json (not written yet) borrow their provisional cues."""
     prov = os.path.join(HERE, 'provisional_cues.json')
+    if not os.path.exists(prov):
+        import runpy
+        runpy.run_path(os.path.join(HERE, 'make_provisional.py'))
+    pdoc = json.load(open(prov))
     doc = None
-    used = None
     if not force_prov and os.path.exists(path):
         try:
             doc = json.load(open(path))
-            used = path
         except Exception as e:
             log('  cues.json unreadable:', e)
     if doc is None or not doc.get('cues'):
-        if not os.path.exists(prov):
-            sys.path.insert(0, HERE)
-            import runpy
-            runpy.run_path(os.path.join(HERE, 'make_provisional.py'))
-        pdoc = json.load(open(prov))
         if doc is not None and doc.get('music'):
             pdoc['music'] = doc['music']
-        doc, used = pdoc, prov + ' (PROVISIONAL)'
-    return doc, used
+        return pdoc, prov + ' (PROVISIONAL, cues.json empty or --provisional)'
+    note = path
+    if scene_fallback:
+        scenes = doc.get('scenes') or pdoc['scenes']
+        have = {c.get('scene') for c in doc['cues']}
+        missing = []
+        for s in scenes:
+            sid = s['id']
+            if sid in have:
+                continue
+            extra = [c for c in pdoc['cues'] if s['from'] <= c['f'] < s['to']]
+            if extra:
+                doc['cues'] = doc['cues'] + extra
+                missing.append(f"{sid}(+{len(extra)})")
+        if missing:
+            note += '  + provisional cues for empty scenes ' + ' '.join(missing)
+    if 'music' not in doc:
+        doc['music'] = pdoc['music']
+    return doc, note
 
 
 def write_wav24(path, x):
@@ -852,12 +900,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--provisional', action='store_true')
     ap.add_argument('--cues', default=os.path.join(HERE, 'cues.json'))
-    ap.add_argument('--no-verify', action='store_true')
+    ap.add_argument('--verify', action='store_true', help='also run verify_audio.py (adds ~20 s): section table, accent onsets, PNG')
+    ap.add_argument('--no-verify', action='store_true', help=argparse.SUPPRESS)
+    ap.add_argument('--no-scene-fallback', action='store_true', help='do not borrow provisional cues for scenes without cues')
     ap.add_argument('--out', default=os.path.join(ROOT, 'public', 'audio', 'master.wav'))
     a = ap.parse_args()
     T0 = time.time()
     global POOLS
-    doc, used = load_cues(a.cues, a.provisional)
+    doc, used = load_cues(a.cues, a.provisional, not a.no_scene_fallback)
     cues = sorted(doc['cues'], key=lambda c: c['f'])
     mus_plan = doc['music']
     accents = list(mus_plan['accents'])
@@ -888,17 +938,18 @@ def main():
     final = S.fade(final, 0.0, 0.002)
     G = db2a(drive)
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
-    os.makedirs(os.path.join(HERE, 'stems'), exist_ok=True)
+    stems_dir = os.path.join(HERE, 'stems') if os.path.abspath(a.out) == os.path.join(ROOT, 'public', 'audio', 'master.wav') else os.path.join(os.path.dirname(os.path.abspath(a.out)), 'stems_test')
+    os.makedirs(stems_dir, exist_ok=True)
     write_wav24(a.out, final)
     mm = S.mono_low(S.filt(music, S.rbj('hp', 28, 0.7)), 120) * G
     ss = S.mono_low(S.filt(sfx, S.rbj('hp', 28, 0.7)), 120) * G
-    write_wav24(os.path.join(HERE, 'stems', 'music.wav'), np.clip(mm, -1, 1))
-    write_wav24(os.path.join(HERE, 'stems', 'sfx.wav'), np.clip(ss, -1, 1))
+    write_wav24(os.path.join(stems_dir, 'music.wav'), np.clip(mm, -1, 1))
+    write_wav24(os.path.join(stems_dir, 'sfx.wav'), np.clip(ss, -1, 1))
     log(f'master: LUFS {S.lufs(final):.2f}  TP {S.true_peak_db(final):.2f} dBTP  ({time.time()-T0:.1f}s total)')
     log('wrote', a.out)
-    if not a.no_verify:
+    if a.verify and not a.no_verify:
         import verify_audio
-        verify_audio.run(a.out, os.path.join(HERE, 'stems'), doc, os.path.join(HERE, 'master_overview.png'))
+        verify_audio.run(a.out, stems_dir, doc, os.path.join(HERE, 'master_overview.png'))
     log(f'done in {time.time()-T0:.1f}s')
 
 

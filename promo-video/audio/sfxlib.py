@@ -265,21 +265,39 @@ def rbj(kind, f0, Q=0.7071, gain_db=0.0, sr=SR):
     return b / a[0], a / a[0]
 
 
-def filt(x, *sections, pad=0.5):
-    """Apply cascaded biquads (b, a) exactly (incl. phase) in the frequency domain:
-    Y(k) = X(k) * prod H(e^{jw_k}).  pad seconds of zero padding absorb the IIR ring-out
-    (otherwise it would wrap around). Vectorised -> ~100x faster than a Python sample loop."""
-    x = np.asarray(x, float)
-    n = len(x)
-    N = 1 << int(np.ceil(np.log2(n + ns(pad) + 1)))
-    X = np.fft.rfft(x, N, axis=0)
+_H_CACHE = {}
+
+
+def _response(sections, N):
+    """frequency response of a biquad cascade on the N-point rfft grid (cached for long transforms)"""
+    key = (N,) + tuple((tuple(np.round(b, 14)), tuple(np.round(a, 14))) for b, a in sections)
+    if key in _H_CACHE:
+        return _H_CACHE[key]
     z = np.exp(-2j * np.pi * np.arange(N // 2 + 1) / N)
     H = np.ones_like(z)
     for b, a in sections:
         H *= (b[0] + b[1] * z + b[2] * z * z) / (a[0] + a[1] * z + a[2] * z * z)
-    if x.ndim == 2:
-        H = H[:, None]
-    return np.fft.irfft(X * H, N, axis=0)[:n]
+    if N >= (1 << 20):
+        if len(_H_CACHE) > 12:
+            _H_CACHE.pop(next(iter(_H_CACHE)))
+        _H_CACHE[key] = H
+    return H
+
+
+def filt(x, *sections, pad=0.5):
+    """Apply cascaded biquads (b, a) exactly (incl. phase) in the frequency domain:
+    Y(k) = X(k) * prod H(e^{jw_k}).  pad seconds of zero padding absorb the IIR ring-out
+    (otherwise it would wrap around). Vectorised -> ~100x faster than a Python sample loop.
+    Channels are transformed channel-major (contiguous) which is ~2.5x faster for long stereo files."""
+    x = np.asarray(x, float)
+    n = len(x)
+    N = 1 << int(np.ceil(np.log2(n + ns(pad) + 1)))
+    two = x.ndim == 2
+    xt = np.ascontiguousarray(x.T) if two else x[None, :]
+    X = np.fft.rfft(xt, N, axis=1)
+    X *= _response(sections, N)[None, :]
+    y = np.fft.irfft(X, N, axis=1)[:, :n]
+    return np.ascontiguousarray(y.T) if two else y[0]
 
 
 def lp(x, f, Q=0.7071):
@@ -429,7 +447,8 @@ def conv(x, ir):
     x, ir = st(x), st(ir)
     n = len(x) + len(ir) - 1
     N = 1 << int(np.ceil(np.log2(n)))
-    return np.fft.irfft(np.fft.rfft(x, N, axis=0) * np.fft.rfft(ir, N, axis=0), N, axis=0)[:n]
+    X = np.fft.rfft(np.ascontiguousarray(x.T), N, axis=1) * np.fft.rfft(np.ascontiguousarray(ir.T), N, axis=1)
+    return np.ascontiguousarray(np.fft.irfft(X, N, axis=1)[:, :n].T)
 
 
 FV_COMBS = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617]  # @44.1k (Jezar, tuning.h)
