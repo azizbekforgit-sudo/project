@@ -1,0 +1,144 @@
+{
+  "fps": 30,
+  "beat": 15,
+  "bar": 60,
+  "total": 1800,
+  "scenes": [
+    {
+      "id": "s01",
+      "name": "Hook",
+      "from": 0,
+      "to": 180
+    },
+    {
+      "id": "s02",
+      "name": "Chain",
+      "from": 180,
+      "to": 420
+    },
+    {
+      "id": "s03",
+      "name": "Reveal",
+      "from": 420,
+      "to": 600
+    },
+    {
+      "id": "s04",
+      "name": "Sell",
+      "from": 600,
+      "to": 810
+    },
+    {
+      "id": "s05",
+      "name": "Buy",
+      "from": 810,
+      "to": 990
+    },
+    {
+      "id": "s06",
+      "name": "Order",
+      "from": 990,
+      "to": 1230
+    },
+    {
+      "id": "s07",
+      "name": "Talk",
+      "from": 1230,
+      "to": 1380
+    },
+    {
+      "id": "s08",
+      "name": "Comfort",
+      "from": 1380,
+      "to": 1560
+    },
+    {
+      "id": "s09",
+      "name": "Values",
+      "from": 1560,
+      "to": 1620
+    },
+    {
+      "id": "s10",
+      "name": "End",
+      "from": 1620,
+      "to": 1800
+    }
+  ],
+  "music": {
+    "bpm": 120,
+    "key": "A minor",
+    "sections": [
+      {
+        "from": 0,
+        "to": 180,
+        "name": "intro-tension",
+        "energy": 0.25,
+        "note": "dark dutar drone + sparse doira taps, Hijaz motif (E–F–G#–A), no kick"
+      },
+      {
+        "from": 180,
+        "to": 405,
+        "name": "problem-build",
+        "energy": 0.5,
+        "note": "half-time kick enters at 180, bass pulse, tension rises each bar; doira roll riser 345→405"
+      },
+      {
+        "from": 405,
+        "to": 420,
+        "name": "hush",
+        "energy": 0,
+        "note": "near-silence (only room tail) — pre-reveal hush"
+      },
+      {
+        "from": 420,
+        "to": 480,
+        "name": "collapse",
+        "energy": 0.35,
+        "note": "filtered groove + riser that peaks exactly at 480"
+      },
+      {
+        "from": 480,
+        "to": 1560,
+        "name": "main-groove",
+        "energy": 0.85,
+        "note": "DROP at 480: full groove, doira + kick + clap, rubab lead, F–C–G–Am, bright and hopeful"
+      },
+      {
+        "from": 1560,
+        "to": 1620,
+        "name": "values-stops",
+        "energy": 0.7,
+        "note": "stop-time hits on 1560, 1575, 1590 (one per word), groove drops out between"
+      },
+      {
+        "from": 1620,
+        "to": 1740,
+        "name": "finale",
+        "energy": 0.8,
+        "note": "warm lift, A major colour, pads wide, lead plays the hook motif resolved"
+      },
+      {
+        "from": 1740,
+        "to": 1800,
+        "name": "tail",
+        "energy": 0.2,
+        "note": "final hit at 1740, ring-out, ends clean at 1800"
+      }
+    ],
+    "accents": [
+      480,
+      600,
+      810,
+      990,
+      1230,
+      1380,
+      1560,
+      1575,
+      1590,
+      1620,
+      1740
+    ]
+  },
+  "cues": []
+}

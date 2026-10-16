@@ -1,0 +1,6 @@
+curl -sSf -o public/fonts/gf/JetBrainsMono-500-cyrillic.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD_OwG_TA.woff2'
+curl -sSf -o public/fonts/gf/JetBrainsMono-500-cyrillic-ext.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD2OwG_TA.woff2'
+curl -sSf -o public/fonts/gf/JetBrainsMono-500-latin.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2'
+curl -sSf -o public/fonts/gf/JetBrainsMono-700-cyrillic.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD_OwG_TA.woff2'
+curl -sSf -o public/fonts/gf/JetBrainsMono-700-cyrillic-ext.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD2OwG_TA.woff2'
+curl -sSf -o public/fonts/gf/JetBrainsMono-700-latin.woff2 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2'

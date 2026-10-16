@@ -1,0 +1,7 @@
+node_modules/
+build/
+out/
+audio/stems/
+*.log
+# real-app screenshots (61 MB) — only the ones used by the film get committed at the end
+public/screens/

@@ -1,0 +1,30 @@
+{
+  "name": "agroverse-promo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "still": "remotion still src/index.ts",
+    "bundle": "remotion bundle src/index.ts --out-dir=build",
+    "render": "remotion render build Main out/agroverse-16x9.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.536",
+    "@remotion/fonts": "4.0.536",
+    "@remotion/google-fonts": "4.0.536",
+    "@remotion/media-utils": "4.0.536",
+    "@remotion/motion-blur": "4.0.536",
+    "@remotion/noise": "4.0.536",
+    "@remotion/paths": "4.0.536",
+    "@remotion/shapes": "4.0.536",
+    "@remotion/transitions": "4.0.536",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.536"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "tsx": "4.19.2",
+    "typescript": "5.8.3"
+  }
+}
