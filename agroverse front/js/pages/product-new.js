@@ -80,6 +80,11 @@ function renderProductNew() {
               <input type="text" id="pn-location" placeholder="${t('pn_location_ph')}" class="pn-input" maxlength="200" />
               <small>${t('pn_location_hint')}</small>
             </div>
+            <div class="wz-field">
+              <label for="pn-phone">${t('pn_phone')} <span class="req">*</span></label>
+              <input type="tel" id="pn-phone" inputmode="tel" autocomplete="tel" placeholder="+998 90 123 45 67" class="pn-input" maxlength="20" value="${escHtml(Auth.getUser()?.phone || '')}" />
+              <small>${t('pn_phone_hint')}</small>
+            </div>
             <label class="pn-check">
               <input type="checkbox" id="pn-delivery" />
               <span><b>${t('pn_delivery')}</b><small>${t('pn_delivery_hint')}</small></span>
@@ -146,13 +151,20 @@ function renderProductNew() {
   document.getElementById('pn-unit').addEventListener('change', syncQtyUnit);
   syncQtyUnit();
 
+  // 9 цифр (90 123 45 67) или 12 с кодом страны (+998 90 123 45 67)
+  function validPhone(v) {
+    const d = String(v).replace(/\D/g, '');
+    return d.length === 9 || (d.length === 12 && d.startsWith('998'));
+  }
+
   function validateStep(n) {
     let ok = true;
-    const need = n === 1 ? ['pn-name', 'pn-category'] : ['pn-price', 'pn-quantity', 'pn-location'];
+    const need = n === 1 ? ['pn-name', 'pn-category'] : ['pn-price', 'pn-quantity', 'pn-location', 'pn-phone'];
     need.forEach(id => {
       const el = document.getElementById(id);
       const v = el.value.trim();
-      const bad = !v || ((id === 'pn-price' || id === 'pn-quantity') && !(parseFloat(v) > 0));
+      const bad = !v || ((id === 'pn-price' || id === 'pn-quantity') && !(parseFloat(v) > 0))
+        || (id === 'pn-phone' && !validPhone(v));
       el.classList.toggle('error', bad);
       if (bad) ok = false;
     });
@@ -186,6 +198,7 @@ function renderProductNew() {
         ${row(t('pn_price'), `${fmtNum(preview.price)} ${t('currency')}/${unitLabel(preview.unit)}`, 2)}
         ${row(t('pn_qty'), `${fmtNum(preview.quantity)} ${unitLabel(preview.unit)}`, 2)}
         ${row(t('pn_location'), escHtml(preview.pickup_location), 2)}
+        ${row(t('pn_phone'), escHtml(v('pn-phone')), 2)}
         ${row(t('pn_delivery'), document.getElementById('pn-delivery').checked ? '✓' : '—', 2)}
       </div>`;
   }
@@ -264,6 +277,7 @@ function renderProductNew() {
       fd.append('quantity_available', parseFloat(quantity));
       fd.append('delivery_available', document.getElementById('pn-delivery')?.checked || false);
       fd.append('pickup_location', document.getElementById('pn-location')?.value?.trim() || '');
+      fd.append('contact_phone', document.getElementById('pn-phone')?.value?.trim() || '');
       photoFiles.forEach(f => fd.append('photos', f));
 
       await API.createProduct(fd);

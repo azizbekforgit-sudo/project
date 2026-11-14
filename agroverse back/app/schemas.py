@@ -94,6 +94,8 @@ class ProductResponse(BaseModel):
     status: ProductStatus
     delivery_available: bool = False
     pickup_location: str = ""
+    contact_phone: str = ""
+    views: int = 0
     is_demo: bool = False
     created_at: Optional[datetime] = None
 

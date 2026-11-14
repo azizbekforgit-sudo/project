@@ -106,6 +106,8 @@ function normalizeProduct(p) {
     status: p.status,
     delivery_available: p.delivery_available || false,
     pickup_location: p.pickup_location || '',
+    contact_phone: p.contact_phone || '',
+    views: p.views || 0,
     created_at: p.created_at,
   };
 }
@@ -128,6 +130,7 @@ const API = {
     const list = Array.isArray(res) ? res : (res?.products || []);
     return list.map(normalizeProduct);
   },
+  countView: (id) => request('POST', `/api/products/${id}/view`),
   async getProduct(id) {
     const res = await request('GET', `/api/products/${id}`);
     return normalizeProduct(res);

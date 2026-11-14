@@ -755,3 +755,9 @@ html[data-theme="dark"] .lp-role.farmer .lp-role-ic { background: rgba(255,255,2
 .pn-banner-tx b { color: var(--ink); font-size: 17px; }
 .pn-banner-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 @media (max-width: 560px) { .pn-banner-btns { width: 100%; } .pn-banner-btns .btn { flex: 1; } }
+
+/* телефон продавца на карточке товара: номер скрыт до нажатия */
+.pd2-phone { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; }
+.pd2-phone > i { color: var(--field); font-size: 18px; }
+.pd2-phone-num { font-weight: 700; font-size: 18px; letter-spacing: .01em; color: var(--ink); text-decoration: none; margin-right: auto; }
+.pd2-phone a.pd2-phone-num { color: var(--field); }

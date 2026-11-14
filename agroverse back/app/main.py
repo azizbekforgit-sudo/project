@@ -346,6 +346,9 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 
         # ── orders: кто отменил заказ + updated_at без DEFAULT в старой схеме ──
         await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS is_demo BOOLEAN DEFAULT FALSE")
+        await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(30) DEFAULT ''")
+        await safe_exec("ALTER TABLE products ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0")
+        await safe_exec("UPDATE products SET views = 0 WHERE views IS NULL")
         await safe_exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_by VARCHAR(20)")
         await safe_exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()")
         await safe_exec("ALTER TABLE orders ALTER COLUMN updated_at SET DEFAULT NOW()")
@@ -486,6 +489,9 @@ async def my_products_compat(
             photos=product.photos or [], rating=product.rating,
             status=product.status, delivery_available=product.delivery_available or False,
  is_demo=bool(getattr(product, 'is_demo', False)),
+            pickup_location=getattr(product, 'pickup_location', '') or '',
+            contact_phone=getattr(product, 'contact_phone', '') or '',
+            views=getattr(product, 'views', 0) or 0,
             created_at=product.created_at,
         ))
     return ProductListResponse(total=len(products), page=1, limit=len(products), products=product_responses)
