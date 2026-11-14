@@ -22,6 +22,88 @@ function pdDate(iso) {
   return isNaN(d) ? '—' : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+/* «5 дней назад», «1 hafta oldin», «3 hours ago». Время с сервера приходит без пояснения часового
+   пояса (UTC), поэтому читаем его как UTC. */
+function pdParse(iso) {
+  if (!iso) return null;
+  const hasTz = /[zZ]|[+-]\d\d:?\d\d$/.test(iso);
+  const d = new Date(hasTz ? iso : iso + 'Z');
+  return isNaN(d) ? null : d;
+}
+
+function pdPlural(n, forms) { // русские формы: 1 / 2-4 / 5+
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return forms[0];
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return forms[1];
+  return forms[2];
+}
+
+function pdAgo(iso) {
+  const d = pdParse(iso);
+  if (!d) return '—';
+  const sec = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+  const units = [
+    [60, 'min'], [3600, 'hour'], [86400, 'day'], [604800, 'week'], [2592000, 'month'], [31536000, 'year'],
+  ];
+  const lang = (window.I18nManager && I18nManager.current) || 'uz';
+  if (sec < 60) return { ru: 'только что', uz: 'hozirgina', en: 'just now' }[lang] || 'hozirgina';
+  let n = 0, key = 'min';
+  for (let i = units.length - 1; i >= 0; i--) {
+    if (sec >= units[i][0]) { n = Math.floor(sec / units[i][0]); key = units[i][1]; break; }
+  }
+  if (lang === 'ru') {
+    const f = { min: ['минуту', 'минуты', 'минут'], hour: ['час', 'часа', 'часов'], day: ['день', 'дня', 'дней'],
+                week: ['неделю', 'недели', 'недель'], month: ['месяц', 'месяца', 'месяцев'], year: ['год', 'года', 'лет'] }[key];
+    return `${n} ${pdPlural(n, f)} назад`;
+  }
+  if (lang === 'en') return `${n} ${key}${n === 1 ? '' : 's'} ago`;
+  const uz = { min: 'daqiqa', hour: 'soat', day: 'kun', week: 'hafta', month: 'oy', year: 'yil' }[key];
+  return `${n} ${uz} oldin`;
+}
+
+function pdViews(n) {
+  n = Number(n) || 0;
+  const lang = (window.I18nManager && I18nManager.current) || 'uz';
+  const num = fmtNum(n);
+  if (lang === 'ru') return `${num} ${pdPlural(n, ['просмотр', 'просмотра', 'просмотров'])}`;
+  if (lang === 'en') return `${num} ${n === 1 ? 'view' : 'views'}`;
+  return `${num} ko‘rish`;
+}
+
+/* +998901234567 → «+998 90 123 45 67»; для скрытого вида последние цифры прячем */
+function pdPhoneView(raw, hidden) {
+  const d = String(raw || '').replace(/\D/g, '');
+  if (d.length !== 12) return raw || '';
+  const parts = [d.slice(3, 5), d.slice(5, 8), d.slice(8, 10), d.slice(10, 12)];
+  return hidden ? `+998 ${parts[0]} ••• •• ••` : `+998 ${parts.join(' ')}`;
+}
+
+function pdShowPhone(btn) {
+  const box = btn.closest('.pd2-phone');
+  const raw = box.dataset.phone;
+  box.innerHTML = `<i class="fa-solid fa-phone"></i>
+    <a class="pd2-phone-num" href="tel:${escHtml(raw)}">${escHtml(pdPhoneView(raw, false))}</a>`;
+}
+window.pdShowPhone = pdShowPhone;
+
+/* считаем просмотр: один браузер — один раз в сутки на товар, свой товар не считаем */
+function pdCountView(p, own) {
+  if (own) return;
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem('av_viewed') || '{}'); } catch (e) { seen = {}; }
+  const now = Date.now();
+  if (seen[p.id] && now - seen[p.id] < 86400000) return;
+  API.countView(p.id).then((r) => {
+    seen[p.id] = now;
+    // не даём словарю расти без конца
+    const ids = Object.keys(seen);
+    if (ids.length > 300) ids.sort((a, b) => seen[a] - seen[b]).slice(0, ids.length - 300).forEach((k) => delete seen[k]);
+    try { localStorage.setItem('av_viewed', JSON.stringify(seen)); } catch (e) { /* ignore */ }
+    const el = document.getElementById('pd-views');
+    if (el && r && typeof r.views === 'number') el.textContent = pdViews(r.views);
+  }).catch(() => { /* просмотр — не критично */ });
+}
+
 function pdShowPhoto(i) {
   const main = document.getElementById('pd2-main-img');
   const thumbs = document.querySelectorAll('.pd2-thumb');
@@ -110,7 +192,8 @@ async function renderProduct(id) {
           <div class="pd2-specs">
             <div class="pd2-spec"><i class="fa-solid fa-tag"></i><span>${t('pd_kind')}</span><b>${catLabel(p.category) || '—'}</b></div>
             ${p.pickup_location ? `<div class="pd2-spec"><i class="fa-solid fa-location-dot"></i><span>${t('pd_region')}</span><b>${escHtml(p.pickup_location)}</b></div>` : ''}
-            <div class="pd2-spec"><i class="fa-regular fa-calendar"></i><span>${t('pd_posted')}</span><b>${pdDate(p.created_at)}</b></div>
+            <div class="pd2-spec"><i class="fa-regular fa-clock"></i><span>${t('pd_posted')}</span><b title="${pdDate(p.created_at)}">${pdAgo(p.created_at)}</b></div>
+            <div class="pd2-spec"><i class="fa-regular fa-eye"></i><span>${t('pd_views')}</span><b id="pd-views">${pdViews(p.views)}</b></div>
             ${p.delivery_available ? `<div class="pd2-spec"><i class="fa-solid fa-truck"></i><span>${t('pd_how_get')}</span><b>${t('pd_delivery_badge')}</b></div>` : ''}
           </div>
 
@@ -126,6 +209,12 @@ async function renderProduct(id) {
                 </div>
               </div>
             </div>
+            ${p.contact_phone ? `
+              <div class="pd2-phone" data-phone="${escHtml(p.contact_phone)}">
+                <i class="fa-solid fa-phone"></i>
+                <span class="pd2-phone-num">${escHtml(pdPhoneView(p.contact_phone, true))}</span>
+                <button type="button" class="btn btn-outline btn-sm" onclick="pdShowPhone(this)">${t('pd_show_phone')}</button>
+              </div>` : ''}
             ${!own && Auth.isLoggedIn() ? `
               <button class="btn btn-primary btn-lg btn-full" onclick="pdContactSeller(${p.id}, this)"><i class="fa-solid fa-comment-dots"></i> ${t('pd_contact')}</button>
               <small>${t('pd_contact_hint')}</small>` : ''}
@@ -145,6 +234,8 @@ async function renderProduct(id) {
         </div>
       </section>
     `;
+
+    pdCountView(p, own);
 
     if (isBuyer) {
       const qtyEl = document.getElementById('qty');

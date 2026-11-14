@@ -29,7 +29,7 @@
       mk_search_ph: 'Название или категория товара',
       mk_show_filters: 'Фильтры',
 
-      pd_kind: 'Вид товара', pd_region: 'Где забрать', pd_posted: 'Размещено', pd_available: 'В наличии',
+      pd_kind: 'Вид товара', pd_region: 'Где забрать', pd_posted: 'Размещено', pd_views: 'Просмотры', pd_show_phone: 'Показать номер', pd_available: 'В наличии',
       pd_contact: 'Написать продавцу', pd_about: 'О товаре', pd_seller: 'Продавец',
       pd_badge_fresh: 'Свежий урожай', pd_badge_check: 'Можно спросить до заказа', pd_badge_direct: 'Напрямую от фермера',
       pd_order_title: 'Оформить заказ', pd_qty: 'Количество', pd_how_get: 'Как получить', pd_total: 'Итого',
@@ -100,7 +100,7 @@
       mk_search_ph: 'Mahsulot nomi yoki kategoriya bo‘yicha qidirish',
       mk_show_filters: 'Filtrlar',
 
-      pd_kind: 'Mahsulot turi', pd_region: 'Qayerdan olish', pd_posted: 'Joylangan', pd_available: 'Mavjud',
+      pd_kind: 'Mahsulot turi', pd_region: 'Qayerdan olish', pd_posted: 'Joylangan', pd_views: 'Ko‘rishlar', pd_show_phone: 'Raqamni ko‘rsatish', pd_available: 'Mavjud',
       pd_contact: 'Sotuvchi bilan bog‘lanish', pd_about: 'Mahsulot haqida', pd_seller: 'Sotuvchi',
       pd_badge_fresh: 'Yangi hosil', pd_badge_check: 'Buyurtmadan oldin so‘rash mumkin', pd_badge_direct: 'To‘g‘ridan-to‘g‘ri fermerdan',
       pd_order_title: 'Buyurtma berish', pd_qty: 'Miqdor', pd_how_get: 'Qanday olasiz', pd_total: 'Jami',
@@ -171,7 +171,7 @@
       mk_search_ph: 'Search by product name or category',
       mk_show_filters: 'Filters',
 
-      pd_kind: 'Product type', pd_region: 'Pickup place', pd_posted: 'Posted', pd_available: 'Available',
+      pd_kind: 'Product type', pd_region: 'Pickup place', pd_posted: 'Posted', pd_views: 'Views', pd_show_phone: 'Show number', pd_available: 'Available',
       pd_contact: 'Contact the seller', pd_about: 'About the product', pd_seller: 'Seller',
       pd_badge_fresh: 'Fresh harvest', pd_badge_check: 'Ask before you order', pd_badge_direct: 'Straight from the farmer',
       pd_order_title: 'Place an order', pd_qty: 'Quantity', pd_how_get: 'How you get it', pd_total: 'Total',

@@ -77,6 +77,8 @@ class Product(Base):
     quantity_available = Column(Numeric(12, 2), nullable=False)
     delivery_available = Column(Boolean, default=False)
     pickup_location = Column(String(300), nullable=True)
+    contact_phone = Column(String(30), default="")  # телефон для связи, который указал продавец
+    views = Column(Integer, default=0)  # сколько раз открывали карточку
     photos = Column(JSON, default=list)
     certificates = Column(JSON, default=list)
     is_demo = Column(Boolean, default=False)  # пример для наполнения рынка, заказать нельзя

@@ -22,6 +22,19 @@ except ImportError:
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
+
+def normalize_phone(raw: str) -> str:
+    """Телефон для связи в виде +998XXXXXXXXX. Пустая строка, если номер не указан.
+    Принимает «90 123 45 67», «+998 90 123-45-67», «998901234567»."""
+    digits = re.sub(r"\D", "", raw or "")
+    if not digits:
+        return ""
+    if len(digits) == 9:
+        digits = "998" + digits
+    if len(digits) != 12 or not digits.startswith("998"):
+        raise HTTPException(status_code=400, detail="Неверный номер телефона. Пример: +998 90 123 45 67")
+    return "+" + digits
+
 async def save_photo(db: AsyncSession, file: UploadFile, owner_id: int) -> str:
     # фото хранится в базе, а не на диске: диск Render очищается при каждом деплое
     return await save_upload(db, file, "product", owner_id=owner_id, images_only=True)
@@ -92,6 +105,8 @@ async def get_products(
             delivery_available=product.delivery_available or False,
             is_demo=bool(getattr(product, 'is_demo', False)),
             pickup_location=getattr(product, 'pickup_location', '') or '',
+            contact_phone=getattr(product, 'contact_phone', '') or '',
+            views=getattr(product, 'views', 0) or 0,
             created_at=product.created_at
         ))
 
@@ -131,6 +146,8 @@ async def get_my_products(
             delivery_available=product.delivery_available or False,
             is_demo=bool(getattr(product, 'is_demo', False)),
             pickup_location=getattr(product, 'pickup_location', '') or '',
+            contact_phone=getattr(product, 'contact_phone', '') or '',
+            views=getattr(product, 'views', 0) or 0,
             created_at=product.created_at
         ))
 
@@ -140,6 +157,32 @@ async def get_my_products(
         limit=len(products),
         products=product_responses
     )
+
+
+@router.post("/{product_id}/view")
+async def count_view(product_id: int, request: Request, db: AsyncSession = Depends(get_db)):
+    """+1 к просмотрам карточки. Свои просмотры продавца не считаем.
+    Гость тоже считается; повторные открытия одним браузером отсекает сам сайт (раз в сутки на товар)."""
+    result = await db.execute(select(Product.fermer_id, Product.views).where(Product.id == product_id))
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Product not found")
+    viewer_id = None
+    auth = request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        try:
+            from app.auth import decode_token
+            viewer_id = int(decode_token(auth[7:]).get("sub"))
+        except Exception:
+            viewer_id = None
+    if viewer_id is not None and viewer_id == row[0]:
+        return {"views": row[1] or 0, "counted": False}
+    await db.execute(
+        update(Product).where(Product.id == product_id).values(views=func.coalesce(Product.views, 0) + 1)
+    )
+    await db.commit()
+    result = await db.execute(select(Product.views).where(Product.id == product_id))
+    return {"views": result.scalar() or 0, "counted": True}
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
@@ -167,6 +210,8 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         delivery_available=product.delivery_available or False,
         is_demo=bool(getattr(product, 'is_demo', False)),
         pickup_location=getattr(product, 'pickup_location', '') or '',
+        contact_phone=getattr(product, 'contact_phone', '') or '',
+        views=getattr(product, 'views', 0) or 0,
         created_at=product.created_at
     )
 
@@ -180,6 +225,7 @@ async def create_product(
     quantity_available: float = Form(...),
     delivery_available: bool = Form(False),
     pickup_location: str = Form(""),
+    contact_phone: str = Form(""),
     photos: List[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_fermer),
     db: AsyncSession = Depends(get_db)
@@ -226,6 +272,9 @@ async def create_product(
         quantity_available=quantity_available,
         delivery_available=delivery_available,
         pickup_location=pickup_location or "",
+        # телефон из формы; если пусто (старый клиент) — номер самого продавца
+        contact_phone=normalize_phone(contact_phone) or normalize_phone(current_user.phone),
+        views=0,
         status=ProductStatus.ACTIVE
     )
     db.add(new_product)
@@ -268,6 +317,8 @@ async def create_product(
         delivery_available=new_product.delivery_available or False,
         is_demo=bool(getattr(new_product, 'is_demo', False)),
         pickup_location=new_product.pickup_location or "",
+        contact_phone=getattr(new_product, 'contact_phone', '') or '',
+        views=getattr(new_product, 'views', 0) or 0,
         created_at=new_product.created_at
     )
 
@@ -307,6 +358,8 @@ async def update_product(
         delivery_available=product.delivery_available or False,
         is_demo=bool(getattr(product, 'is_demo', False)),
         pickup_location=getattr(product, 'pickup_location', '') or '',
+        contact_phone=getattr(product, 'contact_phone', '') or '',
+        views=getattr(product, 'views', 0) or 0,
         created_at=product.created_at
     )
 
